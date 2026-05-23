@@ -9,5 +9,6 @@ export function isOpenAIConfigured() {
 }
 
 export function getAppUrl() {
-  return process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const raw = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  return raw.trim().replace(/\/+$/, "");
 }

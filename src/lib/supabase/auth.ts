@@ -1,6 +1,10 @@
 import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
+function normalizeEmail(email: string) {
+  return email.trim().toLowerCase();
+}
+
 export function getAuthRedirectUrl() {
   if (typeof window === "undefined") return "";
   return `${window.location.origin}/auth/callback`;
@@ -11,9 +15,18 @@ export async function signInWithEmail(email: string, password: string) {
     return { error: null as { message: string } | null, demo: true };
   }
 
-  const supabase = createClient();
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
-  return { error, demo: false };
+  try {
+    const supabase = createClient();
+    const { error } = await supabase.auth.signInWithPassword({
+      email: normalizeEmail(email),
+      password: password.trim(),
+    });
+    return { error, demo: false };
+  } catch (err) {
+    const message =
+      err instanceof Error ? err.message : "Unable to connect to authentication service";
+    return { error: { message }, demo: false };
+  }
 }
 
 export async function signUpWithEmail(name: string, email: string, password: string) {
@@ -21,21 +34,27 @@ export async function signUpWithEmail(name: string, email: string, password: str
     return { error: null as { message: string } | null, demo: true, needsConfirmation: false };
   }
 
-  const supabase = createClient();
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: { full_name: name },
-      emailRedirectTo: getAuthRedirectUrl(),
-    },
-  });
+  try {
+    const supabase = createClient();
+    const { data, error } = await supabase.auth.signUp({
+      email: normalizeEmail(email),
+      password: password.trim(),
+      options: {
+        data: { full_name: name.trim() },
+        emailRedirectTo: getAuthRedirectUrl(),
+      },
+    });
 
-  return {
-    error,
-    demo: false,
-    needsConfirmation: !data.session && !error,
-  };
+    return {
+      error,
+      demo: false,
+      needsConfirmation: !data.session && !error,
+    };
+  } catch (err) {
+    const message =
+      err instanceof Error ? err.message : "Unable to connect to authentication service";
+    return { error: { message }, demo: false, needsConfirmation: false };
+  }
 }
 
 export async function signInWithOAuth(provider: "google" | "apple") {

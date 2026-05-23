@@ -87,7 +87,9 @@ export function LoginForm() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
               label={t("auth.email")}
-              type="email"
+              type="text"
+              inputMode="email"
+              autoComplete="email"
               placeholder={t("auth.emailPlaceholder")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
