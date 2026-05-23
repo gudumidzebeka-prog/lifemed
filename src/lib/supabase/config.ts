@@ -13,7 +13,8 @@ function isValidHttpUrl(value: string) {
 }
 
 export function getSupabaseUrl() {
-  return cleanEnv(process.env.NEXT_PUBLIC_SUPABASE_URL);
+  const url = cleanEnv(process.env.NEXT_PUBLIC_SUPABASE_URL);
+  return url.replace(/\/+$/, "");
 }
 
 export function getSupabaseAnonKey() {

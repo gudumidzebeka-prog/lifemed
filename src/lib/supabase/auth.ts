@@ -10,22 +10,38 @@ export function getAuthRedirectUrl() {
   return `${window.location.origin}/auth/callback`;
 }
 
+function authErrorMessage(err: unknown) {
+  const message = err instanceof Error ? err.message : "Unable to connect to authentication service";
+  if (message.includes("Unexpected token") || message.includes("<!DOCTYPE")) {
+    return "Supabase configuration error on server. Check Vercel env vars and redeploy.";
+  }
+  return message;
+}
+
 export async function signInWithEmail(email: string, password: string) {
   if (!isSupabaseConfigured()) {
     return { error: null as { message: string } | null, demo: true };
   }
 
   try {
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({
-      email: normalizeEmail(email),
-      password: password.trim(),
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: normalizeEmail(email),
+        password: password.trim(),
+      }),
     });
-    return { error, demo: false };
+
+    const data = (await res.json()) as { error?: string };
+
+    if (!res.ok) {
+      return { error: { message: data.error ?? "Login failed" }, demo: false };
+    }
+
+    return { error: null, demo: false };
   } catch (err) {
-    const message =
-      err instanceof Error ? err.message : "Unable to connect to authentication service";
-    return { error: { message }, demo: false };
+    return { error: { message: authErrorMessage(err) }, demo: false };
   }
 }
 
@@ -35,25 +51,33 @@ export async function signUpWithEmail(name: string, email: string, password: str
   }
 
   try {
-    const supabase = createClient();
-    const { data, error } = await supabase.auth.signUp({
-      email: normalizeEmail(email),
-      password: password.trim(),
-      options: {
-        data: { full_name: name.trim() },
-        emailRedirectTo: getAuthRedirectUrl(),
-      },
+    const res = await fetch("/api/auth/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: name.trim(),
+        email: normalizeEmail(email),
+        password: password.trim(),
+      }),
     });
 
+    const data = (await res.json()) as { error?: string; needsConfirmation?: boolean };
+
+    if (!res.ok) {
+      return { error: { message: data.error ?? "Signup failed" }, demo: false, needsConfirmation: false };
+    }
+
     return {
-      error,
+      error: null,
       demo: false,
-      needsConfirmation: !data.session && !error,
+      needsConfirmation: Boolean(data.needsConfirmation),
     };
   } catch (err) {
-    const message =
-      err instanceof Error ? err.message : "Unable to connect to authentication service";
-    return { error: { message }, demo: false, needsConfirmation: false };
+    return {
+      error: { message: authErrorMessage(err) },
+      demo: false,
+      needsConfirmation: false,
+    };
   }
 }
 
