@@ -1,0 +1,31 @@
+{
+  "name": "LifeMed — Your Lifelong Health Story",
+  "short_name": "LifeMed",
+  "description": "Securely store, organize, and share your complete health history from birth to present day.",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#f8fafa",
+  "theme_color": "#3a9d94",
+  "orientation": "portrait-primary",
+  "categories": ["health", "medical", "lifestyle"],
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Emergency Card",
+      "url": "/emergency",
+      "description": "Quick access to emergency medical information"
+    },
+    {
+      "name": "Upload Document",
+      "url": "/documents?upload=true",
+      "description": "Upload a new medical document"
+    }
+  ]
+}
