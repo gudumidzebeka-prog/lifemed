@@ -114,7 +114,7 @@ export const en: TranslationTree = {
     oauthApple: "Apple",
     oauthNotConfiguredLogin: "OAuth works after connecting Supabase",
     oauthNotConfiguredSignup: "OAuth works after connecting Supabase",
-    namePlaceholder: "Sarah Chen",
+    namePlaceholder: "Your name",
     emailPlaceholder: "you@example.com",
     passwordPlaceholder: "••••••••",
     passwordMinPlaceholder: "At least 8 characters",

@@ -60,7 +60,7 @@ import {
 
 import { createClient } from "@/lib/supabase/client";
 
-import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { isDemoModeEnabled, isSupabaseConfigured } from "@/lib/supabase/config";
 
 import type {
 
@@ -100,9 +100,42 @@ function newLocalId() {
 
 
 
+const EMPTY_PROFILE: HealthProfile = {
+  id: "",
+  userId: "",
+  fullName: "",
+  dateOfBirth: "",
+  allergies: [],
+  chronicIllnesses: [],
+  emergencyContacts: [],
+  currentMedications: [],
+};
+
+function getInitialProfile() {
+  return isDemoModeEnabled() ? demoProfile : EMPTY_PROFILE;
+}
+
+function getInitialTimeline() {
+  return isDemoModeEnabled() ? demoTimeline : [];
+}
+
+function getInitialDocuments() {
+  return isDemoModeEnabled() ? demoDocuments : [];
+}
+
+function getInitialFamilyMembers() {
+  return isDemoModeEnabled() ? demoFamilyMembers : [];
+}
+
+function getInitialAppointments() {
+  return isDemoModeEnabled() ? demoAppointments : [];
+}
+
 function loadLocalAppointments(): Appointment[] {
 
-  if (typeof window === "undefined") return demoAppointments;
+  if (typeof window === "undefined") return getInitialAppointments();
+
+  if (!isDemoModeEnabled()) return [];
 
   try {
 
@@ -176,15 +209,15 @@ export function useHealthData() {
 
   const [loading, setLoading] = useState(true);
 
-  const [profile, setProfile] = useState<HealthProfile>(demoProfile);
+  const [profile, setProfile] = useState<HealthProfile>(getInitialProfile);
 
-  const [timeline, setTimeline] = useState<TimelineEvent[]>(demoTimeline);
+  const [timeline, setTimeline] = useState<TimelineEvent[]>(getInitialTimeline);
 
-  const [documents, setDocuments] = useState<HealthDocument[]>(demoDocuments);
+  const [documents, setDocuments] = useState<HealthDocument[]>(getInitialDocuments);
 
-  const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>(demoFamilyMembers);
+  const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>(getInitialFamilyMembers);
 
-  const [appointments, setAppointments] = useState<Appointment[]>(demoAppointments);
+  const [appointments, setAppointments] = useState<Appointment[]>(getInitialAppointments);
 
   const [userId, setUserId] = useState<string | null>(null);
 
@@ -236,15 +269,31 @@ export function useHealthData() {
 
         setMode("demo");
 
-        setProfile(demoProfile);
+        if (isDemoModeEnabled()) {
 
-        setTimeline(demoTimeline);
+          setProfile(demoProfile);
 
-        setDocuments(demoDocuments);
+          setTimeline(demoTimeline);
 
-        setFamilyMembers(demoFamilyMembers);
+          setDocuments(demoDocuments);
 
-        setAppointments(loadLocalAppointments());
+          setFamilyMembers(demoFamilyMembers);
+
+          setAppointments(loadLocalAppointments());
+
+        } else {
+
+          setProfile(EMPTY_PROFILE);
+
+          setTimeline([]);
+
+          setDocuments([]);
+
+          setFamilyMembers([]);
+
+          setAppointments([]);
+
+        }
 
         setUserId(null);
 

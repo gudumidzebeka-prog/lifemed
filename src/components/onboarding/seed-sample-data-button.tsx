@@ -2,17 +2,16 @@
 
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/components/providers/locale-provider";
-import { useHealthDataContext } from "@/components/providers/health-data-provider";
+import { isDemoModeEnabled } from "@/lib/supabase/config";
 import { Loader2, Sparkles } from "lucide-react";
 import { useState } from "react";
 
 export function SeedSampleDataButton() {
   const { t } = useTranslation();
-  const { isLive, timeline, reload } = useHealthDataContext();
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
 
-  if (!isLive || timeline.length > 0) return null;
+  if (!isDemoModeEnabled()) return null;
 
   const handleSeed = async () => {
     setLoading(true);
@@ -20,7 +19,7 @@ export function SeedSampleDataButton() {
       const res = await fetch("/api/onboarding/seed", { method: "POST" });
       if (res.ok) {
         setDone(true);
-        await reload();
+        window.location.reload();
       }
     } finally {
       setLoading(false);

@@ -6,6 +6,7 @@ import { Disclaimer } from "@/components/ui/badge";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { useTranslation } from "@/components/providers/locale-provider";
 import { APP_NAME } from "@/lib/constants";
+import { isDemoModeEnabled } from "@/lib/supabase/config";
 import {
   Heart,
   Shield,
@@ -18,6 +19,7 @@ import {
 
 export default function LandingPage() {
   const { t } = useTranslation();
+  const demoEnabled = isDemoModeEnabled();
 
   const features = [
     {
@@ -98,16 +100,20 @@ export default function LandingPage() {
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
-              <Link href="/dashboard">
-                <Button variant="secondary" size="lg" className="min-w-[200px]">
-                  {t("landing.ctaDemo")}
-                </Button>
-              </Link>
-              <Link href="/setup">
-                <Button variant="ghost" size="lg">
-                  {t("landing.ctaSetup")}
-                </Button>
-              </Link>
+              {demoEnabled && (
+                <>
+                  <Link href="/dashboard">
+                    <Button variant="secondary" size="lg" className="min-w-[200px]">
+                      {t("landing.ctaDemo")}
+                    </Button>
+                  </Link>
+                  <Link href="/setup">
+                    <Button variant="ghost" size="lg">
+                      {t("landing.ctaSetup")}
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>

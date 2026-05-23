@@ -2,7 +2,7 @@
 
 import { Badge } from "@/components/ui/badge";
 import { useTranslation } from "@/components/providers/locale-provider";
-import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { isDemoModeEnabled, isSupabaseConfigured } from "@/lib/supabase/config";
 import { Sparkles, Database } from "lucide-react";
 
 export function DataModeBanner({ mode }: { mode: "demo" | "live" }) {
@@ -22,6 +22,8 @@ export function DataModeBanner({ mode }: { mode: "demo" | "live" }) {
       </div>
     );
   }
+
+  if (!isDemoModeEnabled()) return null;
 
   return (
     <div className="mb-6 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950/20">

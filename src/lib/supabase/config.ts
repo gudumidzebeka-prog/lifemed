@@ -9,3 +9,8 @@ export function isSupabaseConfigured() {
       !key.includes("your-anon-key")
   );
 }
+
+/** Local-only preview without Supabase. Disabled on Vercel/production. */
+export function isDemoModeEnabled() {
+  return !isSupabaseConfigured();
+}
