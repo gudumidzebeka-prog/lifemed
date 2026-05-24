@@ -2,6 +2,7 @@
 
 import { createContext, useContext, type ReactNode } from "react";
 import { useHealthData, type DataMode } from "@/hooks/use-health-data";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 import type {
   Appointment,
   EmergencyContact,
@@ -78,8 +79,14 @@ interface HealthDataContextValue {
 
 const HealthDataContext = createContext<HealthDataContextValue | null>(null);
 
-export function HealthDataProvider({ children }: { children: ReactNode }) {
-  const value = useHealthData();
+export function HealthDataProvider({
+  children,
+  supabaseConfigured = isSupabaseConfigured(),
+}: {
+  children: ReactNode;
+  supabaseConfigured?: boolean;
+}) {
+  const value = useHealthData(supabaseConfigured);
   return <HealthDataContext.Provider value={value}>{children}</HealthDataContext.Provider>;
 }
 

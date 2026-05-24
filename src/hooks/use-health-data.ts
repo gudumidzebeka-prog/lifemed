@@ -60,9 +60,11 @@ import {
 
 import { createClient } from "@/lib/supabase/client";
 
-import { isDemoModeEnabled, isSupabaseConfigured } from "@/lib/supabase/config";
+import { createClientFromConfig, resolveSupabaseConfig } from "@/lib/supabase/runtime-client";
 
-import type {
+import { isSupabaseConfigured } from "@/lib/supabase/config";
+
+import { EMPTY_PROFILE, emptyLiveProfile } from "@/lib/health/empty-profile";
 
   Appointment,
 
@@ -100,42 +102,31 @@ function newLocalId() {
 
 
 
-const EMPTY_PROFILE: HealthProfile = {
-  id: "",
-  userId: "",
-  fullName: "",
-  dateOfBirth: "",
-  allergies: [],
-  chronicIllnesses: [],
-  emergencyContacts: [],
-  currentMedications: [],
-};
-
-function getInitialProfile() {
-  return isDemoModeEnabled() ? demoProfile : EMPTY_PROFILE;
+function getInitialProfile(supabaseConfigured: boolean) {
+  return supabaseConfigured ? EMPTY_PROFILE : demoProfile;
 }
 
-function getInitialTimeline() {
-  return isDemoModeEnabled() ? demoTimeline : [];
+function getInitialTimeline(supabaseConfigured: boolean) {
+  return supabaseConfigured ? [] : demoTimeline;
 }
 
-function getInitialDocuments() {
-  return isDemoModeEnabled() ? demoDocuments : [];
+function getInitialDocuments(supabaseConfigured: boolean) {
+  return supabaseConfigured ? [] : demoDocuments;
 }
 
-function getInitialFamilyMembers() {
-  return isDemoModeEnabled() ? demoFamilyMembers : [];
+function getInitialFamilyMembers(supabaseConfigured: boolean) {
+  return supabaseConfigured ? [] : demoFamilyMembers;
 }
 
-function getInitialAppointments() {
-  return isDemoModeEnabled() ? demoAppointments : [];
+function getInitialAppointments(supabaseConfigured: boolean) {
+  return supabaseConfigured ? [] : demoAppointments;
 }
 
-function loadLocalAppointments(): Appointment[] {
+function loadLocalAppointments(supabaseConfigured: boolean): Appointment[] {
 
-  if (typeof window === "undefined") return getInitialAppointments();
+  if (typeof window === "undefined") return getInitialAppointments(supabaseConfigured);
 
-  if (!isDemoModeEnabled()) return [];
+  if (supabaseConfigured) return [];
 
   try {
 
@@ -165,59 +156,55 @@ function saveLocalAppointments(appointments: Appointment[]) {
 
 
 
-function emptyLiveProfile(user: { id: string; email?: string; user_metadata?: Record<string, unknown> }): HealthProfile {
+function applyDemoData(
+  supabaseConfigured: boolean,
+  setters: {
+    setMode: (mode: DataMode) => void;
+    setProfile: (profile: HealthProfile) => void;
+    setTimeline: (timeline: TimelineEvent[]) => void;
+    setDocuments: (documents: HealthDocument[]) => void;
+    setFamilyMembers: (members: FamilyMember[]) => void;
+    setAppointments: (appointments: Appointment[]) => void;
+    setUserId: (userId: string | null) => void;
+  }
+) {
+  if (supabaseConfigured) {
+    setters.setMode("live");
+    setters.setProfile(EMPTY_PROFILE);
+    setters.setTimeline([]);
+    setters.setDocuments([]);
+    setters.setFamilyMembers([]);
+    setters.setAppointments([]);
+    setters.setUserId(null);
+    return;
+  }
 
-  const metaName = user.user_metadata?.full_name;
-
-  const fullName =
-
-    typeof metaName === "string" && metaName.trim()
-
-      ? metaName.trim()
-
-      : user.email?.split("@")[0] ?? "User";
-
-
-
-  return {
-
-    id: user.id,
-
-    userId: user.id,
-
-    fullName,
-
-    dateOfBirth: "",
-
-    allergies: [],
-
-    chronicIllnesses: [],
-
-    emergencyContacts: [],
-
-    currentMedications: [],
-
-  };
-
+  setters.setMode("demo");
+  setters.setProfile(demoProfile);
+  setters.setTimeline(demoTimeline);
+  setters.setDocuments(demoDocuments);
+  setters.setFamilyMembers(demoFamilyMembers);
+  setters.setAppointments(loadLocalAppointments(false));
+  setters.setUserId(null);
 }
 
 
 
-export function useHealthData() {
+export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured()) {
 
-  const [mode, setMode] = useState<DataMode>("demo");
+  const [mode, setMode] = useState<DataMode>(serverSupabaseConfigured ? "live" : "demo");
 
   const [loading, setLoading] = useState(true);
 
-  const [profile, setProfile] = useState<HealthProfile>(getInitialProfile);
+  const [profile, setProfile] = useState<HealthProfile>(() => getInitialProfile(serverSupabaseConfigured));
 
-  const [timeline, setTimeline] = useState<TimelineEvent[]>(getInitialTimeline);
+  const [timeline, setTimeline] = useState<TimelineEvent[]>(() => getInitialTimeline(serverSupabaseConfigured));
 
-  const [documents, setDocuments] = useState<HealthDocument[]>(getInitialDocuments);
+  const [documents, setDocuments] = useState<HealthDocument[]>(() => getInitialDocuments(serverSupabaseConfigured));
 
-  const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>(getInitialFamilyMembers);
+  const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>(() => getInitialFamilyMembers(serverSupabaseConfigured));
 
-  const [appointments, setAppointments] = useState<Appointment[]>(getInitialAppointments);
+  const [appointments, setAppointments] = useState<Appointment[]>(() => getInitialAppointments(serverSupabaseConfigured));
 
   const [userId, setUserId] = useState<string | null>(null);
 
@@ -225,21 +212,31 @@ export function useHealthData() {
 
   const reload = useCallback(async () => {
 
-    if (!isSupabaseConfigured()) {
+    const config = await resolveSupabaseConfig();
 
-      setMode("demo");
+    const supabaseConfigured = config.supabase;
 
-      setProfile(demoProfile);
 
-      setTimeline(demoTimeline);
 
-      setDocuments(demoDocuments);
+    if (!supabaseConfigured) {
 
-      setFamilyMembers(demoFamilyMembers);
+      applyDemoData(false, {
 
-      setAppointments(loadLocalAppointments());
+        setMode,
 
-      setUserId(null);
+        setProfile,
+
+        setTimeline,
+
+        setDocuments,
+
+        setFamilyMembers,
+
+        setAppointments,
+
+        setUserId,
+
+      });
 
       setLoading(false);
 
@@ -255,7 +252,7 @@ export function useHealthData() {
 
     try {
 
-      const supabase = createClient();
+      const supabase = createClientFromConfig(config);
 
       const {
 
@@ -267,35 +264,23 @@ export function useHealthData() {
 
       if (!user) {
 
-        setMode("demo");
+        applyDemoData(true, {
 
-        if (isDemoModeEnabled()) {
+          setMode,
 
-          setProfile(demoProfile);
+          setProfile,
 
-          setTimeline(demoTimeline);
+          setTimeline,
 
-          setDocuments(demoDocuments);
+          setDocuments,
 
-          setFamilyMembers(demoFamilyMembers);
+          setFamilyMembers,
 
-          setAppointments(loadLocalAppointments());
+          setAppointments,
 
-        } else {
+          setUserId,
 
-          setProfile(EMPTY_PROFILE);
-
-          setTimeline([]);
-
-          setDocuments([]);
-
-          setFamilyMembers([]);
-
-          setAppointments([]);
-
-        }
-
-        setUserId(null);
+        });
 
         return;
 
@@ -339,17 +324,23 @@ export function useHealthData() {
 
     } catch {
 
-      setMode("demo");
+      applyDemoData(true, {
 
-      setProfile(demoProfile);
+        setMode,
 
-      setTimeline(demoTimeline);
+        setProfile,
 
-      setDocuments(demoDocuments);
+        setTimeline,
 
-      setFamilyMembers(demoFamilyMembers);
+        setDocuments,
 
-      setAppointments(loadLocalAppointments());
+        setFamilyMembers,
+
+        setAppointments,
+
+        setUserId,
+
+      });
 
     } finally {
 

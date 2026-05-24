@@ -34,7 +34,7 @@ export default function SignupPage() {
       password
     );
 
-    if (demo || !isSupabaseConfigured()) {
+    if (demo) {
       window.location.href = "/dashboard";
       return;
     }

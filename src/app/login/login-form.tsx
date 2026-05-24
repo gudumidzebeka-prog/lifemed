@@ -34,7 +34,7 @@ export function LoginForm() {
 
     const { error: signInError, demo } = await signInWithEmail(email, password);
 
-    if (demo || !isSupabaseConfigured()) {
+    if (demo) {
       window.location.href = next;
       return;
     }

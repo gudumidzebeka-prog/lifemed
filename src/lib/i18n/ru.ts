@@ -126,6 +126,9 @@ export const ru: TranslationTree = {
     demoDescConfigured: "Supabase подключён — войдите для реальных данных.",
     demoDescNotConfigured:
       "Это тестовые данные. Для Supabase добавьте .env.local (см. гид настройки).",
+    clearDemoTitle: "Обнаружен демо-профиль (Sarah Chen)",
+    clearDemoDesc: "Это демо-данные, не ваши. Удалите их, чтобы использовать свой профиль.",
+    clearDemoAction: "Удалить демо-данные",
   },
   onboarding: {
     setupBannerTitle: "Supabase ещё не подключён",
@@ -332,6 +335,9 @@ export const ru: TranslationTree = {
     errorConnection: "Не удалось подключиться. Попробуйте позже.",
     thinking: "Готовлю ответ...",
     newChat: "Новый чат",
+    noDataYet:
+      "У вас пока нет записей о здоровье. Добавьте профиль, анализы или лекарства и спросите снова.",
+    you: "вы",
     promptSummarize: "Суммировать мою историю",
     promptLabs: "Объяснить анализы",
     promptInteractions: "Проверить лекарства",

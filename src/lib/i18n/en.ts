@@ -126,6 +126,9 @@ export const en: TranslationTree = {
     demoDescConfigured: "Supabase is connected — sign in for real data.",
     demoDescNotConfigured:
       "This is sample data. Add .env.local for Supabase (see setup guide).",
+    clearDemoTitle: "Sample profile detected (Sarah Chen)",
+    clearDemoDesc: "This is demo data, not yours. Remove it to use your own profile.",
+    clearDemoAction: "Remove demo data",
   },
   onboarding: {
     setupBannerTitle: "Supabase is not connected yet",
@@ -332,6 +335,9 @@ export const en: TranslationTree = {
     errorConnection: "I'm having trouble connecting right now. Please try again in a moment.",
     thinking: "Preparing your answer...",
     newChat: "New chat",
+    noDataYet:
+      "You don't have health records yet. Add your profile, labs, or medications, then ask again.",
+    you: "you",
     promptSummarize: "Summarize my history",
     promptLabs: "Explain lab results",
     promptInteractions: "Check interactions",

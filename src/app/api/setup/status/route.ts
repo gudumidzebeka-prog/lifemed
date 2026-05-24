@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSupabaseUrl, isSupabaseConfigured } from "@/lib/supabase/config";
+import { getSupabaseAnonKey, getSupabaseUrl, isSupabaseConfigured } from "@/lib/supabase/config";
 import { getAppUrl, isOpenAIConfigured, isServiceRoleConfigured } from "@/lib/server-env";
 
 function safeHost(url: string) {
@@ -13,14 +13,21 @@ function safeHost(url: string) {
 export async function GET() {
   const supabaseUrl = getSupabaseUrl();
   const host = supabaseUrl ? safeHost(supabaseUrl) : null;
+  const configured = isSupabaseConfigured();
 
   return NextResponse.json({
-    supabase: isSupabaseConfigured(),
+    supabase: configured,
     supabaseHost: host,
     supabaseUrlOk: Boolean(host?.endsWith(".supabase.co")),
     serviceRole: isServiceRoleConfigured(),
     openai: isOpenAIConfigured(),
     appUrl: getAppUrl(),
     redirectUrl: `${getAppUrl()}/auth/callback`,
+    ...(configured
+      ? {
+          supabaseUrl,
+          supabaseAnonKey: getSupabaseAnonKey(),
+        }
+      : {}),
   });
 }

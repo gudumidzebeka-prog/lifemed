@@ -1,7 +1,5 @@
-import {
-  demoProfile,
-  demoTimeline,
-} from "@/data/demo-data";
+import { demoProfile, demoTimeline } from "@/data/demo-data";
+import { EMPTY_PROFILE, emptyLiveProfile } from "@/lib/health/empty-profile";
 import {
   fetchHealthProfile,
   fetchTimelineEvents,
@@ -34,9 +32,9 @@ export async function buildAIHealthContext(): Promise<AIHealthContext> {
 
     if (!user) {
       return {
-        profile: demoProfile,
-        timeline: demoTimeline,
-        source: "demo",
+        profile: EMPTY_PROFILE,
+        timeline: [],
+        source: "live",
       };
     }
 
@@ -46,15 +44,15 @@ export async function buildAIHealthContext(): Promise<AIHealthContext> {
     ]);
 
     return {
-      profile: profile ?? demoProfile,
-      timeline: timeline.length ? timeline : demoTimeline,
+      profile: profile ?? emptyLiveProfile(user),
+      timeline,
       source: "live",
     };
   } catch {
     return {
-      profile: demoProfile,
-      timeline: demoTimeline,
-      source: "demo",
+      profile: EMPTY_PROFILE,
+      timeline: [],
+      source: "live",
     };
   }
 }
@@ -103,12 +101,26 @@ function matchesDoctor(message: string) {
   return /doctor|provider|врач|ექიმ/i.test(message);
 }
 
+function hasPatientData(profile: HealthProfile, timeline: TimelineEvent[]) {
+  return Boolean(
+    profile.fullName.trim() ||
+      profile.currentMedications.length ||
+      profile.allergies.length ||
+      timeline.length
+  );
+}
+
 export function buildSmartDemoResponse(
   message: string,
   ctx: AIHealthContext,
   locale: Locale = "ka"
 ): string {
-  const { profile, timeline } = ctx;
+  const { profile, timeline, source } = ctx;
+
+  if (source === "live" && !hasPatientData(profile, timeline)) {
+    return getTranslation(locale, "ai.noDataYet");
+  }
+
   const medsList = profile.currentMedications
     .map((m) => `${m.name} ${m.dosage} (${m.frequency})`)
     .join(", ");
@@ -117,7 +129,7 @@ export function buildSmartDemoResponse(
     profile.allergies.join(", ") || getTranslation(locale, "emergency.noAllergies");
   const chronicDisplay =
     profile.chronicIllnesses.join(", ") || getTranslation(locale, "emergency.noneReported");
-  const firstName = profile.fullName.split(" ")[0];
+  const firstName = profile.fullName.trim().split(/\s+/)[0] || getTranslation(locale, "ai.you");
 
   if (matchesSummary(message)) {
     const recent =
@@ -126,7 +138,7 @@ export function buildSmartDemoResponse(
         .map((e) => `${e.date}: ${e.title}`)
         .join("; ") || getTranslation(locale, "dashboard.summaryRoutine");
     return getTranslation(locale, "ai.demoSummary", {
-      name: profile.fullName,
+      name: profile.fullName || firstName,
       events: timeline.length,
       recent,
       meds: medsDisplay,
@@ -160,7 +172,7 @@ export function buildSmartDemoResponse(
 
   if (matchesDoctor(message)) {
     return getTranslation(locale, "ai.demoDoctorSummary", {
-      name: profile.fullName,
+      name: profile.fullName || firstName,
       dob: profile.dateOfBirth || "—",
       bloodType: profile.bloodType || "—",
       allergies: allergiesDisplay,

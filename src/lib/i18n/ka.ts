@@ -126,6 +126,9 @@ export const ka: TranslationTree = {
     demoDescConfigured: "Supabase დაკავშირებულია — შედი ანგარიშით რეალური მონაცემებისთვის.",
     demoDescNotConfigured:
       "ეს საცდელი მონაცემებია. Supabase-ისთვის დაამატე .env.local (იხ. setup გზამკვლევი).",
+    clearDemoTitle: "ნაჩვენებია საცდელი პროფილი (Sarah Chen)",
+    clearDemoDesc: "ეს დემო მონაცემებია, არა შენი. დააჭირე წასაშლელად და გამოიყენე საკუთარი პროფილი.",
+    clearDemoAction: "დემო მონაცემების წაშლა",
   },
   onboarding: {
     setupBannerTitle: "Supabase ჯერ არ არის დაკავშირებული",
@@ -332,6 +335,9 @@ export const ka: TranslationTree = {
     errorConnection: "კავშირი ვერ დამყარდა. სცადე ცოტა ხანში.",
     thinking: "პასუხს ვამზადებ...",
     newChat: "ახალი საუბარი",
+    noDataYet:
+      "ჯერ არ გაქვს შევსებული ჯანმრთელობის ჩანაწერები. დაამატე პროფილი, ანალიზები ან მედიკამენტები — შემდეგ ისევ ჰკითხე.",
+    you: "შენ",
     promptSummarize: "შეჯამე ჩემი ისტორია",
     promptLabs: "აგიხსნა ანალიზები",
     promptInteractions: "შეამოწმე მედიკამენტები",

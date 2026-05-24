@@ -6,10 +6,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge, Disclaimer } from "@/components/ui/badge";
 import { DataModeBanner } from "@/components/layout/data-mode-banner";
+import { ClearDemoDataBanner } from "@/components/onboarding/clear-demo-data-banner";
 import { SeedSampleDataButton } from "@/components/onboarding/seed-sample-data-button";
 import { SetupBanner } from "@/components/onboarding/setup-banner";
 import { useTranslation } from "@/components/providers/locale-provider";
 import { useHealthDataContext } from "@/components/providers/health-data-provider";
+import { displayFirstName } from "@/lib/health/empty-profile";
 import { useTimelineTypeLabel, useDocumentCategoryLabel, useMedicationFrequencyLabel } from "@/lib/i18n/hooks";
 import { buildHealthSummary } from "@/lib/health/categories";
 import { getTimelineTypeColor } from "@/data/demo-data";
@@ -74,12 +76,13 @@ export default function DashboardPage() {
   return (
     <motion.div variants={container} initial="hidden" animate="show" className="space-y-8">
       <DataModeBanner mode={mode} />
+      <ClearDemoDataBanner />
       <SetupBanner />
       <SeedSampleDataButton />
       <motion.div variants={item} className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground sm:text-3xl">
-            {t("dashboard.greeting", { name: profile.fullName.split(" ")[0] })}
+            {t("dashboard.greeting", { name: displayFirstName(profile.fullName, t("ai.you")) })}
           </h1>
           <p className="mt-1 text-muted">{t("dashboard.subtitle")}</p>
         </div>

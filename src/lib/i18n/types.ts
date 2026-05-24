@@ -131,6 +131,9 @@ export type TranslationTree = {
     demoTitle: string;
     demoDescConfigured: string;
     demoDescNotConfigured: string;
+    clearDemoTitle: string;
+    clearDemoDesc: string;
+    clearDemoAction: string;
   };
   onboarding: {
     setupBannerTitle: string;
@@ -315,6 +318,8 @@ export type TranslationTree = {
     errorConnection: string;
     thinking: string;
     newChat: string;
+    noDataYet: string;
+    you: string;
     promptSummarize: string;
     promptLabs: string;
     promptInteractions: string;
