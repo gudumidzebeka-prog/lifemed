@@ -313,6 +313,8 @@ export type TranslationTree = {
     brand: string;
     inputPlaceholder: string;
     errorConnection: string;
+    thinking: string;
+    newChat: string;
     promptSummarize: string;
     promptLabs: string;
     promptInteractions: string;

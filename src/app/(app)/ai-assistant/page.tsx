@@ -8,6 +8,7 @@ import { Disclaimer } from "@/components/ui/badge";
 import { DataModeBanner } from "@/components/layout/data-mode-banner";
 import { useTranslation } from "@/components/providers/locale-provider";
 import { useHealthDataContext } from "@/components/providers/health-data-provider";
+import { cn } from "@/lib/utils";
 import {
   Sparkles,
   Send,
@@ -15,6 +16,7 @@ import {
   Pill,
   FlaskConical,
   Loader2,
+  RotateCcw,
 } from "lucide-react";
 
 interface Message {
@@ -31,6 +33,25 @@ export default function AIAssistantPage() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatPanelRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const hasUserMessage = messages.some((msg) => msg.role === "user");
+  const focusChat = loading || hasUserMessage;
+  const lastMessage = messages[messages.length - 1];
+
+  const resetChat = () => {
+    setInput("");
+    setLoading(false);
+    setMessages([
+      {
+        id: "welcome",
+        role: "assistant",
+        content: t("ai.welcome"),
+        timestamp: new Date(),
+      },
+    ]);
+  };
 
   const quickPrompts = useMemo(
     () => [
@@ -54,8 +75,30 @@ export default function AIAssistantPage() {
   }, [t]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages, loading]);
+
+  useEffect(() => {
+    if (loading) {
+      chatPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [loading]);
+
+  useEffect(() => {
+    if (!loading && hasUserMessage) {
+      inputRef.current?.focus({ preventScroll: true });
+    }
+  }, [loading, hasUserMessage]);
+
+  useEffect(() => {
+    if (!focusChat || window.matchMedia("(min-width: 1024px)").matches) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [focusChat]);
 
   const sendMessage = async (text: string) => {
     if (!text.trim() || loading) return;
@@ -79,6 +122,10 @@ export default function AIAssistantPage() {
       });
 
       const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error ?? "Request failed");
+      }
 
       setMessages((prev) => [
         ...prev,
@@ -105,69 +152,132 @@ export default function AIAssistantPage() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)] lg:h-[calc(100vh-6rem)]">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-foreground sm:text-3xl flex items-center gap-2">
-          <Sparkles className="h-7 w-7 text-lifemed-500" />
-          {t("ai.title")}
-        </h1>
-        <p className="mt-1 text-muted">{t("ai.subtitle")}</p>
-      </div>
-
-      <Disclaimer variant="medical" className="mb-4" />
-      <DataModeBanner mode={mode} />
-
-      <div className="flex gap-2 overflow-x-auto pb-3 mb-4">
-        {quickPrompts.map((prompt) => (
-          <button
-            key={prompt.label}
-            type="button"
-            onClick={() => sendMessage(prompt.prompt)}
-            className="flex shrink-0 items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2 text-xs font-medium text-muted transition-colors hover:border-lifemed-300 hover:text-foreground"
+    <div
+      className={cn(
+        "flex flex-col transition-all duration-300",
+        focusChat
+          ? "fixed inset-0 z-50 flex flex-col bg-background px-4 pb-4 pt-3 safe-top safe-bottom sm:px-6 lg:static lg:z-auto lg:inset-auto lg:h-[calc(100vh-6rem)] lg:px-0 lg:pt-0"
+          : "h-[calc(100vh-8rem)] lg:h-[calc(100vh-6rem)]"
+      )}
+    >
+      <div className={cn("mb-6 transition-all duration-300", focusChat && "mb-3 shrink-0")}>
+        <div className="flex items-start justify-between gap-3">
+          <h1
+            className={cn(
+              "font-bold text-foreground flex items-center gap-2 min-w-0",
+              focusChat ? "text-lg sm:text-xl" : "text-2xl sm:text-3xl"
+            )}
           >
-            <prompt.icon className="h-3.5 w-3.5" />
-            {prompt.label}
-          </button>
-        ))}
+            <Sparkles className={cn("text-lifemed-500 shrink-0", focusChat ? "h-5 w-5" : "h-7 w-7")} />
+            <span className="truncate">{t("ai.title")}</span>
+          </h1>
+          {focusChat && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={resetChat}
+              disabled={loading}
+              className="shrink-0 text-muted"
+            >
+              <RotateCcw className="h-4 w-4" />
+              <span className="hidden sm:inline">{t("ai.newChat")}</span>
+            </Button>
+          )}
+        </div>
+        {!focusChat && <p className="mt-1 text-muted">{t("ai.subtitle")}</p>}
       </div>
 
-      <Card className="flex-1 flex flex-col overflow-hidden">
-        <CardContent className="flex-1 overflow-y-auto p-4 space-y-4">
-          {messages.map((msg) => (
-            <motion.div
-              key={msg.id}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+      {!focusChat && <Disclaimer variant="medical" className="mb-4" />}
+      {!focusChat && <DataModeBanner mode={mode} />}
+
+      {!focusChat && (
+        <div className="flex gap-2 overflow-x-auto pb-3 mb-4">
+          {quickPrompts.map((prompt) => (
+            <button
+              key={prompt.label}
+              type="button"
+              onClick={() => sendMessage(prompt.prompt)}
+              className="flex shrink-0 items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2 text-xs font-medium text-muted transition-colors hover:border-lifemed-300 hover:text-foreground"
             >
-              <div
-                className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-                  msg.role === "user"
-                    ? "bg-lifemed-500 text-white rounded-br-md"
-                    : "bg-surface-elevated text-foreground border border-border rounded-bl-md"
-                }`}
-              >
-                {msg.role === "assistant" && (
-                  <div className="flex items-center gap-1.5 mb-2 text-lifemed-600 dark:text-lifemed-400">
-                    <Sparkles className="h-3.5 w-3.5" />
-                    <span className="text-xs font-medium">{t("ai.brand")}</span>
-                  </div>
-                )}
-                {msg.content}
-              </div>
-            </motion.div>
+              <prompt.icon className="h-3.5 w-3.5" />
+              {prompt.label}
+            </button>
           ))}
+        </div>
+      )}
+
+      <Card
+        ref={chatPanelRef}
+        className={cn(
+          "flex flex-col overflow-hidden transition-all duration-300",
+          focusChat ? "flex-1 min-h-0 shadow-lg ring-1 ring-lifemed-200/60 dark:ring-lifemed-800/60" : "flex-1"
+        )}
+      >
+        <CardContent className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
+          {messages.map((msg) => {
+            const isLatestAssistant =
+              msg.role === "assistant" && msg.id === lastMessage?.id && hasUserMessage && !loading;
+            const isOlderMessage =
+              focusChat &&
+              !isLatestAssistant &&
+              !(msg.role === "user" && msg.id === lastMessage?.id);
+
+            return (
+              <motion.div
+                key={msg.id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={cn(
+                  "flex transition-opacity duration-300",
+                  msg.role === "user" ? "justify-end" : "justify-start",
+                  isOlderMessage && "opacity-60"
+                )}
+              >
+                <div
+                  className={cn(
+                    "rounded-2xl leading-relaxed whitespace-pre-wrap break-words",
+                    msg.role === "user"
+                      ? "max-w-[85%] px-4 py-3 text-sm bg-lifemed-500 text-white rounded-br-md"
+                      : "bg-surface-elevated text-foreground border border-border rounded-bl-md",
+                    isLatestAssistant
+                      ? "w-full max-w-full px-5 py-5 text-base sm:text-[17px] leading-7 min-h-[min(55vh,480px)] shadow-sm"
+                      : msg.role === "assistant"
+                        ? "max-w-[92%] px-4 py-3 text-sm"
+                        : "",
+                    isOlderMessage && "max-h-28 overflow-hidden"
+                  )}
+                >
+                  {msg.role === "assistant" && (
+                    <div className="flex items-center gap-1.5 mb-2 text-lifemed-600 dark:text-lifemed-400">
+                      <Sparkles className="h-3.5 w-3.5" />
+                      <span className="text-xs font-medium">{t("ai.brand")}</span>
+                    </div>
+                  )}
+                  {msg.content}
+                </div>
+              </motion.div>
+            );
+          })}
           {loading && (
             <div className="flex justify-start">
-              <div className="rounded-2xl bg-surface-elevated border border-border px-4 py-3">
-                <Loader2 className="h-4 w-4 animate-spin text-lifemed-500" />
+              <div className="w-full max-w-full rounded-2xl bg-surface-elevated border border-border px-5 py-6 min-h-[min(40vh,320px)]">
+                <div className="flex items-center gap-2 text-lifemed-600 dark:text-lifemed-400 mb-3">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span className="text-sm font-medium">{t("ai.thinking")}</span>
+                </div>
+                <div className="space-y-2">
+                  <div className="h-3 w-full rounded bg-border/70 animate-pulse" />
+                  <div className="h-3 w-[92%] rounded bg-border/70 animate-pulse" />
+                  <div className="h-3 w-[78%] rounded bg-border/70 animate-pulse" />
+                </div>
               </div>
             </div>
           )}
           <div ref={messagesEndRef} />
         </CardContent>
 
-        <div className="border-t border-border p-4">
+        <div className="border-t border-border p-4 shrink-0 bg-surface">
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -176,14 +286,15 @@ export default function AIAssistantPage() {
             className="flex gap-2"
           >
             <input
+              ref={inputRef}
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder={t("ai.inputPlaceholder")}
-              className="flex-1 rounded-xl border border-border bg-surface px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-lifemed-400"
+              className="flex-1 rounded-xl border border-border bg-background px-4 py-3 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-lifemed-400"
               disabled={loading}
             />
-            <Button type="submit" size="icon" disabled={loading || !input.trim()}>
+            <Button type="submit" size="icon" className="h-11 w-11" disabled={loading || !input.trim()}>
               <Send className="h-4 w-4" />
             </Button>
           </form>

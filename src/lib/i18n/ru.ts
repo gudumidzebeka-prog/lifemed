@@ -330,6 +330,8 @@ export const ru: TranslationTree = {
     brand: "LifeMed AI",
     inputPlaceholder: "Спросите о медицинских записях...",
     errorConnection: "Не удалось подключиться. Попробуйте позже.",
+    thinking: "Готовлю ответ...",
+    newChat: "Новый чат",
     promptSummarize: "Суммировать мою историю",
     promptLabs: "Объяснить анализы",
     promptInteractions: "Проверить лекарства",

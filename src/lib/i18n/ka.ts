@@ -330,6 +330,8 @@ export const ka: TranslationTree = {
     brand: "LifeMed AI",
     inputPlaceholder: "ჰკითხე ჯანმრთელობის ჩანაწერებზე...",
     errorConnection: "კავშირი ვერ დამყარდა. სცადე ცოტა ხანში.",
+    thinking: "პასუხს ვამზადებ...",
+    newChat: "ახალი საუბარი",
     promptSummarize: "შეჯამე ჩემი ისტორია",
     promptLabs: "აგიხსნა ანალიზები",
     promptInteractions: "შეამოწმე მედიკამენტები",

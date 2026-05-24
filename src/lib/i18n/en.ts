@@ -330,6 +330,8 @@ export const en: TranslationTree = {
     brand: "LifeMed AI",
     inputPlaceholder: "Ask about your health records...",
     errorConnection: "I'm having trouble connecting right now. Please try again in a moment.",
+    thinking: "Preparing your answer...",
+    newChat: "New chat",
     promptSummarize: "Summarize my history",
     promptLabs: "Explain lab results",
     promptInteractions: "Check interactions",
