@@ -12,10 +12,12 @@ function safeHost(url: string) {
 
 export async function GET() {
   const supabaseUrl = getSupabaseUrl();
+  const host = supabaseUrl ? safeHost(supabaseUrl) : null;
 
   return NextResponse.json({
     supabase: isSupabaseConfigured(),
-    supabaseHost: supabaseUrl ? safeHost(supabaseUrl) : null,
+    supabaseHost: host,
+    supabaseUrlOk: Boolean(host?.endsWith(".supabase.co")),
     serviceRole: isServiceRoleConfigured(),
     openai: isOpenAIConfigured(),
     appUrl: getAppUrl(),

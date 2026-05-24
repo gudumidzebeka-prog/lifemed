@@ -24,15 +24,25 @@ export function getSupabaseAnonKey() {
 export function isSupabaseConfigured() {
   const url = getSupabaseUrl();
   const key = getSupabaseAnonKey();
+  const host = safeHost(url);
 
   return Boolean(
     url &&
       key &&
       isValidHttpUrl(url) &&
+      host?.endsWith(".supabase.co") &&
       !url.includes("your-project") &&
       !key.includes("your-anon-key") &&
       !key.includes("PASTE_LEGACY")
   );
+}
+
+function safeHost(url: string) {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return null;
+  }
 }
 
 /** Local-only preview without Supabase. Disabled on Vercel/production. */
