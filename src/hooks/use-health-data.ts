@@ -66,6 +66,8 @@ import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 import { EMPTY_PROFILE, emptyLiveProfile } from "@/lib/health/empty-profile";
 
+import type {
+
   Appointment,
 
   EmergencyContact,
