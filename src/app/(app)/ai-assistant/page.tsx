@@ -32,6 +32,7 @@ export default function AIAssistantPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [aiLive, setAiLive] = useState<boolean | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatPanelRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -62,6 +63,13 @@ export default function AIAssistantPage() {
     ],
     [t]
   );
+
+  useEffect(() => {
+    fetch("/api/setup/status", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { ai?: boolean } | null) => setAiLive(Boolean(data?.ai)))
+      .catch(() => setAiLive(false));
+  }, []);
 
   useEffect(() => {
     setMessages([
@@ -115,16 +123,27 @@ export default function AIAssistantPage() {
     setLoading(true);
 
     try {
+      const history = messages
+        .filter((msg) => msg.id !== "welcome")
+        .slice(-16)
+        .map((msg) => ({ role: msg.role, content: msg.content }));
+
       const res = await fetch("/api/ai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text.trim(), locale }),
+        body: JSON.stringify({ message: text.trim(), locale, history }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
         throw new Error(data.error ?? "Request failed");
+      }
+
+      if (data.source === "demo") {
+        setAiLive(false);
+      } else if (data.source === "gemini" || data.source === "groq" || data.source === "openai") {
+        setAiLive(true);
       }
 
       setMessages((prev) => [
@@ -189,6 +208,11 @@ export default function AIAssistantPage() {
       </div>
 
       {!focusChat && <Disclaimer variant="medical" className="mb-4" />}
+      {aiLive === false && (
+        <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
+          {t("ai.demoModeNote")}
+        </div>
+      )}
       {!focusChat && <DataModeBanner mode={mode} />}
 
       {!focusChat && (

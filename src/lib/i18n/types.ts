@@ -320,6 +320,8 @@ export type TranslationTree = {
     newChat: string;
     noDataYet: string;
     you: string;
+    setupHint: string;
+    demoModeNote: string;
     promptSummarize: string;
     promptLabs: string;
     promptInteractions: string;

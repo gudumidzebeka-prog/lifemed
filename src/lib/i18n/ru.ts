@@ -338,6 +338,9 @@ export const ru: TranslationTree = {
     noDataYet:
       "У вас пока нет записей о здоровье. Добавьте профиль, анализы или лекарства и спросите снова.",
     you: "вы",
+    setupHint:
+      "Для настоящего AI добавьте бесплатный GEMINI_API_KEY в Vercel (aistudio.google.com → Get API key).",
+    demoModeNote: "Ключ AI не настроен — показываются шаблонные ответы. Добавьте Gemini для чата как в ChatGPT.",
     promptSummarize: "Суммировать мою историю",
     promptLabs: "Объяснить анализы",
     promptInteractions: "Проверить лекарства",

@@ -338,6 +338,9 @@ export const en: TranslationTree = {
     noDataYet:
       "You don't have health records yet. Add your profile, labs, or medications, then ask again.",
     you: "you",
+    setupHint:
+      "For real AI replies, add a free GEMINI_API_KEY in Vercel (aistudio.google.com → Get API key).",
+    demoModeNote: "No AI key configured — showing sample replies. Add a Gemini key for ChatGPT-like chat.",
     promptSummarize: "Summarize my history",
     promptLabs: "Explain lab results",
     promptInteractions: "Check interactions",

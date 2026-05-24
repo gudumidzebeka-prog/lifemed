@@ -5,67 +5,85 @@ import {
   buildSmartDemoResponse,
   formatContextForPrompt,
 } from "@/lib/health/ai-context";
-
-const LOCALE_LANGUAGE: Record<Locale, string> = {
-  ka: "Georgian",
-  ru: "Russian",
-  en: "English",
-};
+import { generateAIResponse, type ChatTurn } from "@/lib/health/ai-provider";
+import { isAIConfigured } from "@/lib/server-env";
 
 function parseLocale(value: unknown): Locale {
   if (value === "ru" || value === "en" || value === "ka") return value;
   return "ka";
 }
 
+function parseHistory(value: unknown): ChatTurn[] {
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .filter(
+      (item): item is { role: string; content: string } =>
+        Boolean(item) &&
+        typeof item === "object" &&
+        (item.role === "user" || item.role === "assistant") &&
+        typeof item.content === "string" &&
+        item.content.trim().length > 0
+    )
+    .map((item) => ({
+      role: item.role as "user" | "assistant",
+      content: item.content.trim(),
+    }))
+    .slice(-16);
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const { message, locale: reqLocale } = await request.json();
+    const body = await request.json();
+    const message = body.message;
+    const locale = parseLocale(body.locale);
+    const history = parseHistory(body.history);
 
     if (!message || typeof message !== "string") {
       return NextResponse.json({ error: "Message is required" }, { status: 400 });
     }
 
-    const locale = parseLocale(reqLocale);
     const medicalDisclaimer = translations[locale].disclaimers.medical;
-
     const ctx = await buildAIHealthContext();
     const contextPayload = formatContextForPrompt(ctx);
-    const apiKey = process.env.OPENAI_API_KEY;
+    const patientContext = JSON.stringify(contextPayload, null, 2);
 
-    if (apiKey && !apiKey.includes("your-openai")) {
-      const res = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "gpt-4o-mini",
-          messages: [
-            {
-              role: "system",
-              content: `You are LifeMed's compassionate health assistant. Use ONLY the patient context below. Never diagnose or prescribe. Use simple, reassuring language. Respond in ${LOCALE_LANGUAGE[locale]}. ${medicalDisclaimer}\n\nPatient context:\n${JSON.stringify(contextPayload, null, 2)}`,
-            },
-            { role: "user", content: message },
-          ],
-          max_tokens: 600,
-          temperature: 0.6,
-        }),
-      });
+    if (isAIConfigured()) {
+      try {
+        const ai = await generateAIResponse({
+          locale,
+          message: message.trim(),
+          history,
+          patientContext,
+          medicalDisclaimer,
+        });
 
-      if (res.ok) {
-        const data = await res.json();
-        const response =
-          data.choices?.[0]?.message?.content || buildSmartDemoResponse(message, ctx, locale);
-        return NextResponse.json({ response, source: "openai", dataSource: ctx.source });
+        if (ai?.text) {
+          return NextResponse.json({
+            response: ai.text,
+            source: ai.provider,
+            dataSource: ctx.source,
+          });
+        }
+      } catch (err) {
+        console.error("AI provider error:", err);
+        return NextResponse.json(
+          {
+            error: translations[locale].ai.errorConnection,
+            source: "error",
+          },
+          { status: 502 }
+        );
       }
     }
 
-    await new Promise((r) => setTimeout(r, 600));
+    await new Promise((r) => setTimeout(r, 400));
     return NextResponse.json({
-      response: `${buildSmartDemoResponse(message, ctx, locale)}\n\n${medicalDisclaimer}`,
+      response: `${buildSmartDemoResponse(message.trim(), ctx, locale)}\n\n—\n${medicalDisclaimer}`,
       source: "demo",
       dataSource: ctx.source,
+      aiConfigured: false,
+      hint: translations[locale].ai.setupHint,
     });
   } catch {
     return NextResponse.json({ error: "Failed to process request" }, { status: 500 });

@@ -338,6 +338,9 @@ export const ka: TranslationTree = {
     noDataYet:
       "ჯერ არ გაქვს შევსებული ჯანმრთელობის ჩანაწერები. დაამატე პროფილი, ანალიზები ან მედიკამენტები — შემდეგ ისევ ჰკითხე.",
     you: "შენ",
+    setupHint:
+      "ნამდვილი AI-სთვის დაამატე უფასო GEMINI_API_KEY Vercel-ში (aistudio.google.com → Get API key).",
+    demoModeNote: "AI გასაღები არ არის — ჩვენებითი პასუხები. დაამატე Gemini key ნამდვილი ჩატისთვის.",
     promptSummarize: "შეჯამე ჩემი ისტორია",
     promptLabs: "აგიხსნა ანალიზები",
     promptInteractions: "შეამოწმე მედიკამენტები",

@@ -1,11 +1,50 @@
+export type AIProviderName = "gemini" | "groq" | "openai";
+
+function cleanEnv(value: string | undefined) {
+  if (!value) return "";
+  return value.trim().replace(/^['"]|['"]$/g, "");
+}
+
+function isValidKey(value: string | undefined, placeholders: string[]) {
+  const key = cleanEnv(value);
+  if (!key) return false;
+  const lower = key.toLowerCase();
+  return !placeholders.some((p) => lower.includes(p));
+}
+
 export function isServiceRoleConfigured() {
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  return Boolean(key && !key.includes("your-service-role"));
+  return isValidKey(process.env.SUPABASE_SERVICE_ROLE_KEY, ["your-service-role"]);
+}
+
+export function getGeminiApiKey() {
+  const key = cleanEnv(process.env.GEMINI_API_KEY);
+  return isValidKey(key, ["your-gemini", "paste"]) ? key : "";
+}
+
+export function getGroqApiKey() {
+  const key = cleanEnv(process.env.GROQ_API_KEY);
+  return isValidKey(key, ["your-groq", "paste"]) ? key : "";
+}
+
+export function getOpenAIApiKey() {
+  const key = cleanEnv(process.env.OPENAI_API_KEY);
+  return isValidKey(key, ["your-openai", "paste"]) ? key : "";
+}
+
+export function isGeminiConfigured() {
+  return Boolean(getGeminiApiKey());
+}
+
+export function isGroqConfigured() {
+  return Boolean(getGroqApiKey());
 }
 
 export function isOpenAIConfigured() {
-  const key = process.env.OPENAI_API_KEY;
-  return Boolean(key && !key.includes("your-openai"));
+  return Boolean(getOpenAIApiKey());
+}
+
+export function isAIConfigured() {
+  return isGeminiConfigured() || isGroqConfigured() || isOpenAIConfigured();
 }
 
 export function getAppUrl() {
