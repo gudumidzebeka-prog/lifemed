@@ -32,14 +32,29 @@ function parseHistory(value: unknown): ChatTurn[] {
     .slice(-16);
 }
 
+function demoFallback(message: string, locale: Locale) {
+  return buildAIHealthContext().then((ctx) => {
+    const medicalDisclaimer = translations[locale].disclaimers.medical;
+    return NextResponse.json({
+      response: `${buildSmartDemoResponse(message, ctx, locale)}\n\n—\n${medicalDisclaimer}`,
+      source: "demo",
+      dataSource: ctx.source,
+      aiConfigured: isAIConfigured(),
+    });
+  });
+}
+
 export async function POST(request: NextRequest) {
+  let locale: Locale = "ka";
+  let message = "";
+
   try {
     const body = await request.json();
-    const message = body.message;
-    const locale = parseLocale(body.locale);
+    message = typeof body.message === "string" ? body.message.trim() : "";
+    locale = parseLocale(body.locale);
     const history = parseHistory(body.history);
 
-    if (!message || typeof message !== "string") {
+    if (!message) {
       return NextResponse.json({ error: "Message is required" }, { status: 400 });
     }
 
@@ -52,7 +67,7 @@ export async function POST(request: NextRequest) {
       try {
         const ai = await generateAIResponse({
           locale,
-          message: message.trim(),
+          message,
           history,
           patientContext,
           medicalDisclaimer,
@@ -67,25 +82,22 @@ export async function POST(request: NextRequest) {
         }
       } catch (err) {
         console.error("AI provider error:", err);
-        return NextResponse.json(
-          {
-            error: translations[locale].ai.errorConnection,
-            source: "error",
-          },
-          { status: 502 }
-        );
+        return demoFallback(message, locale);
       }
     }
 
-    await new Promise((r) => setTimeout(r, 400));
     return NextResponse.json({
-      response: `${buildSmartDemoResponse(message.trim(), ctx, locale)}\n\n—\n${medicalDisclaimer}`,
+      response: `${buildSmartDemoResponse(message, ctx, locale)}\n\n—\n${medicalDisclaimer}`,
       source: "demo",
       dataSource: ctx.source,
       aiConfigured: false,
       hint: translations[locale].ai.setupHint,
     });
-  } catch {
-    return NextResponse.json({ error: "Failed to process request" }, { status: 500 });
+  } catch (err) {
+    console.error("AI route error:", err);
+    if (message) {
+      return demoFallback(message, locale);
+    }
+    return NextResponse.json({ error: translations[locale].ai.errorConnection }, { status: 500 });
   }
 }

@@ -131,6 +131,7 @@ export default function AIAssistantPage() {
       const res = await fetch("/api/ai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
         body: JSON.stringify({ message: text.trim(), locale, history }),
       });
 

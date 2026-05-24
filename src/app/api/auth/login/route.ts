@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createRouteHandlerClient } from "@/lib/supabase/route-handler";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 export async function POST(request: Request) {
@@ -16,14 +16,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
     }
 
-    const supabase = await createClient();
+    const response = NextResponse.json({ ok: true });
+    const supabase = await createRouteHandlerClient(response);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 401 });
     }
 
-    return NextResponse.json({ ok: true });
+    return response;
   } catch {
     return NextResponse.json(
       { error: "Authentication service unavailable. Check Supabase URL and keys on Vercel." },

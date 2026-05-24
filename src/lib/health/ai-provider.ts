@@ -22,10 +22,20 @@ function cleanEnvKey(value: string | undefined) {
   return value.trim().replace(/^['"]|['"]$/g, "");
 }
 
+const GEMINI_MODELS = [
+  "gemini-2.0-flash-lite",
+  "gemini-2.0-flash",
+  "gemini-1.5-flash",
+];
+
 export function resolveAIProvider(): { provider: AIProviderName; model: string } | null {
   const gemini = getGeminiApiKey();
   if (gemini) {
-    return { provider: "gemini", model: process.env.GEMINI_MODEL?.trim() || "gemini-2.0-flash" };
+    const preferred = process.env.GEMINI_MODEL?.trim();
+    return {
+      provider: "gemini",
+      model: preferred || GEMINI_MODELS[0],
+    };
   }
 
   const groq = getGroqApiKey();
@@ -203,14 +213,29 @@ export async function generateAIResponse(params: {
   const openaiKey = getOpenAIApiKey();
 
   if (resolved.provider === "gemini" && geminiKey) {
-    const text = await callGemini({
-      apiKey: geminiKey,
-      model: resolved.model,
-      systemPrompt,
-      history,
-      message: params.message,
-    });
-    return { text, provider: "gemini" };
+    const models = [
+      resolved.model,
+      ...GEMINI_MODELS.filter((model) => model !== resolved.model),
+    ];
+    let lastError: unknown;
+
+    for (const model of models) {
+      try {
+        const text = await callGemini({
+          apiKey: geminiKey,
+          model,
+          systemPrompt,
+          history,
+          message: params.message,
+        });
+        return { text, provider: "gemini" };
+      } catch (error) {
+        lastError = error;
+        console.error(`Gemini model ${model} failed:`, error);
+      }
+    }
+
+    throw lastError ?? new Error("All Gemini models failed");
   }
 
   if (resolved.provider === "groq" && groqKey) {

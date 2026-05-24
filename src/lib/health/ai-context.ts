@@ -59,21 +59,25 @@ export async function buildAIHealthContext(): Promise<AIHealthContext> {
 
 export function formatContextForPrompt(ctx: AIHealthContext) {
   const { profile, timeline } = ctx;
-  const recentTimeline = timeline.slice(-10);
+  const recentTimeline = (timeline ?? []).slice(-10);
+  const medications = profile.currentMedications ?? [];
+  const allergies = profile.allergies ?? [];
+  const chronicIllnesses = profile.chronicIllnesses ?? [];
+  const emergencyContacts = profile.emergencyContacts ?? [];
 
   return {
     patient: {
-      name: profile.fullName,
-      dateOfBirth: profile.dateOfBirth,
-      bloodType: profile.bloodType,
-      allergies: profile.allergies,
-      chronicIllnesses: profile.chronicIllnesses,
-      medications: profile.currentMedications.map((m) => ({
+      name: profile.fullName ?? "",
+      dateOfBirth: profile.dateOfBirth ?? "",
+      bloodType: profile.bloodType ?? "",
+      allergies,
+      chronicIllnesses,
+      medications: medications.map((m) => ({
         name: m.name,
         dosage: m.dosage,
         frequency: m.frequency,
       })),
-      emergencyContacts: profile.emergencyContacts.length,
+      emergencyContacts: emergencyContacts.length,
     },
     recentTimeline: recentTimeline.map((e) => ({
       date: e.date,

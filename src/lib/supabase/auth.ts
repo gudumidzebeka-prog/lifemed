@@ -27,6 +27,7 @@ export async function signInWithEmail(email: string, password: string) {
     const res = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
       body: JSON.stringify({
         email: normalizeEmail(email),
         password: password.trim(),
@@ -54,6 +55,7 @@ export async function signUpWithEmail(name: string, email: string, password: str
     const res = await fetch("/api/auth/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
       body: JSON.stringify({
         name: name.trim(),
         email: normalizeEmail(email),
