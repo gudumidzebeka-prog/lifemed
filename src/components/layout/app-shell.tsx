@@ -18,6 +18,7 @@ import {
   Menu,
   X,
   ShieldAlert,
+  Settings,
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { ThemeToggle } from "./theme-toggle";
@@ -35,6 +36,7 @@ const iconMap = {
   Share2,
   Users,
   User,
+  Settings,
 };
 
 function NavLinks({
@@ -77,22 +79,35 @@ function NavLinks({
   );
 }
 
+function HeaderActions({ className }: { className?: string }) {
+  const { t } = useTranslation();
+
+  return (
+    <div className={cn("flex items-center gap-1", className)}>
+      <LanguageSwitcher size="sm" />
+      <Button
+        href="/emergency"
+        variant="ghost"
+        size="icon"
+        className="text-rose-500"
+        aria-label={t("nav.emergency")}
+      >
+        <ShieldAlert className="h-5 w-5" />
+      </Button>
+      <ThemeToggle />
+    </div>
+  );
+}
+
 function SidebarFooter() {
   const { t } = useTranslation();
 
   return (
-    <div className="border-t border-border p-4 space-y-3">
+    <div className="border-t border-border p-4">
       <Button href="/emergency" variant="danger" className="w-full emergency-pulse" size="sm">
         <ShieldAlert className="h-4 w-4" />
         {t("nav.emergency")}
       </Button>
-      <div className="flex items-center justify-between gap-2">
-        <LanguageSwitcher size="sm" />
-        <ThemeToggle />
-        <Button href="/settings" variant="ghost" size="sm" className="text-muted">
-          {t("nav.settings")}
-        </Button>
-      </div>
     </div>
   );
 }
@@ -184,7 +199,6 @@ function MobileBottomNav() {
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { t } = useTranslation();
 
   return (
     <>
@@ -220,21 +234,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <LiveModeBadge />
             </div>
             <div className="flex items-center gap-1">
-              <LanguageSwitcher size="sm" />
-              <Button
-                href="/emergency"
-                variant="ghost"
-                size="icon"
-                className="text-rose-500"
-                aria-label={t("nav.emergency")}
-              >
-                <ShieldAlert className="h-5 w-5" />
-              </Button>
-              <ThemeToggle />
+              <HeaderActions />
               <Button variant="ghost" size="icon" onClick={() => setMobileOpen(true)}>
                 <Menu className="h-5 w-5" />
               </Button>
             </div>
+          </header>
+
+          <header className="sticky top-0 z-40 hidden items-center justify-end border-b border-border bg-surface/80 px-8 py-3 backdrop-blur-xl safe-top lg:flex">
+            <HeaderActions />
           </header>
 
           <AnimatePresence>

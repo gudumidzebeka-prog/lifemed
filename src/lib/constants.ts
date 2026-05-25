@@ -45,6 +45,7 @@ export const NAV_ITEMS = [
   { href: "/share", key: "share", icon: "Share2" },
   { href: "/family", key: "family", icon: "Users" },
   { href: "/profile", key: "profile", icon: "User" },
+  { href: "/settings", key: "settings", icon: "Settings" },
 ] as const;
 
 export const EMERGENCY_QUICK_ACCESS = "/emergency";
