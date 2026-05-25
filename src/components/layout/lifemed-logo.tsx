@@ -43,7 +43,7 @@ export function LifeMedLogo({ variant = "compact", className }: LifeMedLogoProps
     >
       <div
         className={cn(
-          "flex shrink-0 items-center justify-center gradient-primary shadow-md shadow-lifemed-500/20",
+          "emergency-pulse flex shrink-0 items-center justify-center gradient-primary shadow-md shadow-lifemed-500/20",
           isCompact ? "h-8 w-8 rounded-lg" : "h-10 w-10 rounded-xl"
         )}
       >
