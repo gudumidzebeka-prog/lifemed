@@ -58,6 +58,8 @@ import {
 
   updateEmergencyContact,
 
+  updateFamilyMember,
+
   updateMedication,
 
   uploadHealthDocument,
@@ -1512,6 +1514,62 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
 
 
 
+  const editFamilyMember = useCallback(
+
+    async (
+
+      memberId: string,
+
+      input: { name: string; relationship: string; dateOfBirth: string }
+
+    ) => {
+
+      const prevMembers = familyMembers;
+
+      setFamilyMembers((prev) =>
+
+        prev.map((member) => (member.id === memberId ? { ...member, ...input } : member))
+
+      );
+
+
+
+      if (mode === "live" && userId && isSupabaseConfigured()) {
+
+        const supabase = createClient();
+
+        const { member, error } = await updateFamilyMember(supabase, userId, memberId, input);
+
+        if (error) {
+
+          setFamilyMembers(prevMembers);
+
+          return { error: error.message };
+
+        }
+
+
+
+        if (member) {
+
+          setFamilyMembers((prev) => prev.map((m) => (m.id === memberId ? member : m)));
+
+        }
+
+      }
+
+
+
+      return { error: null };
+
+    },
+
+    [familyMembers, mode, userId]
+
+  );
+
+
+
   const readFileAsDataUrl = (file: File) =>
     new Promise<string>((resolve, reject) => {
       const reader = new FileReader();
@@ -1875,6 +1933,8 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
     removeAppointment,
 
     addFamilyMember,
+
+    editFamilyMember,
 
     downloadDocument,
 

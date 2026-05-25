@@ -507,6 +507,39 @@ export async function createFamilyMember(
   };
 }
 
+export async function updateFamilyMember(
+  supabase: SupabaseClient,
+  managerId: string,
+  memberId: string,
+  input: { name: string; relationship: string; dateOfBirth: string }
+) {
+  const { data, error } = await supabase
+    .from("family_members")
+    .update({
+      name: input.name,
+      relationship: input.relationship,
+      date_of_birth: input.dateOfBirth || null,
+    })
+    .eq("id", memberId)
+    .eq("manager_id", managerId)
+    .select()
+    .single();
+
+  if (error || !data) return { member: null, error };
+
+  const row = data as FamilyRow;
+  return {
+    error: null,
+    member: {
+      id: row.id,
+      name: row.name,
+      relationship: row.relationship,
+      dateOfBirth: row.date_of_birth ?? "",
+      managedBy: row.manager_id,
+    },
+  };
+}
+
 export async function getHealthDocumentById(
   supabase: SupabaseClient,
   userId: string,

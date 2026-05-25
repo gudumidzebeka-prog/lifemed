@@ -519,6 +519,7 @@ export const ka: TranslationTree = {
     contactPhone: "ტელეფონი",
     contactEmail: "ელ-ფოსტა (არასავალდებულო)",
     familyAddTitle: "ოჯახის წევრის დამატება",
+    familyEditTitle: "ოჯახის წევრის რედაქტირება",
     familyName: "სახელი",
     familyRelationship: "ურთიერთობა",
     familyDob: "დაბადების თარიღი",

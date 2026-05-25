@@ -9,14 +9,31 @@ import { useTranslation } from "@/components/providers/locale-provider";
 import { useRelationshipLabel } from "@/lib/i18n/hooks";
 import { useHealthDataContext } from "@/components/providers/health-data-provider";
 import { formatDate } from "@/lib/utils";
-import { Plus, Users, ChevronRight, Baby, UserCircle } from "lucide-react";
+import type { FamilyMember } from "@/types/health";
+import { Plus, Users, ChevronRight, Baby, UserCircle, Pencil } from "lucide-react";
 import Link from "next/link";
 
 export default function FamilyPage() {
   const { t, locale } = useTranslation();
   const getRelationshipLabel = useRelationshipLabel();
   const { loading, familyMembers } = useHealthDataContext();
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [showMemberModal, setShowMemberModal] = useState(false);
+  const [editMember, setEditMember] = useState<FamilyMember | null>(null);
+
+  const openAddModal = () => {
+    setEditMember(null);
+    setShowMemberModal(true);
+  };
+
+  const openEditModal = (member: FamilyMember) => {
+    setEditMember(member);
+    setShowMemberModal(true);
+  };
+
+  const closeMemberModal = () => {
+    setShowMemberModal(false);
+    setEditMember(null);
+  };
 
   return (
     <div className="space-y-8">
@@ -25,13 +42,13 @@ export default function FamilyPage() {
           <h1 className="text-2xl font-bold text-foreground sm:text-3xl">{t("family.title")}</h1>
           <p className="mt-1 text-muted">{t("family.subtitle")}</p>
         </div>
-        <Button onClick={() => setShowAddModal(true)}>
+        <Button onClick={openAddModal}>
           <Plus className="h-4 w-4" />
           {t("family.addMember")}
         </Button>
       </div>
 
-      <AddFamilyMemberModal open={showAddModal} onClose={() => setShowAddModal(false)} />
+      <AddFamilyMemberModal open={showMemberModal} onClose={closeMemberModal} member={editMember} />
 
       <Card className="gradient-soft border-lifemed-200 dark:border-lifemed-800">
         <CardContent className="flex items-start gap-4 p-6">
@@ -57,15 +74,15 @@ export default function FamilyPage() {
             const Icon = isChild ? Baby : UserCircle;
 
             return (
-              <Link key={member.id} href={`/family/${member.id}`}>
-                <Card className="card-hover cursor-pointer group h-full">
-                  <CardContent className="flex items-center gap-4 p-5">
+              <Card key={member.id} className="card-hover h-full">
+                <CardContent className="flex items-center gap-3 p-5">
+                  <Link href={`/family/${member.id}`} className="flex min-w-0 flex-1 items-center gap-4 no-underline">
                     <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-lifemed-50 text-lifemed-600 dark:bg-lifemed-950/50">
                       <Icon className="h-7 w-7" />
                     </div>
-                    <div className="flex-1 min-w-0">
+                    <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-foreground group-hover:text-lifemed-600 transition-colors">
+                        <h3 className="font-semibold text-foreground transition-colors group-hover:text-lifemed-600">
                           {member.name}
                         </h3>
                         <Badge>{getRelationshipLabel(member.relationship)}</Badge>
@@ -76,16 +93,32 @@ export default function FamilyPage() {
                           : t("family.dobNotSet")}
                       </p>
                     </div>
-                    <ChevronRight className="h-5 w-5 text-muted group-hover:text-lifemed-500 transition-colors" />
-                  </CardContent>
-                </Card>
-              </Link>
+                  </Link>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="relative z-10 shrink-0"
+                    aria-label={t("common.edit")}
+                    onClick={() => openEditModal(member)}
+                  >
+                    <Pencil className="h-4 w-4 text-muted" />
+                  </Button>
+                  <Link
+                    href={`/family/${member.id}`}
+                    className="shrink-0 text-muted transition-colors hover:text-lifemed-500"
+                    aria-label={member.name}
+                  >
+                    <ChevronRight className="h-5 w-5" />
+                  </Link>
+                </CardContent>
+              </Card>
             );
           })}
 
           <Card
             className="border-dashed cursor-pointer hover:border-lifemed-300 transition-colors"
-            onClick={() => setShowAddModal(true)}
+            onClick={openAddModal}
           >
             <CardContent className="flex flex-col items-center justify-center p-8 text-center h-full min-h-[120px]">
               <Plus className="h-8 w-8 text-muted/40" />

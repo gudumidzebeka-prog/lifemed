@@ -490,6 +490,7 @@ export type TranslationTree = {
     contactPhone: string;
     contactEmail: string;
     familyAddTitle: string;
+    familyEditTitle: string;
     familyName: string;
     familyRelationship: string;
     familyDob: string;

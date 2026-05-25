@@ -518,6 +518,7 @@ export const ru: TranslationTree = {
     contactPhone: "Телефон",
     contactEmail: "Email (необяз.)",
     familyAddTitle: "Добавить члена семьи",
+    familyEditTitle: "Редактировать члена семьи",
     familyName: "Имя",
     familyRelationship: "Отношение",
     familyDob: "Дата рождения",
