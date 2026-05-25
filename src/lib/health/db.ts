@@ -199,14 +199,28 @@ export async function upsertHealthProfile(
       id: userId,
       full_name: profile.fullName,
       date_of_birth: normalizeDateOfBirth(profile.dateOfBirth) || null,
-      email: profile.email?.trim() || null,
-      phone: profile.phone?.trim() || null,
       blood_type: profile.bloodType || null,
       allergies: profile.allergies ?? [],
       chronic_illnesses: profile.chronicIllnesses ?? [],
     },
     { onConflict: "id" }
   );
+
+  return { error };
+}
+
+export async function upsertProfileContactFields(
+  supabase: SupabaseClient,
+  userId: string,
+  contact: Pick<ProfilePersistFields, "email" | "phone">
+) {
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      email: contact.email?.trim() || null,
+      phone: contact.phone?.trim() || null,
+    })
+    .eq("id", userId);
 
   return { error };
 }

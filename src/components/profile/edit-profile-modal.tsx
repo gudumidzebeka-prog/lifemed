@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,9 +24,10 @@ export function EditProfileModal({ open, onClose }: EditProfileModalProps) {
     email: profile.email ?? "",
     phone: profile.phone ?? "",
   });
+  const wasOpenRef = useRef(false);
 
   useEffect(() => {
-    if (open) {
+    if (open && !wasOpenRef.current) {
       setForm({
         fullName: profile.fullName,
         dateOfBirth: normalizeDateOfBirth(profile.dateOfBirth),
@@ -35,6 +36,7 @@ export function EditProfileModal({ open, onClose }: EditProfileModalProps) {
       });
       setError(null);
     }
+    wasOpenRef.current = open;
   }, [open, profile]);
 
   const handleSubmit = async (e: React.FormEvent) => {

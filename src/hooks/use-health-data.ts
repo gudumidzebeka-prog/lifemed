@@ -66,6 +66,8 @@ import {
 
   upsertHealthProfile,
 
+  upsertProfileContactFields,
+
 } from "@/lib/health/db";
 
 import { createClient } from "@/lib/supabase/client";
@@ -88,7 +90,7 @@ import {
   saveCachedProfileFields,
 } from "@/lib/health/profile-local-cache";
 import { normalizeDateOfBirth } from "@/lib/health/profile-dates";
-import { withAuthContact } from "@/lib/health/profile-contact";
+import { withAuthContact, syncProfileContactToAuth } from "@/lib/health/profile-contact";
 import { inferMimeType } from "@/lib/health/mime";
 
 import type {
@@ -439,6 +441,10 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
           allergies: mergedProfile.allergies,
           chronicIllnesses: mergedProfile.chronicIllnesses,
         });
+        await upsertProfileContactFields(supabase, user.id, {
+          email: mergedProfile.email,
+          phone: mergedProfile.phone,
+        });
       }
 
       setTimeline(liveTimeline);
@@ -703,6 +709,17 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
 
           return { error: error.message };
 
+        }
+
+        if (updates.phone !== undefined || updates.email !== undefined) {
+          await syncProfileContactToAuth(supabase, {
+            phone: next.phone,
+            email: next.email,
+          });
+          await upsertProfileContactFields(supabase, liveUserId, {
+            email: next.email,
+            phone: next.phone,
+          });
         }
 
       }
