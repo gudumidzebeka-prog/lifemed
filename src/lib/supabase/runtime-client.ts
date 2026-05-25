@@ -10,26 +10,34 @@ interface RuntimeSupabaseConfig {
 
 let cachedConfig: RuntimeSupabaseConfig | null = null;
 let configPromise: Promise<RuntimeSupabaseConfig> | null = null;
+let serverSupabaseHint = false;
+
+export function configureSupabaseRuntimeHint(configured: boolean) {
+  serverSupabaseHint = configured;
+  if (configured && cachedConfig && !cachedConfig.supabase) {
+    cachedConfig = null;
+  }
+}
 
 export async function resolveSupabaseConfig(): Promise<RuntimeSupabaseConfig> {
   if (cachedConfig) return cachedConfig;
   if (configPromise) return configPromise;
 
-  configPromise = fetch("/api/setup/status", { cache: "no-store" })
+  configPromise = fetch("/api/setup/status", { cache: "no-store", credentials: "same-origin" })
     .then(async (res) => {
       if (!res.ok) throw new Error("Failed to load setup status");
       return (await res.json()) as RuntimeSupabaseConfig;
     })
     .then((data) => {
       cachedConfig = {
-        supabase: Boolean(data.supabase),
+        supabase: Boolean(data.supabase) || serverSupabaseHint,
         supabaseUrl: data.supabaseUrl,
         supabaseAnonKey: data.supabaseAnonKey,
       };
       return cachedConfig;
     })
     .catch(() => {
-      const fallback = { supabase: isSupabaseConfigured() };
+      const fallback = { supabase: serverSupabaseHint || isSupabaseConfigured() };
       cachedConfig = fallback;
       return fallback;
     })

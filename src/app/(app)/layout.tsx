@@ -2,6 +2,8 @@ import { AppShell } from "@/components/layout/app-shell";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { HealthDataProvider } from "@/components/providers/health-data-provider";
 
+export const dynamic = "force-dynamic";
+
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const supabaseConfigured = isSupabaseConfigured();
 

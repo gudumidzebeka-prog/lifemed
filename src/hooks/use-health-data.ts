@@ -60,11 +60,12 @@ import {
 
 import { createClient } from "@/lib/supabase/client";
 
-import { createClientFromConfig, resolveSupabaseConfig } from "@/lib/supabase/runtime-client";
+import { createClientFromConfig, configureSupabaseRuntimeHint, resolveSupabaseConfig } from "@/lib/supabase/runtime-client";
 
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 import { EMPTY_PROFILE, emptyLiveProfile } from "@/lib/health/empty-profile";
+import { clearDemoSeedFromAccount, isDemoSeedProfile } from "@/lib/health/demo-seed";
 
 import type {
 
@@ -210,13 +211,15 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
 
   const [userId, setUserId] = useState<string | null>(null);
 
-
+  useEffect(() => {
+    configureSupabaseRuntimeHint(serverSupabaseConfigured);
+  }, [serverSupabaseConfigured]);
 
   const reload = useCallback(async () => {
 
     const config = await resolveSupabaseConfig();
 
-    const supabaseConfigured = config.supabase;
+    const supabaseConfigured = config.supabase || serverSupabaseConfigured;
 
 
 
@@ -254,7 +257,13 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
 
     try {
 
-      const supabase = createClientFromConfig(config);
+      const clientConfig = {
+        supabase: supabaseConfigured,
+        supabaseUrl: config.supabaseUrl,
+        supabaseAnonKey: config.supabaseAnonKey,
+      };
+
+      const supabase = createClientFromConfig(clientConfig);
 
       const {
 
@@ -324,6 +333,26 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
 
       if (!aptResult.error) setAppointments(aptResult.appointments);
 
+      if (liveProfile && isDemoSeedProfile(liveProfile)) {
+        const cleared = await clearDemoSeedFromAccount();
+        if (cleared) {
+          const [freshProfile, freshTimeline, freshDocuments, freshFamily, freshApts] =
+            await Promise.all([
+              fetchHealthProfile(supabase, user.id),
+              fetchTimelineEvents(supabase, user.id),
+              fetchHealthDocuments(supabase, user.id),
+              fetchFamilyMembers(supabase, user.id),
+              fetchAppointments(supabase, user.id),
+            ]);
+
+          setProfile(freshProfile ?? emptyLiveProfile(user));
+          setTimeline(freshTimeline);
+          setDocuments(freshDocuments);
+          if (!freshFamily.error) setFamilyMembers(freshFamily.members);
+          if (!freshApts.error) setAppointments(freshApts.appointments);
+        }
+      }
+
     } catch {
 
       applyDemoData(true, {
@@ -350,7 +379,7 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
 
     }
 
-  }, []);
+  }, [serverSupabaseConfigured]);
 
 
 

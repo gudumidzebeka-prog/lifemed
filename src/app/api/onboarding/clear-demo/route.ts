@@ -1,13 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
-
-const DEMO_TIMELINE_TITLES = [
-  "Annual Physical Exam",
-  "COVID-19 Vaccination (Booster)",
-  "Lupus Flare — Rheumatology Visit",
-  "Appendectomy",
-];
+import { DEMO_PROFILE_NAME, DEMO_TIMELINE_TITLES } from "@/lib/health/demo-seed";
 
 const DEMO_MEDICATIONS = ["Hydroxychloroquine", "Prednisone", "Vitamin D3"];
 
@@ -33,7 +27,7 @@ export async function POST() {
     .eq("id", user.id)
     .maybeSingle();
 
-  if (profile?.full_name !== "Sarah Chen") {
+  if (profile?.full_name !== DEMO_PROFILE_NAME) {
     return NextResponse.json({ cleared: false, reason: "not_demo_profile" });
   }
 
@@ -41,6 +35,7 @@ export async function POST() {
     supabase.from("timeline_events").delete().eq("user_id", user.id).in("title", DEMO_TIMELINE_TITLES),
     supabase.from("medications").delete().eq("user_id", user.id).in("name", DEMO_MEDICATIONS),
     supabase.from("emergency_contacts").delete().eq("user_id", user.id).in("name", DEMO_CONTACTS),
+    supabase.from("family_members").delete().eq("user_id", user.id).in("name", ["Michael Chen", "Emma Chen"]),
   ]);
 
   const metaName = user.user_metadata?.full_name;

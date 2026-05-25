@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/components/providers/locale-provider";
 import { useHealthDataContext } from "@/components/providers/health-data-provider";
+import { clearDemoSeedFromAccount, isDemoSeedProfile } from "@/lib/health/demo-seed";
 import { AlertTriangle } from "lucide-react";
 
 export function ClearDemoDataBanner() {
@@ -12,16 +13,15 @@ export function ClearDemoDataBanner() {
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
 
-  if (done || mode !== "live" || profile.fullName !== "Sarah Chen") {
+  if (done || mode !== "live" || !isDemoSeedProfile(profile)) {
     return null;
   }
 
   const handleClear = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/onboarding/clear-demo", { method: "POST" });
-      const data = (await res.json()) as { cleared?: boolean };
-      if (res.ok && data.cleared) {
+      const cleared = await clearDemoSeedFromAccount();
+      if (cleared) {
         setDone(true);
         await reload();
       }
