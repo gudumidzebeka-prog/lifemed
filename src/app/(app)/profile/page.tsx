@@ -16,6 +16,7 @@ import { displayFirstName } from "@/lib/health/empty-profile";
 import { EditProfileModal } from "@/components/profile/edit-profile-modal";
 import { AddMedicationModal } from "@/components/profile/add-medication-modal";
 import { EmergencyContactModal } from "@/components/profile/emergency-contact-modal";
+import type { Medication } from "@/types/health";
 import {
   User,
   Droplets,
@@ -54,12 +55,23 @@ function ProfileContent() {
   } = useHealthDataContext();
   const [showEditModal, setShowEditModal] = useState(false);
   const [showMedModal, setShowMedModal] = useState(false);
+  const [editMedication, setEditMedication] = useState<Medication | null>(null);
   const [showContactModal, setShowContactModal] = useState(false);
   const [newAllergy, setNewAllergy] = useState("");
 
+  const openMedicationModal = (medication: Medication | null = null) => {
+    setEditMedication(medication);
+    setShowMedModal(true);
+  };
+
+  const closeMedicationModal = () => {
+    setShowMedModal(false);
+    setEditMedication(null);
+  };
+
   useEffect(() => {
     if (searchParams.get("med") === "true") {
-      setShowMedModal(true);
+      openMedicationModal(null);
     }
   }, [searchParams]);
 
@@ -95,7 +107,11 @@ function ProfileContent() {
       </div>
 
       <EditProfileModal open={showEditModal} onClose={() => setShowEditModal(false)} />
-      <AddMedicationModal open={showMedModal} onClose={() => setShowMedModal(false)} />
+      <AddMedicationModal
+        open={showMedModal}
+        onClose={closeMedicationModal}
+        medication={editMedication}
+      />
       <EmergencyContactModal open={showContactModal} onClose={() => setShowContactModal(false)} />
 
       <Card>
@@ -201,8 +217,13 @@ function ProfileContent() {
               <p className="text-sm text-muted">{t("profile.medicationsEmpty")}</p>
             )}
             {profile.currentMedications.map((med) => (
-              <div key={med.id} className="flex items-start justify-between gap-2 rounded-xl border border-border p-3">
-                <div>
+              <div key={med.id} className="flex items-start justify-between gap-2 rounded-xl border border-border p-3 transition-colors hover:bg-surface-elevated">
+                <button
+                  type="button"
+                  onClick={() => openMedicationModal(med)}
+                  className="relative z-10 min-w-0 flex-1 text-left"
+                  aria-label={t("common.edit")}
+                >
                   <p className="font-medium text-foreground">{med.name}</p>
                   <p className="text-sm text-muted">
                     {med.dosage} · {getMedicationFrequencyLabel(med.frequency)}
@@ -219,14 +240,25 @@ function ProfileContent() {
                       {t("profile.prescribedBy", { prescriber: med.prescriber })}
                     </p>
                   )}
+                </button>
+                <div className="flex shrink-0 gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="relative z-10"
+                    onClick={() => openMedicationModal(med)}
+                    aria-label={t("common.edit")}
+                  >
+                    <Pencil className="h-4 w-4 text-muted" />
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => removeMedication(med.id)}>
+                    <Trash2 className="h-4 w-4 text-muted" />
+                  </Button>
                 </div>
-                <Button variant="ghost" size="icon" onClick={() => removeMedication(med.id)}>
-                  <Trash2 className="h-4 w-4 text-muted" />
-                </Button>
               </div>
             ))}
           </div>
-          <Button variant="ghost" size="sm" className="mt-3" onClick={() => setShowMedModal(true)}>
+          <Button variant="ghost" size="sm" className="mt-3" onClick={() => openMedicationModal(null)}>
             <Plus className="h-4 w-4" />
             {t("profile.addMedication")}
           </Button>
@@ -244,7 +276,12 @@ function ProfileContent() {
                 <div>
                   <p className="font-medium text-foreground">{contact.name}</p>
                   <p className="text-sm text-muted">{getRelationshipLabel(contact.relationship)}</p>
-                  <p className="text-sm text-lifemed-600 dark:text-lifemed-400 mt-1">{contact.phone}</p>
+                  <a
+                    href={`tel:${contact.phone.replace(/\s/g, "")}`}
+                    className="text-sm text-lifemed-600 dark:text-lifemed-400 mt-1 inline-block hover:underline"
+                  >
+                    {contact.phone}
+                  </a>
                 </div>
                 <Button variant="ghost" size="icon" onClick={() => removeEmergencyContact(contact.id)}>
                   <Trash2 className="h-4 w-4 text-muted" />

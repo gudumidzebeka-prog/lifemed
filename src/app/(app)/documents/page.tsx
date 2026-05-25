@@ -160,11 +160,20 @@ function DocumentsContent() {
       />
 
       <div
+        role="button"
+        tabIndex={0}
+        onClick={() => setShowUploadModal(true)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            setShowUploadModal(true);
+          }
+        }}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
         onDragOver={handleDrag}
         onDrop={handleDrop}
-        className={`relative rounded-2xl border-2 border-dashed p-8 text-center transition-all duration-200 ${
+        className={`relative cursor-pointer rounded-2xl border-2 border-dashed p-8 text-center transition-all duration-200 ${
           dragActive
             ? "drop-zone-active border-lifemed-400 scale-[1.01]"
             : "border-border hover:border-lifemed-300"
@@ -173,7 +182,15 @@ function DocumentsContent() {
         <Upload className="mx-auto h-10 w-10 text-lifemed-400" />
         <p className="mt-3 font-medium text-foreground">{t("documents.dropTitle")}</p>
         <p className="mt-1 text-sm text-muted">{t("documents.dropSubtitle")}</p>
-        <Button variant="secondary" className="mt-4" size="sm" onClick={() => setShowUploadModal(true)}>
+        <Button
+          variant="secondary"
+          className="relative z-10 mt-4"
+          size="sm"
+          onClick={(event) => {
+            event.stopPropagation();
+            setShowUploadModal(true);
+          }}
+        >
           {t("documents.browse")}
         </Button>
       </div>

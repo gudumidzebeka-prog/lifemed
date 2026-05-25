@@ -132,7 +132,12 @@ function TimelineContent() {
                   <Card className="card-hover">
                     <CardContent className="p-5">
                       <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div>
+                        <button
+                          type="button"
+                          onClick={() => setEditEvent(event)}
+                          className="relative z-10 min-w-0 flex-1 text-left"
+                          aria-label={t("timeline.edit")}
+                        >
                           <div className="flex items-center gap-2 flex-wrap">
                             <h3 className="font-semibold text-foreground">{event.title}</h3>
                             <span
@@ -151,7 +156,7 @@ function TimelineContent() {
                               {t("common.provider")} {event.provider}
                             </p>
                           )}
-                        </div>
+                        </button>
                         <div className="flex items-start gap-1 shrink-0">
                           <time className="text-sm font-medium text-lifemed-600 dark:text-lifemed-400">
                             {formatDate(event.date, locale, { month: "long", day: "numeric" })}
@@ -159,7 +164,7 @@ function TimelineContent() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8"
+                            className="relative z-10 h-8 w-8"
                             onClick={() => setEditEvent(event)}
                             aria-label={t("timeline.edit")}
                           >
@@ -168,7 +173,7 @@ function TimelineContent() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8"
+                            className="relative z-10 h-8 w-8"
                             onClick={() => removeTimelineEvent(event.id)}
                             aria-label={t("timeline.delete")}
                           >

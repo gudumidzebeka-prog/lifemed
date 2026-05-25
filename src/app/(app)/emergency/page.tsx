@@ -13,6 +13,7 @@ import { useMedicationFrequencyLabel, useRelationshipLabel } from "@/lib/i18n/ho
 import { displayFirstName } from "@/lib/health/empty-profile";
 import { formatDate } from "@/lib/utils";
 import { formatReminderTimes, sanitizeReminderTimes } from "@/lib/health/medication-reminders";
+import type { Medication } from "@/types/health";
 import { Phone, Mail, AlertTriangle, Pill, Heart, Droplets, Pencil, Plus, X } from "lucide-react";
 
 export default function EmergencyPage() {
@@ -30,8 +31,19 @@ export default function EmergencyPage() {
 
   const [showEditModal, setShowEditModal] = useState(false);
   const [showMedModal, setShowMedModal] = useState(false);
+  const [editMedication, setEditMedication] = useState<Medication | null>(null);
   const [showContactModal, setShowContactModal] = useState(false);
   const [newAllergy, setNewAllergy] = useState("");
+
+  const openMedicationModal = (medication: Medication | null = null) => {
+    setEditMedication(medication);
+    setShowMedModal(true);
+  };
+
+  const closeMedicationModal = () => {
+    setShowMedModal(false);
+    setEditMedication(null);
+  };
 
   const displayName = profile.fullName.trim() || displayFirstName(profile.fullName);
 
@@ -82,7 +94,11 @@ export default function EmergencyPage() {
       )}
 
       <EditProfileModal open={showEditModal} onClose={() => setShowEditModal(false)} />
-      <AddMedicationModal open={showMedModal} onClose={() => setShowMedModal(false)} />
+      <AddMedicationModal
+        open={showMedModal}
+        onClose={closeMedicationModal}
+        medication={editMedication}
+      />
       <EmergencyContactModal open={showContactModal} onClose={() => setShowContactModal(false)} />
 
       <div className="flex-1 space-y-4">
@@ -200,7 +216,12 @@ export default function EmergencyPage() {
             <div className="space-y-3">
               {profile.currentMedications.map((med) => (
                 <div key={med.id} className="flex items-start justify-between gap-2 border-l-2 border-lifemed-400 pl-3">
-                  <div>
+                  <button
+                    type="button"
+                    onClick={() => openMedicationModal(med)}
+                    className="relative z-10 min-w-0 flex-1 text-left"
+                    aria-label={t("common.edit")}
+                  >
                     <p className="font-medium text-foreground">{med.name}</p>
                     <p className="text-sm text-muted">
                       {med.dosage} · {getMedicationFrequencyLabel(med.frequency)}
@@ -212,17 +233,28 @@ export default function EmergencyPage() {
                         })}
                       </p>
                     ) : null}
+                  </button>
+                  <div className="flex shrink-0 gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="relative z-10 h-8 w-8"
+                      onClick={() => openMedicationModal(med)}
+                      aria-label={t("common.edit")}
+                    >
+                      <Pencil className="h-4 w-4 text-muted" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="relative z-10 shrink-0" onClick={() => removeMedication(med.id)}>
+                      <X className="h-4 w-4 text-muted" />
+                    </Button>
                   </div>
-                  <Button variant="ghost" size="icon" className="relative z-10 shrink-0" onClick={() => removeMedication(med.id)}>
-                    <X className="h-4 w-4 text-muted" />
-                  </Button>
                 </div>
               ))}
             </div>
           ) : (
             <div className="space-y-3">
               <p className="text-muted">{t("emergency.noMedications")}</p>
-              <Button variant="secondary" size="sm" className="relative z-10" onClick={() => setShowMedModal(true)}>
+              <Button variant="secondary" size="sm" className="relative z-10" onClick={() => openMedicationModal(null)}>
                 <Plus className="h-4 w-4" />
                 {t("emergency.addMedication")}
               </Button>

@@ -120,7 +120,7 @@ export function LandingPageClient({ demoEnabled }: { demoEnabled: boolean }) {
           {features.map((feature) => (
             <div
               key={feature.title}
-              className="rounded-2xl border border-border bg-surface p-6 card-hover"
+              className="rounded-2xl border border-border bg-surface p-6"
             >
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-lifemed-50 text-lifemed-600 dark:bg-lifemed-950/50 dark:text-lifemed-400">
                 <feature.icon className="h-6 w-6" />
