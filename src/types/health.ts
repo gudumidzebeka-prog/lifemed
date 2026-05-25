@@ -51,6 +51,8 @@ export interface Medication {
   startDate: string;
   endDate?: string;
   prescriber?: string;
+  /** Daily reminder times in 24h HH:MM format */
+  reminderTimes?: string[];
 }
 
 export interface HealthDocument {

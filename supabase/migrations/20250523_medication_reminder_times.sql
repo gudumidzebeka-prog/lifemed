@@ -1,0 +1,2 @@
+ALTER TABLE medications
+ADD COLUMN IF NOT EXISTS reminder_times TEXT[] DEFAULT ARRAY[]::TEXT[];

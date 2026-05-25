@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS medications (
   start_date DATE NOT NULL,
   end_date DATE,
   prescriber TEXT,
+  reminder_times TEXT[] DEFAULT ARRAY[]::TEXT[],
   active BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );

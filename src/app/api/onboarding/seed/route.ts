@@ -125,6 +125,8 @@ export async function POST() {
 
         prescriber: m.prescriber ?? null,
 
+        reminder_times: m.reminderTimes ?? [],
+
         active: true,
 
       }))

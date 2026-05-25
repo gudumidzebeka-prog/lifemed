@@ -27,6 +27,7 @@ interface MedicationRow {
   start_date: string;
   end_date: string | null;
   prescriber: string | null;
+  reminder_times?: string[] | null;
 }
 
 interface ContactRow {
@@ -102,6 +103,7 @@ export async function fetchHealthProfile(
       startDate: m.start_date,
       endDate: m.end_date ?? undefined,
       prescriber: m.prescriber ?? undefined,
+      reminderTimes: m.reminder_times ?? [],
     })),
   };
 }
@@ -318,6 +320,7 @@ export async function addMedication(
     frequency: string;
     startDate: string;
     prescriber?: string;
+    reminderTimes?: string[];
   }
 ) {
   const { data, error } = await supabase
@@ -329,6 +332,7 @@ export async function addMedication(
       frequency: med.frequency,
       start_date: med.startDate,
       prescriber: med.prescriber ?? null,
+      reminder_times: med.reminderTimes ?? [],
       active: true,
     })
     .select()
@@ -682,6 +686,7 @@ export async function updateMedication(
     frequency: string;
     startDate: string;
     prescriber?: string;
+    reminderTimes?: string[];
   }
 ) {
   const { data, error } = await supabase
@@ -692,6 +697,7 @@ export async function updateMedication(
       frequency: med.frequency,
       start_date: med.startDate,
       prescriber: med.prescriber ?? null,
+      reminder_times: med.reminderTimes ?? [],
     })
     .eq("id", medicationId)
     .eq("user_id", userId)

@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { ExpandableCard } from "@/components/ui/expandable-card";
 import { useMedicationFrequencyLabel, useRelationshipLabel } from "@/lib/i18n/hooks";
 import { formatDate } from "@/lib/utils";
+import { formatReminderTimes, sanitizeReminderTimes } from "@/lib/health/medication-reminders";
 import { displayFirstName } from "@/lib/health/empty-profile";
 import { EditProfileModal } from "@/components/profile/edit-profile-modal";
 import { AddMedicationModal } from "@/components/profile/add-medication-modal";
@@ -197,6 +198,13 @@ function ProfileContent() {
                   <p className="text-sm text-muted">
                     {med.dosage} · {getMedicationFrequencyLabel(med.frequency)}
                   </p>
+                  {sanitizeReminderTimes(med.reminderTimes ?? []).length > 0 ? (
+                    <p className="text-xs text-lifemed-600 dark:text-lifemed-400 mt-1">
+                      {t("profile.reminderTimes", {
+                        times: formatReminderTimes(med.reminderTimes, t("profile.noReminderTimes")),
+                      })}
+                    </p>
+                  ) : null}
                   {med.prescriber && (
                     <p className="text-xs text-muted mt-1">
                       {t("profile.prescribedBy", { prescriber: med.prescriber })}

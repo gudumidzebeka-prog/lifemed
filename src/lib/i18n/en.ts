@@ -260,6 +260,8 @@ export const en: TranslationTree = {
     chronic: "Chronic Illnesses",
     chronicCount: "{count} conditions",
     chronicEditHint: "Edit via profile settings",
+    reminderTimes: "Reminder: {times}",
+    noReminderTimes: "No reminder set",
   },
   emergency: {
     title: "Emergency Medical Card",
@@ -466,6 +468,10 @@ export const en: TranslationTree = {
     medFrequencyDefault: "Once daily",
     medNamePlaceholder: "e.g. Hydroxychloroquine",
     medDosagePlaceholder: "200mg",
+    medReminderTimes: "Take time",
+    medReminderTimesHint: "Add a time to get a reminder notification (enable in Settings)",
+    medAddTime: "Add time",
+    medRemoveTime: "Remove time",
     profileBloodTypePlaceholder: "O+",
     profileAllergiesPlaceholder: "Penicillin, Shellfish",
     profileChronicPlaceholder: "Lupus",
@@ -485,6 +491,10 @@ export const en: TranslationTree = {
     relSibling: "Sibling",
     relGrandparent: "Grandparent",
     relOther: "Other",
+  },
+  notifications: {
+    medicationTitle: "LifeMed — medication",
+    medicationBody: "Time to take {name} ({dosage}) — {time}",
   },
   setup: {
     headerSubtitle: "Step-by-step configuration",

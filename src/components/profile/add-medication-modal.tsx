@@ -4,8 +4,10 @@ import { useEffect, useState } from "react";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { MedicationReminderFields } from "@/components/medications/medication-reminder-fields";
 import { useTranslation } from "@/components/providers/locale-provider";
 import { useHealthDataContext } from "@/components/providers/health-data-provider";
+import { sanitizeReminderTimes } from "@/lib/health/medication-reminders";
 import type { Medication } from "@/types/health";
 
 interface AddMedicationModalProps {
@@ -26,6 +28,7 @@ export function AddMedicationModal({ open, onClose, medication }: AddMedicationM
     startDate: new Date().toISOString().slice(0, 10),
     prescriber: "",
   });
+  const [reminderTimes, setReminderTimes] = useState<string[]>([""]);
 
   const isEditing = Boolean(medication);
 
@@ -39,6 +42,9 @@ export function AddMedicationModal({ open, onClose, medication }: AddMedicationM
         startDate: medication.startDate.slice(0, 10),
         prescriber: medication.prescriber ?? "",
       });
+      setReminderTimes(
+        medication.reminderTimes?.length ? medication.reminderTimes : [""]
+      );
       return;
     }
     setForm({
@@ -48,6 +54,7 @@ export function AddMedicationModal({ open, onClose, medication }: AddMedicationM
       startDate: new Date().toISOString().slice(0, 10),
       prescriber: "",
     });
+    setReminderTimes([""]);
   }, [medication, open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -61,6 +68,7 @@ export function AddMedicationModal({ open, onClose, medication }: AddMedicationM
       frequency: form.frequency || t("modals.medFrequencyDefault"),
       startDate: form.startDate,
       prescriber: form.prescriber || undefined,
+      reminderTimes: sanitizeReminderTimes(reminderTimes),
     };
 
     const { error: err } = isEditing && medication
@@ -118,6 +126,8 @@ export function AddMedicationModal({ open, onClose, medication }: AddMedicationM
           value={form.prescriber}
           onChange={(e) => setForm({ ...form, prescriber: e.target.value })}
         />
+
+        <MedicationReminderFields times={reminderTimes} onChange={setReminderTimes} />
 
         <div className="flex gap-3 pt-2">
           <Button type="button" variant="secondary" className="flex-1" onClick={onClose}>

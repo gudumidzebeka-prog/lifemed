@@ -12,6 +12,7 @@ import { EmergencyContactModal } from "@/components/profile/emergency-contact-mo
 import { useMedicationFrequencyLabel, useRelationshipLabel } from "@/lib/i18n/hooks";
 import { displayFirstName } from "@/lib/health/empty-profile";
 import { formatDate } from "@/lib/utils";
+import { formatReminderTimes, sanitizeReminderTimes } from "@/lib/health/medication-reminders";
 import { Phone, Mail, AlertTriangle, Pill, Heart, Droplets, Pencil, Plus, X } from "lucide-react";
 
 export default function EmergencyPage() {
@@ -204,6 +205,13 @@ export default function EmergencyPage() {
                     <p className="text-sm text-muted">
                       {med.dosage} · {getMedicationFrequencyLabel(med.frequency)}
                     </p>
+                    {sanitizeReminderTimes(med.reminderTimes ?? []).length > 0 ? (
+                      <p className="text-xs text-lifemed-600 dark:text-lifemed-400 mt-1">
+                        {t("profile.reminderTimes", {
+                          times: formatReminderTimes(med.reminderTimes, t("profile.noReminderTimes")),
+                        })}
+                      </p>
+                    ) : null}
                   </div>
                   <Button variant="ghost" size="icon" className="relative z-10 shrink-0" onClick={() => removeMedication(med.id)}>
                     <X className="h-4 w-4 text-muted" />

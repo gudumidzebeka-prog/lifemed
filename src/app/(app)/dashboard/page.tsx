@@ -20,6 +20,7 @@ import { displayFirstName } from "@/lib/health/empty-profile";
 import { useTimelineTypeLabel, useDocumentCategoryLabel, useMedicationFrequencyLabel } from "@/lib/i18n/hooks";
 import { getTimelineTypeColor } from "@/data/demo-data";
 import { formatDate, formatRelativeTime } from "@/lib/utils";
+import { formatReminderTimes, sanitizeReminderTimes } from "@/lib/health/medication-reminders";
 import type { Appointment, HealthDocument, Medication, TimelineEvent } from "@/types/health";
 import {
   Upload,
@@ -222,6 +223,13 @@ export default function DashboardPage() {
                       <p className="text-xs text-muted">
                         {med.dosage} · {getMedicationFrequencyLabel(med.frequency)}
                       </p>
+                      {sanitizeReminderTimes(med.reminderTimes ?? []).length > 0 ? (
+                        <p className="text-xs text-lifemed-600 dark:text-lifemed-400">
+                          {t("profile.reminderTimes", {
+                            times: formatReminderTimes(med.reminderTimes, t("profile.noReminderTimes")),
+                          })}
+                        </p>
+                      ) : null}
                     </Link>
                     <Badge variant="success">{t("common.active")}</Badge>
                     <Button

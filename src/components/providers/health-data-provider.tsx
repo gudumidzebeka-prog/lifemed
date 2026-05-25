@@ -62,6 +62,7 @@ interface HealthDataContextValue {
     frequency: string;
     startDate: string;
     prescriber?: string;
+    reminderTimes?: string[];
   }) => Promise<{ error: string | null }>;
   editMedication: (
     medicationId: string,
@@ -71,6 +72,7 @@ interface HealthDataContextValue {
       frequency: string;
       startDate: string;
       prescriber?: string;
+      reminderTimes?: string[];
     }
   ) => Promise<{ error: string | null }>;
   removeMedication: (medicationId: string) => Promise<{ error: string | null }>;

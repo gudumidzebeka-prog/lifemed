@@ -69,6 +69,13 @@ import { createClientFromConfig, configureSupabaseRuntimeHint, resolveSupabaseCo
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 import { EMPTY_PROFILE, emptyLiveProfile } from "@/lib/health/empty-profile";
+
+import {
+  mergeMedicationReminderTimes,
+  setMedicationReminderTimes,
+} from "@/lib/health/medication-reminder-storage";
+
+import { sanitizeReminderTimes } from "@/lib/health/medication-reminders";
 import { inferMimeType } from "@/lib/health/mime";
 import { clearDemoSeedFromAccount, accountHasDemoSeedData } from "@/lib/health/demo-seed";
 
@@ -188,12 +195,21 @@ function applyDemoData(
   }
 
   setters.setMode("demo");
-  setters.setProfile(demoProfile);
+  setters.setProfile(withMedicationReminders(demoProfile));
   setters.setTimeline(demoTimeline);
   setters.setDocuments(demoDocuments);
   setters.setFamilyMembers(demoFamilyMembers);
   setters.setAppointments(loadLocalAppointments(false));
   setters.setUserId(null);
+}
+
+
+
+function withMedicationReminders(profile: HealthProfile): HealthProfile {
+  return {
+    ...profile,
+    currentMedications: mergeMedicationReminderTimes(profile.currentMedications),
+  };
 }
 
 
@@ -326,7 +342,7 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
 
 
 
-      setProfile(liveProfile ?? emptyLiveProfile(user));
+      setProfile(withMedicationReminders(liveProfile ?? emptyLiveProfile(user)));
 
       setTimeline(liveTimeline);
 
@@ -356,7 +372,7 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
               fetchAppointments(supabase, user.id),
             ]);
 
-          setProfile(freshProfile ?? emptyLiveProfile(user));
+          setProfile(withMedicationReminders(freshProfile ?? emptyLiveProfile(user)));
           setTimeline(freshTimeline);
           setDocuments(freshDocuments);
           if (!freshFamily.error) setFamilyMembers(freshFamily.members);
@@ -852,7 +868,11 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
 
       prescriber?: string;
 
+      reminderTimes?: string[];
+
     }) => {
+
+      const reminderTimes = sanitizeReminderTimes(med.reminderTimes ?? []);
 
       const localMed: Medication = {
 
@@ -860,7 +880,13 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
 
         ...med,
 
+        reminderTimes,
+
       };
+
+
+
+      setMedicationReminderTimes(localMed.id, reminderTimes);
 
 
 
@@ -878,7 +904,7 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
 
         const supabase = createClient();
 
-        const { data, error } = await dbAddMedication(supabase, userId, med);
+        const { data, error } = await dbAddMedication(supabase, userId, { ...med, reminderTimes });
 
         if (error) {
 
@@ -988,11 +1014,21 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
 
         prescriber?: string;
 
+        reminderTimes?: string[];
+
       }
 
     ) => {
 
+      const reminderTimes = sanitizeReminderTimes(med.reminderTimes ?? []);
+
+      const payload = { ...med, reminderTimes };
+
       const prevMeds = profile.currentMedications;
+
+      setMedicationReminderTimes(medicationId, reminderTimes);
+
+
 
       setProfile((prev) => ({
 
@@ -1000,7 +1036,7 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
 
         currentMedications: prev.currentMedications.map((m) =>
 
-          m.id === medicationId ? { ...m, ...med } : m
+          m.id === medicationId ? { ...m, ...payload } : m
 
         ),
 
@@ -1012,7 +1048,7 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
 
         const supabase = createClient();
 
-        const { error } = await updateMedication(supabase, userId, medicationId, med);
+        const { error } = await updateMedication(supabase, userId, medicationId, payload);
 
         if (error) {
 

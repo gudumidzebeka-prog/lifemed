@@ -246,6 +246,8 @@ export type TranslationTree = {
     chronic: string;
     chronicCount: string;
     chronicEditHint: string;
+    reminderTimes: string;
+    noReminderTimes: string;
   };
   emergency: {
     title: string;
@@ -439,6 +441,10 @@ export type TranslationTree = {
     medFrequencyDefault: string;
     medNamePlaceholder: string;
     medDosagePlaceholder: string;
+    medReminderTimes: string;
+    medReminderTimesHint: string;
+    medAddTime: string;
+    medRemoveTime: string;
     profileBloodTypePlaceholder: string;
     profileAllergiesPlaceholder: string;
     profileChronicPlaceholder: string;
@@ -458,6 +464,10 @@ export type TranslationTree = {
     relSibling: string;
     relGrandparent: string;
     relOther: string;
+  };
+  notifications: {
+    medicationTitle: string;
+    medicationBody: string;
   };
   setup: {
     headerSubtitle: string;

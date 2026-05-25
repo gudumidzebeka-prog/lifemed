@@ -261,6 +261,8 @@ export const ka: TranslationTree = {
     chronic: "ქრონიკული დაავადებები",
     chronicCount: "{count} დაავადება",
     chronicEditHint: "რედაქტირება — პროფილის რედაქტირებით",
+    reminderTimes: "შეხსენება: {times}",
+    noReminderTimes: "შეხსენება არ არის",
   },
   emergency: {
     title: "საგანგებო სამედიცინო ბარათი",
@@ -467,6 +469,10 @@ export const ka: TranslationTree = {
     medFrequencyDefault: "დღეში ერთხელ",
     medNamePlaceholder: "მაგ: ჰიდროქსიქლოროქინი",
     medDosagePlaceholder: "200მგ",
+    medReminderTimes: "მიღების დრო",
+    medReminderTimesHint: "დაამატეთ საათი — ამ დროს მოვა შეხსენება (პარამეტრებში ჩართული უნდა იყოს)",
+    medAddTime: "საათის დამატება",
+    medRemoveTime: "საათის წაშლა",
     profileBloodTypePlaceholder: "O+",
     profileAllergiesPlaceholder: "პenicillin, კრევეტი",
     profileChronicPlaceholder: "lupus",
@@ -486,6 +492,10 @@ export const ka: TranslationTree = {
     relSibling: "და/ძმა",
     relGrandparent: "ბებია/ბაბუა",
     relOther: "სხვა",
+  },
+  notifications: {
+    medicationTitle: "LifeMed — მედიკამენტი",
+    medicationBody: "დროა მიიღოთ {name} ({dosage}) — {time}",
   },
   setup: {
     headerSubtitle: "ნაბიჯ-ნაბიჯ კონფიგურაცია",

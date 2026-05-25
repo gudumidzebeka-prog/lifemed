@@ -260,6 +260,8 @@ export const ru: TranslationTree = {
     chronic: "Хронические заболевания",
     chronicCount: "{count} состояний",
     chronicEditHint: "Редактирование — через профиль",
+    reminderTimes: "Напоминание: {times}",
+    noReminderTimes: "Напоминание не задано",
   },
   emergency: {
     title: "Экстренная медицинская карта",
@@ -466,6 +468,10 @@ export const ru: TranslationTree = {
     medFrequencyDefault: "Раз в день",
     medNamePlaceholder: "Напр.: гидроксихлорохин",
     medDosagePlaceholder: "200 мг",
+    medReminderTimes: "Время приёма",
+    medReminderTimesHint: "Добавьте время — придёт напоминание (включите в Настройках)",
+    medAddTime: "Добавить время",
+    medRemoveTime: "Удалить время",
     profileBloodTypePlaceholder: "O+",
     profileAllergiesPlaceholder: "Пенициллин, морепродукты",
     profileChronicPlaceholder: "lupus",
@@ -485,6 +491,10 @@ export const ru: TranslationTree = {
     relSibling: "Брат/сестра",
     relGrandparent: "Бабушка/дедушка",
     relOther: "Другое",
+  },
+  notifications: {
+    medicationTitle: "LifeMed — лекарство",
+    medicationBody: "Пора принять {name} ({dosage}) — {time}",
   },
   setup: {
     headerSubtitle: "Пошаговая настройка",
