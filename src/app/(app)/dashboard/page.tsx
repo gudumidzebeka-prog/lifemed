@@ -27,7 +27,6 @@ import {
   Calendar,
   Pill,
   ArrowRight,
-  TrendingUp,
   FileText,
   Clock,
   Plus,
@@ -83,19 +82,16 @@ export default function DashboardPage() {
     {
       label: t("dashboard.statTimeline"),
       value: timeline.length,
-      trend: "stable" as const,
       href: "/timeline",
     },
     {
       label: t("dashboard.statDocuments"),
       value: documents.length,
-      trend: "up" as const,
       href: "/documents?upload=true",
     },
     {
       label: t("dashboard.statMedications"),
       value: profile.currentMedications.length,
-      trend: "stable" as const,
       href: "/profile",
     },
   ];
@@ -135,7 +131,6 @@ export default function DashboardPage() {
                 <p className="text-sm text-muted">{stat.label}</p>
                 <div className="mt-1 flex items-baseline gap-2">
                   <span className="text-2xl font-bold text-foreground">{stat.value}</span>
-                  {stat.trend === "up" && <TrendingUp className="h-4 w-4 text-emerald-500" />}
                 </div>
               </CardContent>
             </Card>
