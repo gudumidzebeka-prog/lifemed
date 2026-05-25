@@ -202,20 +202,13 @@ function ProfileContent() {
       />
 
       <Card>
-        <CardContent className="flex flex-col gap-4 p-8 sm:flex-row sm:items-start">
-          <div className="flex items-start gap-4 mx-auto sm:mx-0">
-            <ProfileAvatar
-              fullName={profile.fullName}
-              avatarUrl={profile.avatarUrl}
-              editable
-            />
-            <MedicalShareQr
-              size="sm"
-              title={t("profile.medicalQrTitle")}
-              className="hidden sm:block"
-            />
-          </div>
-          <div className="text-center sm:text-left flex-1">
+        <CardContent className="flex flex-col items-center gap-4 p-8 sm:flex-row sm:items-start">
+          <ProfileAvatar
+            fullName={profile.fullName}
+            avatarUrl={profile.avatarUrl}
+            editable
+          />
+          <div className="text-center sm:text-left flex-1 min-w-0">
             <h2 className="text-xl font-bold text-foreground">
               {profile.fullName.trim() || displayFirstName(profile.fullName)}
             </h2>
@@ -247,7 +240,7 @@ function ProfileContent() {
           <MedicalShareQr
             size="sm"
             title={t("profile.medicalQrTitle")}
-            className="sm:hidden mx-auto"
+            className="shrink-0 self-center sm:self-start"
           />
         </CardContent>
       </Card>
