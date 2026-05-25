@@ -9,7 +9,7 @@ import { LOCALE_BCP47, LOCALE_STORAGE_KEY, type Locale } from "@/lib/i18n";
 import "./globals.css";
 
 const inter = Inter({
-  subsets: ["latin"],
+  subsets: ["latin", "cyrillic"],
   variable: "--font-inter",
   display: "swap",
 });
@@ -57,7 +57,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/icon.svg" />
       </head>
-      <body className={`${inter.className} ${inter.variable} font-sans antialiased bg-background text-foreground`}>
+      <body className={`${inter.variable} font-sans antialiased bg-background text-foreground`}>
         <LocaleProvider initialLocale={initialLocale}>
           <ThemeProvider>
             <PWARegister />

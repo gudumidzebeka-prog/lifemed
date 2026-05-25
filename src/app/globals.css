@@ -4,9 +4,20 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+@font-face {
+  font-family: "BPG Arial";
+  src:
+    url("/fonts/bpg-arial-webfont.woff2") format("woff2"),
+    url("/fonts/bpg-arial-webfont.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+10A0-10FF, U+2D00-2D2F, U+1C90-1CBF;
+}
+
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "BPG Arial", var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: "BPG Arial", var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 
   --color-lifemed-50: #f0fafa;
   --color-lifemed-100: #d9f2f0;
