@@ -123,45 +123,9 @@ export default function DashboardPage() {
         ))}
       </motion.div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <motion.div variants={item} className="lg:col-span-2">
-          <Card className="gradient-soft border-lifemed-200 dark:border-lifemed-800 overflow-hidden">
-            <CardHeader className="flex flex-row items-start justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-lifemed-500 text-white">
-                  <Sparkles className="h-5 w-5" />
-                </div>
-                <div>
-                  <CardTitle>{t("dashboard.aiTitle")}</CardTitle>
-                  <p className="text-sm text-muted mt-0.5">{t("dashboard.aiSubtitle")}</p>
-                </div>
-              </div>
-              <Button variant="ghost" size="sm" href="/ai-assistant">
-                {t("dashboard.askAi")}
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <p className="text-foreground leading-relaxed">{aiSummary}</p>
-              {isEmptySummary && (
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <Button size="sm" href="/documents?upload=true">
-                    <Upload className="h-4 w-4" />
-                    {t("dashboard.addDocument")}
-                  </Button>
-                  <Button variant="secondary" size="sm" href="/timeline?add=true">
-                    <Clock className="h-4 w-4" />
-                    {t("dashboard.addTimelineEvent")}
-                  </Button>
-                </div>
-              )}
-              <Disclaimer variant="info" className="mt-4" />
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div variants={item} className="space-y-4">
-          <Card className="card-hover">
+      <div className="grid gap-6 lg:grid-cols-2">
+        <motion.div variants={item}>
+          <Card className="card-hover h-full">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
                 <Calendar className="h-4 w-4 text-lifemed-500" />
@@ -201,8 +165,10 @@ export default function DashboardPage() {
               )}
             </CardContent>
           </Card>
+        </motion.div>
 
-          <Card className="card-hover">
+        <motion.div variants={item}>
+          <Card className="card-hover h-full">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
                 <Pill className="h-4 w-4 text-lifemed-500" />
@@ -330,6 +296,42 @@ export default function DashboardPage() {
           </Card>
         </motion.div>
       </div>
+
+      <motion.div variants={item}>
+        <Card className="gradient-soft border-lifemed-200 dark:border-lifemed-800 overflow-hidden">
+          <CardHeader className="flex flex-row items-start justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-lifemed-500 text-white">
+                <Sparkles className="h-5 w-5" />
+              </div>
+              <div>
+                <CardTitle>{t("dashboard.aiTitle")}</CardTitle>
+                <p className="text-sm text-muted mt-0.5">{t("dashboard.aiSubtitle")}</p>
+              </div>
+            </div>
+            <Button variant="ghost" size="sm" href="/ai-assistant" className="shrink-0">
+              {t("dashboard.askAi")}
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <p className="text-foreground leading-relaxed">{aiSummary}</p>
+            {isEmptySummary && (
+              <div className="mt-4 flex flex-wrap gap-2">
+                <Button size="sm" href="/documents?upload=true">
+                  <Upload className="h-4 w-4" />
+                  {t("dashboard.addDocument")}
+                </Button>
+                <Button variant="secondary" size="sm" href="/timeline?add=true">
+                  <Clock className="h-4 w-4" />
+                  {t("dashboard.addTimelineEvent")}
+                </Button>
+              </div>
+            )}
+            <Disclaimer variant="info" className="mt-4" />
+          </CardContent>
+        </Card>
+      </motion.div>
     </motion.div>
   );
 }
