@@ -1,20 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTranslation } from "@/components/providers/locale-provider";
 import { useHealthDataContext } from "@/components/providers/health-data-provider";
+import type { Medication } from "@/types/health";
 
 interface AddMedicationModalProps {
   open: boolean;
   onClose: () => void;
+  medication?: Medication | null;
 }
 
-export function AddMedicationModal({ open, onClose }: AddMedicationModalProps) {
+export function AddMedicationModal({ open, onClose, medication }: AddMedicationModalProps) {
   const { t } = useTranslation();
-  const { addMedication } = useHealthDataContext();
+  const { addMedication, editMedication } = useHealthDataContext();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
@@ -25,25 +27,20 @@ export function AddMedicationModal({ open, onClose }: AddMedicationModalProps) {
     prescriber: "",
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
+  const isEditing = Boolean(medication);
 
-    const { error: err } = await addMedication({
-      name: form.name,
-      dosage: form.dosage,
-      frequency: form.frequency || t("modals.medFrequencyDefault"),
-      startDate: form.startDate,
-      prescriber: form.prescriber || undefined,
-    });
-
-    setLoading(false);
-    if (err) {
-      setError(err);
+  useEffect(() => {
+    if (!open) return;
+    if (medication) {
+      setForm({
+        name: medication.name,
+        dosage: medication.dosage,
+        frequency: medication.frequency,
+        startDate: medication.startDate.slice(0, 10),
+        prescriber: medication.prescriber ?? "",
+      });
       return;
     }
-
     setForm({
       name: "",
       dosage: "",
@@ -51,11 +48,40 @@ export function AddMedicationModal({ open, onClose }: AddMedicationModalProps) {
       startDate: new Date().toISOString().slice(0, 10),
       prescriber: "",
     });
+  }, [medication, open]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    const payload = {
+      name: form.name,
+      dosage: form.dosage,
+      frequency: form.frequency || t("modals.medFrequencyDefault"),
+      startDate: form.startDate,
+      prescriber: form.prescriber || undefined,
+    };
+
+    const { error: err } = isEditing && medication
+      ? await editMedication(medication.id, payload)
+      : await addMedication(payload);
+
+    setLoading(false);
+    if (err) {
+      setError(err);
+      return;
+    }
+
     onClose();
   };
 
   return (
-    <Modal open={open} onClose={onClose} title={t("modals.medAddTitle")}>
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={isEditing ? t("modals.medEditTitle") : t("modals.medAddTitle")}
+    >
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && <p className="text-sm text-rose-600">{error}</p>}
 
@@ -98,7 +124,7 @@ export function AddMedicationModal({ open, onClose }: AddMedicationModalProps) {
             {t("common.cancel")}
           </Button>
           <Button type="submit" className="flex-1" disabled={loading}>
-            {loading ? t("common.saving") : t("common.add")}
+            {loading ? t("common.saving") : isEditing ? t("common.save") : t("common.add")}
           </Button>
         </div>
       </form>

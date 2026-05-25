@@ -63,8 +63,22 @@ interface HealthDataContextValue {
     startDate: string;
     prescriber?: string;
   }) => Promise<{ error: string | null }>;
+  editMedication: (
+    medicationId: string,
+    med: {
+      name: string;
+      dosage: string;
+      frequency: string;
+      startDate: string;
+      prescriber?: string;
+    }
+  ) => Promise<{ error: string | null }>;
   removeMedication: (medicationId: string) => Promise<{ error: string | null }>;
   addAppointment: (input: Omit<Appointment, "id">) => Promise<{ error: string | null }>;
+  editAppointment: (
+    appointmentId: string,
+    input: Omit<Appointment, "id">
+  ) => Promise<{ error: string | null }>;
   removeAppointment: (appointmentId: string) => Promise<{ error: string | null }>;
   addFamilyMember: (input: {
     name: string;

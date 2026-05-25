@@ -21,6 +21,7 @@ export type TranslationTree = {
     cancel: string;
     add: string;
     save: string;
+    edit: string;
     upload: string;
     errorGeneric: string;
     viewAll: string;
@@ -417,6 +418,7 @@ export type TranslationTree = {
     docPickFile: string;
     docCategory: string;
     aptAddTitle: string;
+    aptEditTitle: string;
     aptTitle: string;
     aptProvider: string;
     aptDatetime: string;
@@ -428,6 +430,7 @@ export type TranslationTree = {
     profileAllergies: string;
     profileChronic: string;
     medAddTitle: string;
+    medEditTitle: string;
     medName: string;
     medDosage: string;
     medFrequency: string;

@@ -543,6 +543,40 @@ export async function createAppointment(
   };
 }
 
+export async function updateAppointment(
+  supabase: SupabaseClient,
+  userId: string,
+  appointmentId: string,
+  input: Omit<Appointment, "id">
+) {
+  const { data, error } = await supabase
+    .from("appointments")
+    .update({
+      title: input.title,
+      provider: input.provider,
+      appointment_date: input.date,
+      location: input.location ?? null,
+    })
+    .eq("id", appointmentId)
+    .eq("user_id", userId)
+    .select()
+    .single();
+
+  if (error || !data) return { appointment: null, error };
+
+  const row = data as AppointmentRow;
+  return {
+    error: null,
+    appointment: {
+      id: row.id,
+      title: row.title,
+      provider: row.provider,
+      date: row.appointment_date,
+      location: row.location ?? undefined,
+    } satisfies Appointment,
+  };
+}
+
 export async function deleteAppointment(
   supabase: SupabaseClient,
   userId: string,
@@ -636,6 +670,35 @@ export async function deleteHealthDocument(
     .eq("user_id", userId);
 
   return { error };
+}
+
+export async function updateMedication(
+  supabase: SupabaseClient,
+  userId: string,
+  medicationId: string,
+  med: {
+    name: string;
+    dosage: string;
+    frequency: string;
+    startDate: string;
+    prescriber?: string;
+  }
+) {
+  const { data, error } = await supabase
+    .from("medications")
+    .update({
+      name: med.name,
+      dosage: med.dosage,
+      frequency: med.frequency,
+      start_date: med.startDate,
+      prescriber: med.prescriber ?? null,
+    })
+    .eq("id", medicationId)
+    .eq("user_id", userId)
+    .select()
+    .single();
+
+  return { data, error };
 }
 
 export async function deactivateMedication(

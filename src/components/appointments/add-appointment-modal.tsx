@@ -1,26 +1,53 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTranslation } from "@/components/providers/locale-provider";
 import { useHealthDataContext } from "@/components/providers/health-data-provider";
+import type { Appointment } from "@/types/health";
 
 interface AddAppointmentModalProps {
   open: boolean;
   onClose: () => void;
+  appointment?: Appointment | null;
 }
 
-export function AddAppointmentModal({ open, onClose }: AddAppointmentModalProps) {
+function toDatetimeLocalValue(isoDate: string) {
+  const date = new Date(isoDate);
+  if (Number.isNaN(date.getTime())) return "";
+  const offset = date.getTimezoneOffset();
+  const local = new Date(date.getTime() - offset * 60_000);
+  return local.toISOString().slice(0, 16);
+}
+
+export function AddAppointmentModal({ open, onClose, appointment }: AddAppointmentModalProps) {
   const { t } = useTranslation();
-  const { addAppointment } = useHealthDataContext();
+  const { addAppointment, editAppointment } = useHealthDataContext();
   const [title, setTitle] = useState("");
   const [provider, setProvider] = useState("");
   const [date, setDate] = useState("");
   const [location, setLocation] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const isEditing = Boolean(appointment);
+
+  useEffect(() => {
+    if (!open) return;
+    if (appointment) {
+      setTitle(appointment.title);
+      setProvider(appointment.provider);
+      setDate(toDatetimeLocalValue(appointment.date));
+      setLocation(appointment.location ?? "");
+      return;
+    }
+    setTitle("");
+    setProvider("");
+    setDate("");
+    setLocation("");
+  }, [appointment, open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,12 +56,16 @@ export function AddAppointmentModal({ open, onClose }: AddAppointmentModalProps)
     setLoading(true);
     setError(null);
 
-    const { error: err } = await addAppointment({
+    const payload = {
       title: title.trim(),
       provider: provider.trim(),
       date: new Date(date).toISOString(),
       location: location.trim() || undefined,
-    });
+    };
+
+    const { error: err } = isEditing && appointment
+      ? await editAppointment(appointment.id, payload)
+      : await addAppointment(payload);
 
     setLoading(false);
     if (err) {
@@ -42,15 +73,15 @@ export function AddAppointmentModal({ open, onClose }: AddAppointmentModalProps)
       return;
     }
 
-    setTitle("");
-    setProvider("");
-    setDate("");
-    setLocation("");
     onClose();
   };
 
   return (
-    <Modal open={open} onClose={onClose} title={t("modals.aptAddTitle")}>
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={isEditing ? t("modals.aptEditTitle") : t("modals.aptAddTitle")}
+    >
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && <p className="text-sm text-rose-600">{error}</p>}
         <Input label={t("modals.aptTitle")} value={title} onChange={(e) => setTitle(e.target.value)} required />
@@ -73,7 +104,7 @@ export function AddAppointmentModal({ open, onClose }: AddAppointmentModalProps)
             {t("common.cancel")}
           </Button>
           <Button type="submit" className="flex-1" disabled={loading}>
-            {loading ? t("common.saving") : t("common.add")}
+            {loading ? t("common.saving") : isEditing ? t("common.save") : t("common.add")}
           </Button>
         </div>
       </form>

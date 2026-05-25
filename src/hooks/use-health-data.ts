@@ -54,6 +54,10 @@ import {
 
   updateTimelineEvent,
 
+  updateAppointment,
+
+  updateMedication,
+
   uploadHealthDocument,
 
 } from "@/lib/health/db";
@@ -966,6 +970,72 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
 
 
 
+  const editMedication = useCallback(
+
+    async (
+
+      medicationId: string,
+
+      med: {
+
+        name: string;
+
+        dosage: string;
+
+        frequency: string;
+
+        startDate: string;
+
+        prescriber?: string;
+
+      }
+
+    ) => {
+
+      const prevMeds = profile.currentMedications;
+
+      setProfile((prev) => ({
+
+        ...prev,
+
+        currentMedications: prev.currentMedications.map((m) =>
+
+          m.id === medicationId ? { ...m, ...med } : m
+
+        ),
+
+      }));
+
+
+
+      if (mode === "live" && userId && isSupabaseConfigured()) {
+
+        const supabase = createClient();
+
+        const { error } = await updateMedication(supabase, userId, medicationId, med);
+
+        if (error) {
+
+          setProfile((prev) => ({ ...prev, currentMedications: prevMeds }));
+
+          return { error: error.message };
+
+        }
+
+      }
+
+
+
+      return { error: null };
+
+    },
+
+    [mode, userId, profile.currentMedications]
+
+  );
+
+
+
   const addAppointment = useCallback(
 
     async (input: Omit<Appointment, "id">) => {
@@ -1057,6 +1127,66 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
     },
 
     [mode, userId]
+
+  );
+
+
+
+  const editAppointment = useCallback(
+
+    async (appointmentId: string, input: Omit<Appointment, "id">) => {
+
+      const prevAppointments = appointments;
+
+      setAppointments((prev) => {
+
+        const next = prev
+
+          .map((a) => (a.id === appointmentId ? { ...a, ...input } : a))
+
+          .sort((a, b) => a.date.localeCompare(b.date));
+
+        if (mode === "demo") saveLocalAppointments(next);
+
+        return next;
+
+      });
+
+
+
+      if (mode === "live" && userId && isSupabaseConfigured()) {
+
+        const supabase = createClient();
+
+        const { appointment, error } = await updateAppointment(supabase, userId, appointmentId, input);
+
+        if (error) {
+
+          setAppointments(prevAppointments);
+
+          return { error: error.message };
+
+        }
+
+        if (appointment) {
+
+          setAppointments((prev) =>
+
+            prev.map((a) => (a.id === appointmentId ? appointment : a)).sort((a, b) => a.date.localeCompare(b.date))
+
+          );
+
+        }
+
+      }
+
+
+
+      return { error: null };
+
+    },
+
+    [appointments, mode, userId]
 
   );
 
@@ -1384,9 +1514,13 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
 
     addMedication,
 
+    editMedication,
+
     removeMedication,
 
     addAppointment,
+
+    editAppointment,
 
     removeAppointment,
 
