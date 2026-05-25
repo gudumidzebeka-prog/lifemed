@@ -17,6 +17,7 @@ interface ProfileRow {
   blood_type: string | null;
   allergies: string[] | null;
   chronic_illnesses: string[] | null;
+  avatar_url?: string | null;
 }
 
 interface MedicationRow {
@@ -88,6 +89,7 @@ export async function fetchHealthProfile(
     bloodType: row.blood_type ?? undefined,
     allergies: row.allergies ?? [],
     chronicIllnesses: row.chronic_illnesses ?? [],
+    avatarUrl: row.avatar_url ?? undefined,
     emergencyContacts: ((contacts ?? []) as ContactRow[]).map((c) => ({
       id: c.id,
       name: c.name,
@@ -189,6 +191,60 @@ export async function upsertHealthProfile(
     { onConflict: "id" }
   );
 
+  return { error };
+}
+
+const AVATAR_MAX_BYTES = 5 * 1024 * 1024;
+const AVATAR_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+
+function avatarExtension(file: File) {
+  const fromName = file.name.split(".").pop()?.toLowerCase();
+  if (fromName === "jpeg" || fromName === "jpg") return "jpg";
+  if (fromName === "png") return "png";
+  if (fromName === "webp") return "webp";
+  if (file.type === "image/png") return "png";
+  if (file.type === "image/webp") return "webp";
+  return "jpg";
+}
+
+export async function uploadProfileAvatar(
+  supabase: SupabaseClient,
+  userId: string,
+  file: File
+) {
+  if (!AVATAR_MIME_TYPES.has(file.type) && !file.type.startsWith("image/")) {
+    return { error: { message: "Invalid image type" }, avatarUrl: null as string | null };
+  }
+
+  if (file.size > AVATAR_MAX_BYTES) {
+    return { error: { message: "Image is too large" }, avatarUrl: null as string | null };
+  }
+
+  const storagePath = `${userId}/avatar.${avatarExtension(file)}`;
+  const contentType = inferMimeType(file.name, file.type);
+
+  const { error: uploadError } = await supabase.storage
+    .from("health-documents")
+    .upload(storagePath, file, { upsert: true, contentType });
+
+  if (uploadError) return { error: uploadError, avatarUrl: null };
+
+  const { error: profileError } = await supabase
+    .from("profiles")
+    .update({ avatar_url: storagePath })
+    .eq("id", userId);
+
+  if (profileError) return { error: profileError, avatarUrl: null };
+
+  return { error: null, avatarUrl: storagePath };
+}
+
+export async function removeProfileAvatar(supabase: SupabaseClient, userId: string, avatarPath?: string) {
+  if (avatarPath && !avatarPath.startsWith("blob:") && !avatarPath.startsWith("data:")) {
+    await supabase.storage.from("health-documents").remove([avatarPath]);
+  }
+
+  const { error } = await supabase.from("profiles").update({ avatar_url: null }).eq("id", userId);
   return { error };
 }
 

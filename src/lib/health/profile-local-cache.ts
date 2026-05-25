@@ -4,7 +4,7 @@ const PROFILE_CACHE_PREFIX = "lifemed-profile-v1";
 
 export type CachedProfileFields = Pick<
   HealthProfile,
-  "fullName" | "dateOfBirth" | "bloodType" | "allergies" | "chronicIllnesses"
+  "fullName" | "dateOfBirth" | "bloodType" | "allergies" | "chronicIllnesses" | "avatarUrl"
 >;
 
 function cacheKey(userId: string | null) {
@@ -32,6 +32,7 @@ export function saveCachedProfileFields(userId: string | null, profile: HealthPr
     bloodType: profile.bloodType,
     allergies: profile.allergies,
     chronicIllnesses: profile.chronicIllnesses,
+    avatarUrl: profile.avatarUrl,
   };
 
   localStorage.setItem(cacheKey(userId), JSON.stringify(payload));
@@ -49,5 +50,6 @@ export function mergeProfileWithCache(profile: HealthProfile, userId: string | n
     allergies: profile.allergies.length > 0 ? profile.allergies : cached.allergies,
     chronicIllnesses:
       profile.chronicIllnesses.length > 0 ? profile.chronicIllnesses : cached.chronicIllnesses,
+    avatarUrl: profile.avatarUrl ?? cached.avatarUrl,
   };
 }

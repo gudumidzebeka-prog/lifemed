@@ -176,6 +176,11 @@ CREATE POLICY "Users view own documents" ON storage.objects
 CREATE POLICY "Users delete own documents" ON storage.objects
   FOR DELETE USING (bucket_id = 'health-documents' AND auth.uid()::text = (storage.foldername(name))[1]);
 
+CREATE POLICY "Users update own documents" ON storage.objects
+  FOR UPDATE
+  USING (bucket_id = 'health-documents' AND auth.uid()::text = (storage.foldername(name))[1])
+  WITH CHECK (bucket_id = 'health-documents' AND auth.uid()::text = (storage.foldername(name))[1]);
+
 -- Updated_at trigger
 CREATE OR REPLACE FUNCTION update_updated_at()
 RETURNS TRIGGER AS $$

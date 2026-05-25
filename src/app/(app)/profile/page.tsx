@@ -14,6 +14,7 @@ import { formatDate } from "@/lib/utils";
 import { formatReminderTimes, sanitizeReminderTimes } from "@/lib/health/medication-reminders";
 import { displayFirstName } from "@/lib/health/empty-profile";
 import { EditProfileModal } from "@/components/profile/edit-profile-modal";
+import { ProfileAvatar } from "@/components/profile/profile-avatar";
 import { AddMedicationModal } from "@/components/profile/add-medication-modal";
 import { EmergencyContactModal } from "@/components/profile/emergency-contact-modal";
 import type { Medication } from "@/types/health";
@@ -116,14 +117,11 @@ function ProfileContent() {
 
       <Card>
         <CardContent className="flex flex-col items-center gap-4 p-8 sm:flex-row sm:items-start">
-          <div className="flex h-24 w-24 items-center justify-center rounded-3xl gradient-primary text-3xl font-bold text-white shadow-lg shadow-lifemed-500/20">
-            {(profile.fullName.trim() || displayFirstName(profile.fullName))
-              .split(/\s+/)
-              .map((n) => n[0])
-              .join("")
-              .slice(0, 2)
-              .toUpperCase()}
-          </div>
+          <ProfileAvatar
+            fullName={profile.fullName}
+            avatarUrl={profile.avatarUrl}
+            editable
+          />
           <div className="text-center sm:text-left flex-1">
             <h2 className="text-xl font-bold text-foreground">
               {profile.fullName.trim() || displayFirstName(profile.fullName)}

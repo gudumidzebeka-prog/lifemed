@@ -275,6 +275,11 @@ export const en: TranslationTree = {
     chronicEditHint: "Edit via profile settings",
     reminderTimes: "Reminder: {times}",
     noReminderTimes: "No reminder set",
+    changePhoto: "Change photo",
+    removePhoto: "Remove photo",
+    photoUploading: "Uploading...",
+    photoInvalidType: "Choose a JPG, PNG, or WEBP image",
+    photoTooLarge: "Image is too large (max 5MB)",
   },
   emergency: {
     title: "Emergency Medical Card",

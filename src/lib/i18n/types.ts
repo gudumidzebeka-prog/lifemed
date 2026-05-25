@@ -260,6 +260,11 @@ export type TranslationTree = {
     chronicEditHint: string;
     reminderTimes: string;
     noReminderTimes: string;
+    changePhoto: string;
+    removePhoto: string;
+    photoUploading: string;
+    photoInvalidType: string;
+    photoTooLarge: string;
   };
   emergency: {
     title: string;

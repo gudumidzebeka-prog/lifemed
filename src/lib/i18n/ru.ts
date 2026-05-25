@@ -275,6 +275,11 @@ export const ru: TranslationTree = {
     chronicEditHint: "Редактирование — через профиль",
     reminderTimes: "Напоминание: {times}",
     noReminderTimes: "Напоминание не задано",
+    changePhoto: "Сменить фото",
+    removePhoto: "Удалить фото",
+    photoUploading: "Загрузка...",
+    photoInvalidType: "Выберите JPG, PNG или WEBP",
+    photoTooLarge: "Файл слишком большой (макс. 5 MB)",
   },
   emergency: {
     title: "Экстренная медицинская карта",

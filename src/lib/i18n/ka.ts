@@ -276,6 +276,11 @@ export const ka: TranslationTree = {
     chronicEditHint: "რედაქტირება — პროფილის რედაქტირებით",
     reminderTimes: "შეხსენება: {times}",
     noReminderTimes: "შეხსენება არ არის",
+    changePhoto: "ფოტოს შეცვლა",
+    removePhoto: "ფოტოს წაშლა",
+    photoUploading: "იტვირთება...",
+    photoInvalidType: "აირჩიე JPG, PNG ან WEBP სურათი",
+    photoTooLarge: "სურათი ძალიან დიდია (მაქს. 5MB)",
   },
   emergency: {
     title: "საგანგებო სამედიცინო ბარათი",

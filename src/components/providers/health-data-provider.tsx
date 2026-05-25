@@ -88,6 +88,9 @@ interface HealthDataContextValue {
     dateOfBirth: string;
   }) => Promise<{ error: string | null }>;
   downloadDocument: (doc: HealthDocument) => Promise<{ error: string | null }>;
+  uploadProfileAvatar: (file: File) => Promise<{ error: string | null }>;
+  removeProfileAvatar: () => Promise<{ error: string | null }>;
+  resolveAvatarUrl: (avatarPath: string) => Promise<{ url: string | null; error: string | null }>;
   resolveDocumentUrl: (doc: HealthDocument) => Promise<{ url: string | null; error: string | null }>;
   exportHealthData: () => void;
   revokeShareLink: (token: string) => Promise<{ error: string | null }>;

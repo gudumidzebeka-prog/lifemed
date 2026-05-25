@@ -30,6 +30,8 @@ import {
 
   createTimelineEvent,
 
+  createDocumentSignedUrl,
+
   deactivateMedication,
 
   deleteAppointment,
@@ -56,9 +58,13 @@ import {
 
   updateMedication,
 
-  upsertHealthProfile,
-
   uploadHealthDocument,
+
+  uploadProfileAvatar as dbUploadProfileAvatar,
+
+  removeProfileAvatar as dbRemoveProfileAvatar,
+
+  upsertHealthProfile,
 
 } from "@/lib/health/db";
 
@@ -1341,6 +1347,88 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
 
 
 
+  const readFileAsDataUrl = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = () => reject(new Error("Failed to read image"));
+      reader.readAsDataURL(file);
+    });
+
+
+  const uploadProfileAvatar = useCallback(
+    async (file: File) => {
+      const previous = profile;
+
+      if (mode === "live" && userId && isSupabaseConfigured()) {
+        const supabase = createClient();
+        const { error, avatarUrl } = await dbUploadProfileAvatar(supabase, userId, file);
+
+        if (error) return { error: error.message };
+
+        const next = { ...profile, avatarUrl: avatarUrl ?? undefined };
+        setProfile(next);
+        saveCachedProfileFields(userId, next);
+        return { error: null };
+      }
+
+      try {
+        const dataUrl = await readFileAsDataUrl(file);
+        const next = { ...profile, avatarUrl: dataUrl };
+        setProfile(next);
+        saveCachedProfileFields(userId, next);
+        return { error: null };
+      } catch {
+        setProfile(previous);
+        return { error: "Failed to read image" };
+      }
+    },
+    [mode, userId, profile]
+  );
+
+
+  const removeProfileAvatar = useCallback(async () => {
+    const previous = profile;
+    const next = { ...profile, avatarUrl: undefined };
+    setProfile(next);
+    saveCachedProfileFields(userId, next);
+
+    if (mode === "live" && userId && isSupabaseConfigured()) {
+      const supabase = createClient();
+      const { error } = await dbRemoveProfileAvatar(supabase, userId, previous.avatarUrl);
+
+      if (error) {
+        setProfile(previous);
+        saveCachedProfileFields(userId, previous);
+        return { error: error.message };
+      }
+    }
+
+    return { error: null };
+  }, [mode, userId, profile]);
+
+
+  const resolveAvatarUrl = useCallback(
+    async (avatarPath: string): Promise<{ url: string | null; error: string | null }> => {
+      if (!avatarPath) return { url: null, error: null };
+
+      if (avatarPath.startsWith("blob:") || avatarPath.startsWith("data:")) {
+        return { url: avatarPath, error: null };
+      }
+
+      if (mode === "live" && userId && isSupabaseConfigured()) {
+        const supabase = createClient();
+        const { url, error } = await createDocumentSignedUrl(supabase, avatarPath);
+        if (error) return { url: null, error: error.message };
+        return { url, error: null };
+      }
+
+      return { url: null, error: null };
+    },
+    [mode, userId]
+  );
+
+
   const resolveDocumentUrl = useCallback(
 
     async (doc: HealthDocument): Promise<{ url: string | null; error: string | null }> => {
@@ -1618,6 +1706,12 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
     addFamilyMember,
 
     downloadDocument,
+
+    uploadProfileAvatar,
+
+    removeProfileAvatar,
+
+    resolveAvatarUrl,
 
     resolveDocumentUrl,
 
