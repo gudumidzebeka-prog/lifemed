@@ -91,7 +91,6 @@ export default function SharePage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-foreground sm:text-3xl">{t("share.title")}</h1>
-        <p className="mt-1 text-muted">{t("share.subtitle")}</p>
       </div>
 
       <Disclaimer variant="privacy" />
