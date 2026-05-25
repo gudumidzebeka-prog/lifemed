@@ -442,6 +442,7 @@ export const en: TranslationTree = {
     clearLocal: "Clear local data",
     clearLocalDesc: "Remove locally stored demo preferences and appointments",
     signOutNote: "You will be signed out of your Supabase account.",
+    signOutSite: "Sign out of LifeMed",
     themeToggle: "Toggle theme",
     notificationsPermissionDenied: "Notification permission denied. Enable notifications in your browser settings.",
     notificationsEnabled: "Notifications enabled",

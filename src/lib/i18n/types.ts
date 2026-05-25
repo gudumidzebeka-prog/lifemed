@@ -414,6 +414,7 @@ export type TranslationTree = {
     clearLocal: string;
     clearLocalDesc: string;
     signOutNote: string;
+    signOutSite: string;
     themeToggle: string;
     notificationsPermissionDenied: string;
     notificationsEnabled: string;

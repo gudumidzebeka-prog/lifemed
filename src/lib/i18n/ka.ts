@@ -443,6 +443,7 @@ export const ka: TranslationTree = {
     clearLocal: "ლოკალური მონაცემების გასუფთავება",
     clearLocalDesc: "დემო პრეფერენციები და ვიზიტები",
     signOutNote: "გასვლა Supabase ანგარიშიდან.",
+    signOutSite: "საიტიდან გასვლა",
     themeToggle: "თემის გადართვა",
     notificationsPermissionDenied: "შეტყობინებების ნებართვა უარყოფილია. ჩართე ბრაუზერის პარამეტრებში.",
     notificationsEnabled: "შეტყობინებები ჩართულია",

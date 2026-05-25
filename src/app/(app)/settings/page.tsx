@@ -239,10 +239,12 @@ export default function SettingsPage() {
             }
           />
         </SettingsSection>
+      </div>
 
-        <Button variant="outline" className="w-full" onClick={() => signOut()}>
+      <div className="space-y-3 pt-2">
+        <Button variant="danger" className="w-full" size="lg" onClick={() => signOut()}>
           <LogOut className="h-4 w-4" />
-          {t("common.signOut")}
+          {t("settings.signOutSite")}
         </Button>
 
         {isSupabaseConfigured() && (
