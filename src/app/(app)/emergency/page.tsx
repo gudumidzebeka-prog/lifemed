@@ -23,8 +23,11 @@ export default function EmergencyPage() {
   const {
     loading,
     profile,
+    saveProfile,
     addAllergy,
     removeAllergy,
+    addChronicIllness,
+    removeChronicIllness,
     removeMedication,
     removeEmergencyContact,
   } = useHealthDataContext();
@@ -34,6 +37,11 @@ export default function EmergencyPage() {
   const [editMedication, setEditMedication] = useState<Medication | null>(null);
   const [showContactModal, setShowContactModal] = useState(false);
   const [newAllergy, setNewAllergy] = useState("");
+  const [editingBloodType, setEditingBloodType] = useState(false);
+  const [bloodTypeInput, setBloodTypeInput] = useState("");
+  const [savingBloodType, setSavingBloodType] = useState(false);
+  const [editingChronic, setEditingChronic] = useState(false);
+  const [newChronic, setNewChronic] = useState("");
 
   const openMedicationModal = (medication: Medication | null = null) => {
     setEditMedication(medication);
@@ -51,6 +59,30 @@ export default function EmergencyPage() {
     if (!newAllergy.trim()) return;
     await addAllergy(newAllergy.trim());
     setNewAllergy("");
+  };
+
+  const openBloodTypeEditor = () => {
+    setBloodTypeInput(profile.bloodType ?? "");
+    setEditingBloodType(true);
+  };
+
+  const handleSaveBloodType = async () => {
+    setSavingBloodType(true);
+    const { error } = await saveProfile({ bloodType: bloodTypeInput.trim() });
+    setSavingBloodType(false);
+    if (!error) {
+      setEditingBloodType(false);
+    }
+  };
+
+  const openChronicEditor = () => {
+    setEditingChronic(true);
+  };
+
+  const handleAddChronic = async () => {
+    if (!newChronic.trim()) return;
+    await addChronicIllness(newChronic.trim());
+    setNewChronic("");
   };
 
   const cardIncomplete =
@@ -130,7 +162,12 @@ export default function EmergencyPage() {
           icon={<Droplets className="h-5 w-5" />}
           highlight
           action={
-            <Button variant="ghost" size="sm" className="relative z-10 -mr-2 h-8" onClick={() => setShowEditModal(true)}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="relative z-10 -mr-2 h-8"
+              onClick={openBloodTypeEditor}
+            >
               <Pencil className="h-3.5 w-3.5" />
               {t("emergency.edit")}
             </Button>
@@ -139,6 +176,25 @@ export default function EmergencyPage() {
           <p className="text-4xl font-bold text-rose-600 dark:text-rose-400">
             {profile.bloodType || t("common.unknown")}
           </p>
+          {editingBloodType && (
+            <div className="mt-3 flex gap-2">
+              <Input
+                placeholder={t("profile.bloodTypePlaceholder")}
+                value={bloodTypeInput}
+                onChange={(e) => setBloodTypeInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSaveBloodType()}
+              />
+              <Button
+                type="button"
+                size="sm"
+                className="relative z-10 shrink-0"
+                onClick={handleSaveBloodType}
+                disabled={savingBloodType}
+              >
+                {savingBloodType ? t("common.saving") : t("common.save")}
+              </Button>
+            </div>
+          )}
         </EmergencySection>
 
         <EmergencySection
@@ -183,22 +239,59 @@ export default function EmergencyPage() {
           title={t("emergency.chronic")}
           icon={<Heart className="h-5 w-5" />}
           action={
-            <Button variant="ghost" size="sm" className="relative z-10 -mr-2 h-8" onClick={() => setShowEditModal(true)}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="relative z-10 -mr-2 h-8"
+              onClick={openChronicEditor}
+            >
               <Pencil className="h-3.5 w-3.5" />
               {t("emergency.edit")}
             </Button>
           }
         >
           {profile.chronicIllnesses.length > 0 ? (
-            <ul className="space-y-1">
-              {profile.chronicIllnesses.map((illness) => (
-                <li key={illness} className="font-medium text-foreground">
-                  • {illness}
-                </li>
-              ))}
-            </ul>
+            editingChronic ? (
+              <div className="flex flex-wrap gap-2">
+                {profile.chronicIllnesses.map((illness) => (
+                  <Badge key={illness} variant="warning" className="gap-1 pr-1">
+                    {illness}
+                    <button
+                      type="button"
+                      onClick={() => removeChronicIllness(illness)}
+                      className="relative z-10 ml-1 rounded-full p-0.5 hover:bg-amber-200/50"
+                      aria-label={`${t("common.remove")} ${illness}`}
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+            ) : (
+              <ul className="space-y-1">
+                {profile.chronicIllnesses.map((illness) => (
+                  <li key={illness} className="font-medium text-foreground">
+                    • {illness}
+                  </li>
+                ))}
+              </ul>
+            )
           ) : (
             <p className="text-muted">{t("emergency.noneReported")}</p>
+          )}
+          {editingChronic && (
+            <div className="mt-3 flex gap-2">
+              <Input
+                placeholder={t("profile.newChronicPlaceholder")}
+                value={newChronic}
+                onChange={(e) => setNewChronic(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleAddChronic()}
+              />
+              <Button type="button" size="sm" className="relative z-10 shrink-0" onClick={handleAddChronic}>
+                <Plus className="h-4 w-4" />
+                {t("emergency.add")}
+              </Button>
+            </div>
           )}
         </EmergencySection>
 
