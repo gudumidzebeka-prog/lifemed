@@ -191,6 +191,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         dangerouslySetInnerHTML={{
           __html: `
             .lifemed-shell a { text-decoration: none; color: inherit; }
+            .lifemed-logo-link { text-decoration: none; color: inherit; cursor: pointer; }
             @media (max-width: 1023px) {
               .lifemed-desktop-sidebar { display: none !important; }
             }

@@ -27,7 +27,7 @@ export const ka: TranslationTree = {
     revoke: "გაუქმება",
     export: "ექსპორტი",
     clear: "გასუფთავება",
-    refreshPage: "გვერდის განახლება",
+    refreshPage: "მთავარი გვერდი და განახლება",
     signOut: "გასვლა",
     live: "Live",
     demo: "Demo",
