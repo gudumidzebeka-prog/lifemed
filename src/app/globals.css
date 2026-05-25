@@ -90,6 +90,23 @@
   .safe-top {
     padding-top: env(safe-area-inset-top, 0px);
   }
+
+  /* Space for fixed mobile bottom nav + safe area + breathing room */
+  .lifemed-page-bottom {
+    padding-bottom: calc(10rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  @media (min-width: 1024px) {
+    .lifemed-page-bottom {
+      padding-bottom: 2rem;
+    }
+  }
+
+  @media (max-width: 1023px) {
+    .lifemed-main-scroll {
+      scroll-padding-bottom: calc(10rem + env(safe-area-inset-bottom, 0px));
+    }
+  }
 }
 
 ::-webkit-scrollbar {

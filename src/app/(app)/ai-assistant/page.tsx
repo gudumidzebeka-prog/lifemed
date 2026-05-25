@@ -200,7 +200,7 @@ export default function AIAssistantPage() {
         "flex flex-col transition-all duration-300",
         focusChat
           ? "fixed inset-0 z-50 flex flex-col bg-background px-4 pb-4 pt-3 safe-top safe-bottom sm:px-6 lg:static lg:z-auto lg:inset-auto lg:h-[calc(100vh-6rem)] lg:px-0 lg:pt-0"
-          : "h-[calc(100vh-8rem)] lg:h-[calc(100vh-6rem)]"
+          : "h-[calc(100vh-12rem)] lg:h-[calc(100vh-6rem)]"
       )}
     >
       <div className={cn("mb-6 transition-all duration-300", focusChat && "mb-3 shrink-0")}>
