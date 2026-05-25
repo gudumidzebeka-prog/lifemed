@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { NAV_ITEMS, APP_NAME, type NavKey } from "@/lib/constants";
+import { NAV_ITEMS, type NavKey } from "@/lib/constants";
 import { useTranslation } from "@/components/providers/locale-provider";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import {
@@ -15,13 +15,13 @@ import {
   Share2,
   Users,
   User,
-  Heart,
   Menu,
   X,
   ShieldAlert,
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { ThemeToggle } from "./theme-toggle";
+import { LifeMedLogo } from "./lifemed-logo";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -97,17 +97,9 @@ function SidebarFooter() {
 }
 
 function SidebarHeader() {
-  const { t } = useTranslation();
-
   return (
-    <div className="flex items-center gap-3 px-4 py-6">
-      <div className="flex h-10 w-10 items-center justify-center rounded-xl gradient-primary shadow-md shadow-lifemed-500/20">
-        <Heart className="h-5 w-5 text-white" fill="white" />
-      </div>
-      <div>
-        <h1 className="font-semibold text-foreground">{APP_NAME}</h1>
-        <p className="text-xs text-muted">{t("nav.sidebarTagline")}</p>
-      </div>
+    <div className="px-4 py-6">
+      <LifeMedLogo variant="sidebar" />
     </div>
   );
 }
@@ -221,12 +213,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
         <div className="flex min-w-0 flex-1 flex-col">
           <header className="lifemed-mobile-header sticky top-0 z-40 flex items-center justify-between border-b border-border bg-surface/80 px-4 py-3 backdrop-blur-xl safe-top lg:hidden">
-            <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg gradient-primary">
-                <Heart className="h-4 w-4 text-white" fill="white" />
-              </div>
-              <span className="font-semibold">{APP_NAME}</span>
-            </div>
+            <LifeMedLogo variant="compact" />
             <div className="flex items-center gap-1">
               <LanguageSwitcher size="sm" />
               <Button

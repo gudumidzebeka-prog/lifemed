@@ -41,6 +41,7 @@ export type TranslationTree = {
     revoke: string;
     export: string;
     clear: string;
+    refreshPage: string;
     signOut: string;
     live: string;
     demo: string;

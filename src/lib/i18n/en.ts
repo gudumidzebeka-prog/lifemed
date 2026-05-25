@@ -27,6 +27,7 @@ export const en: TranslationTree = {
     revoke: "Revoke",
     export: "Export",
     clear: "Clear",
+    refreshPage: "Refresh page",
     signOut: "Sign out",
     live: "Live",
     demo: "Demo",

@@ -27,6 +27,7 @@ export const ru: TranslationTree = {
     revoke: "Отозвать",
     export: "Экспорт",
     clear: "Очистить",
+    refreshPage: "Обновить страницу",
     signOut: "Выйти",
     live: "Live",
     demo: "Demo",
