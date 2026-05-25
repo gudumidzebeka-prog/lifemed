@@ -12,12 +12,13 @@ import { useTranslation } from "@/components/providers/locale-provider";
 import { signInWithEmail } from "@/lib/supabase/auth";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { APP_NAME } from "@/lib/constants";
+import { safeRedirectPath } from "@/lib/utils";
 import { Heart } from "lucide-react";
 
 export function LoginForm() {
   const { t } = useTranslation();
   const searchParams = useSearchParams();
-  const next = searchParams.get("next") ?? "/dashboard";
+  const next = safeRedirectPath(searchParams.get("next"));
   const authError = searchParams.get("error");
 
   const [email, setEmail] = useState("");

@@ -25,7 +25,7 @@ import {
 interface SetupStatus {
   supabase: boolean;
   serviceRole: boolean;
-  openai: boolean;
+  ai: boolean;
   appUrl: string;
   redirectUrl: string;
 }
@@ -48,8 +48,8 @@ export default function SetupPage() {
   const [status, setStatus] = useState<SetupStatus | null>(null);
   const [copied, setCopied] = useState(false);
   const [localSteps, setLocalSteps] = useState({
-    node: true,
-    npm: true,
+    node: false,
+    npm: false,
     envFile: false,
     schema: false,
     restart: false,
@@ -61,6 +61,12 @@ export default function SetupPage() {
       .then((r) => r.json())
       .then(setStatus)
       .catch(() => null);
+
+    setLocalSteps((s) => ({
+      ...s,
+      node: typeof window !== "undefined",
+      npm: typeof window !== "undefined",
+    }));
   }, []);
 
   const copyEnv = async () => {
@@ -106,7 +112,7 @@ export default function SetupPage() {
     },
     {
       id: "env",
-      done: status?.supabase ?? false,
+      done: (status?.supabase ?? false) && localSteps.envFile,
       title: t("setup.step4Title"),
       desc: t("setup.step4Desc"),
       action: (
@@ -148,9 +154,15 @@ export default function SetupPage() {
       title: t("setup.step6Title"),
       desc: t("setup.step6Desc"),
       action: (
-        <code className="block text-xs bg-surface-elevated px-2 py-1 rounded break-all">
-          {status?.redirectUrl ?? "http://localhost:3000/auth/callback"}
-        </code>
+        <div className="space-y-2 text-xs">
+          <p className="text-muted">{t("setup.siteUrlHint")}</p>
+          <code className="block bg-surface-elevated px-2 py-1 rounded break-all">
+            {status?.appUrl ?? "http://localhost:3000"}
+          </code>
+          <code className="block bg-surface-elevated px-2 py-1 rounded break-all">
+            {status?.redirectUrl ?? "http://localhost:3000/auth/callback"}
+          </code>
+        </div>
       ),
     },
     {
@@ -160,6 +172,8 @@ export default function SetupPage() {
       desc: t("setup.step7Desc"),
       action: status?.serviceRole ? (
         <Badge variant="success">{t("setup.configured")}</Badge>
+      ) : status?.supabase ? (
+        <Badge variant="warning">{t("setup.serviceRoleMissing")}</Badge>
       ) : (
         <Badge variant="warning">{t("setup.optionalDemo")}</Badge>
       ),
@@ -187,18 +201,14 @@ export default function SetupPage() {
       desc: t("setup.step9Desc"),
       action: (
         <div className="flex flex-wrap gap-2">
-          <Link href="/signup">
-            <Button size="sm" variant="secondary">
-              <UserPlus className="h-4 w-4" />
-              {t("auth.signUp")}
-            </Button>
-          </Link>
-          <Link href="/dashboard">
-            <Button size="sm">
-              {t("nav.home")}
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          </Link>
+          <Button size="sm" variant="secondary" href="/signup">
+            <UserPlus className="h-4 w-4" />
+            {t("auth.signUp")}
+          </Button>
+          <Button size="sm" href="/dashboard">
+            {t("nav.home")}
+            <ArrowRight className="h-4 w-4" />
+          </Button>
         </div>
       ),
     },
@@ -272,11 +282,10 @@ export default function SetupPage() {
                     href="https://supabase.com/dashboard"
                     target="_blank"
                     rel="noopener noreferrer"
+                    className="inline-flex h-9 items-center justify-center gap-2 rounded-xl border border-border bg-surface-elevated px-4 text-sm font-medium text-foreground no-underline transition-all hover:bg-lifemed-50 dark:hover:bg-lifemed-950/30"
                   >
-                    <Button size="sm" variant="secondary">
-                      <ExternalLink className="h-4 w-4" />
-                      {t("setup.registerOpenSupabase")}
-                    </Button>
+                    <ExternalLink className="h-4 w-4" />
+                    {t("setup.registerOpenSupabase")}
                   </a>
                   <Button size="sm" onClick={copyEnv}>
                     <Copy className="h-4 w-4" />
@@ -333,12 +342,10 @@ export default function SetupPage() {
         </Card>
 
         <div className="flex justify-center pb-8">
-          <Link href="/dashboard">
-            <Button size="lg">
-              {allCoreDone ? t("setup.goDashboard") : t("setup.viewDemoDashboard")}
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          </Link>
+          <Button size="lg" href="/dashboard">
+            {allCoreDone ? t("setup.goDashboard") : t("setup.viewDemoDashboard")}
+            <ArrowRight className="h-4 w-4" />
+          </Button>
         </div>
       </main>
     </div>

@@ -458,6 +458,8 @@ export type TranslationTree = {
     restartCheckbox: string;
     configured: string;
     optionalDemo: string;
+    serviceRoleMissing: string;
+    siteUrlHint: string;
     supabaseDashboard: string;
     step1Title: string;
     step1Desc: string;

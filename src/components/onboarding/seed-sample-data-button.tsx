@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/components/providers/locale-provider";
-import { isDemoModeEnabled } from "@/lib/supabase/config";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { Loader2, Sparkles } from "lucide-react";
 import { useState } from "react";
 
@@ -11,7 +11,7 @@ export function SeedSampleDataButton() {
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
 
-  if (!isDemoModeEnabled()) return null;
+  if (!isSupabaseConfigured()) return null;
 
   const handleSeed = async () => {
     setLoading(true);

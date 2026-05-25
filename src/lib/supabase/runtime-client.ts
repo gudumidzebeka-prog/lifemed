@@ -4,8 +4,6 @@ import { getSupabaseAnonKey, getSupabaseUrl, isSupabaseConfigured } from "@/lib/
 
 interface RuntimeSupabaseConfig {
   supabase: boolean;
-  supabaseUrl?: string;
-  supabaseAnonKey?: string;
 }
 
 let cachedConfig: RuntimeSupabaseConfig | null = null;
@@ -31,8 +29,6 @@ export async function resolveSupabaseConfig(): Promise<RuntimeSupabaseConfig> {
     .then((data) => {
       cachedConfig = {
         supabase: Boolean(data.supabase) || serverSupabaseHint,
-        supabaseUrl: data.supabaseUrl,
-        supabaseAnonKey: data.supabaseAnonKey,
       };
       return cachedConfig;
     })
@@ -49,8 +45,8 @@ export async function resolveSupabaseConfig(): Promise<RuntimeSupabaseConfig> {
 }
 
 export function createClientFromConfig(config: RuntimeSupabaseConfig): SupabaseClient {
-  const url = config.supabaseUrl || getSupabaseUrl();
-  const key = config.supabaseAnonKey || getSupabaseAnonKey();
+  const url = getSupabaseUrl();
+  const key = getSupabaseAnonKey();
 
   if (!config.supabase || !url || !key) {
     throw new Error(

@@ -15,24 +15,24 @@ export function OAuthButtons({ mode }: OAuthButtonsProps) {
   const [loading, setLoading] = useState<string | null>(null);
 
   const handleOAuth = async (provider: "google" | "apple") => {
+    if (!isSupabaseConfigured()) return;
+
     setLoading(provider);
     try {
-      if (!isSupabaseConfigured()) {
-        window.location.href = "/dashboard";
-        return;
-      }
       await signInWithOAuth(provider);
     } catch {
       setLoading(null);
     }
   };
 
+  const supabaseReady = isSupabaseConfigured();
+
   return (
     <div className="grid grid-cols-2 gap-3">
       <Button
         variant="secondary"
         type="button"
-        disabled={loading !== null}
+        disabled={!supabaseReady || loading !== null}
         onClick={() => handleOAuth("google")}
       >
         {loading === "google" ? "..." : t("auth.oauthGoogle")}
@@ -40,12 +40,12 @@ export function OAuthButtons({ mode }: OAuthButtonsProps) {
       <Button
         variant="secondary"
         type="button"
-        disabled={loading !== null}
+        disabled={!supabaseReady || loading !== null}
         onClick={() => handleOAuth("apple")}
       >
         {loading === "apple" ? "..." : t("auth.oauthApple")}
       </Button>
-      {!isSupabaseConfigured() && (
+      {!supabaseReady && (
         <p className="col-span-2 text-center text-xs text-muted">
           {mode === "login"
             ? t("auth.oauthNotConfiguredLogin")

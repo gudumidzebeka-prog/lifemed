@@ -259,8 +259,6 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
 
       const clientConfig = {
         supabase: supabaseConfigured,
-        supabaseUrl: config.supabaseUrl,
-        supabaseAnonKey: config.supabaseAnonKey,
       };
 
       const supabase = createClientFromConfig(clientConfig);

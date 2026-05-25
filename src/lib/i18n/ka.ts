@@ -487,6 +487,8 @@ export const ka: TranslationTree = {
     restartCheckbox: "გადავტვირთე",
     configured: "✓ კონფიგურირებულია",
     optionalDemo: "არასავალდებულო demo-სთვის",
+    serviceRoleMissing: "საჭიროა გაზიარების ბმულებისთვის",
+    siteUrlHint: "Site URL და Redirect URL (Authentication → URL Configuration):",
     supabaseDashboard: "Supabase Dashboard",
     step1Title: "1. Node.js და npm",
     step1Desc: "Node.js 18+ უნდა იყოს დაინსტალირებული.",

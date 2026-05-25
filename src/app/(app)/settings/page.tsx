@@ -184,11 +184,9 @@ export default function SettingsPage() {
             label={t("settings.setupGuide")}
             description={t("settings.setupGuideDesc")}
             action={
-              <Link href="/setup">
-                <Button variant="secondary" size="sm">
-                  {t("settings.openSetup")}
-                </Button>
-              </Link>
+              <Button variant="secondary" size="sm" href="/setup">
+                {t("settings.openSetup")}
+              </Button>
             }
           />
         </SettingsSection>

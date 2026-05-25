@@ -486,6 +486,8 @@ export const en: TranslationTree = {
     restartCheckbox: "I restarted the server",
     configured: "✓ Configured",
     optionalDemo: "Optional for demo",
+    serviceRoleMissing: "Required for doctor share links",
+    siteUrlHint: "Site URL and Redirect URL (Authentication → URL Configuration):",
     supabaseDashboard: "Supabase Dashboard",
     step1Title: "1. Node.js and npm",
     step1Desc: "Node.js 18+ must be installed.",

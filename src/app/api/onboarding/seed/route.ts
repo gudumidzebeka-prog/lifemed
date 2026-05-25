@@ -16,15 +16,11 @@ import {
 
 import { createClient } from "@/lib/supabase/server";
 
-import { isDemoModeEnabled, isSupabaseConfigured } from "@/lib/supabase/config";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 
 
 export async function POST() {
-  if (!isDemoModeEnabled()) {
-    return NextResponse.json({ error: "Demo seed is disabled in production" }, { status: 403 });
-  }
-
   if (!isSupabaseConfigured()) {
 
     return NextResponse.json({ error: "Supabase not configured" }, { status: 400 });

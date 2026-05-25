@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSupabaseAnonKey, getSupabaseUrl, isSupabaseConfigured } from "@/lib/supabase/config";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 import {
   getAppUrl,
   isAIConfigured,
@@ -8,7 +8,6 @@ import {
   isOpenAIConfigured,
   isServiceRoleConfigured,
 } from "@/lib/server-env";
-import { testAIConnection } from "@/lib/health/ai-provider";
 
 function safeHost(url: string) {
   try {
@@ -19,10 +18,9 @@ function safeHost(url: string) {
 }
 
 export async function GET() {
-  const supabaseUrl = getSupabaseUrl();
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() ?? "";
   const host = supabaseUrl ? safeHost(supabaseUrl) : null;
   const configured = isSupabaseConfigured();
-  const aiTest = isAIConfigured() ? await testAIConnection() : null;
 
   return NextResponse.json({
     supabase: configured,
@@ -30,18 +28,11 @@ export async function GET() {
     supabaseUrlOk: Boolean(host?.endsWith(".supabase.co")),
     serviceRole: isServiceRoleConfigured(),
     ai: isAIConfigured(),
-    aiLive: aiTest?.ok ?? false,
-    aiTest,
+    aiLive: isAIConfigured(),
     gemini: isGeminiConfigured(),
     groq: isGroqConfigured(),
     openai: isOpenAIConfigured(),
     appUrl: getAppUrl(),
     redirectUrl: `${getAppUrl()}/auth/callback`,
-    ...(configured
-      ? {
-          supabaseUrl,
-          supabaseAnonKey: getSupabaseAnonKey(),
-        }
-      : {}),
   });
 }

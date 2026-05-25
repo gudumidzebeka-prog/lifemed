@@ -43,3 +43,12 @@ export function generateShareToken(length = 32) {
   }
   return result;
 }
+
+/** Allow only same-origin relative paths in auth redirects. */
+export function safeRedirectPath(next: string | null | undefined, fallback = "/dashboard") {
+  if (!next) return fallback;
+  if (!next.startsWith("/") || next.startsWith("//") || next.includes("\\")) {
+    return fallback;
+  }
+  return next;
+}

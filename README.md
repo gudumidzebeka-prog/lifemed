@@ -19,7 +19,7 @@ A modern, AI-powered cross-platform healthcare application for securely storing,
 
 - **Frontend:** Next.js 15, React 19, TypeScript, Tailwind CSS 4
 - **Backend:** Supabase (Auth, PostgreSQL, Storage)
-- **AI:** OpenAI API (optional — demo mode works without a key)
+- **AI:** Groq / Gemini / OpenAI API (optional — demo mode works without a key)
 - **UI:** Framer Motion, Lucide icons, custom design system
 
 ## Getting Started
@@ -29,13 +29,29 @@ A modern, AI-powered cross-platform healthcare application for securely storing,
 - [Node.js](https://nodejs.org/) 18+ (includes npm)
 - A [Supabase](https://supabase.com/) project (optional for demo mode)
 
-### Installation
+### Windows quick start
+
+```bat
+register.bat
+```
+
+Edit `.env.local`, then:
+
+```bat
+start.bat
+```
+
+Open [http://localhost:3000/setup](http://localhost:3000/setup) for the step-by-step guide.
+
+### Installation (macOS / Linux)
 
 ```bash
 cd Projects/LifeMed
 npm install
 cp .env.example .env.local
 ```
+
+On Windows cmd/PowerShell use `copy .env.example .env.local` or run `register.bat`.
 
 ### Environment Variables
 
@@ -44,9 +60,14 @@ Edit `.env.local`:
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-OPENAI_API_KEY=your-openai-api-key   # optional
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+GROQ_API_KEY=your-groq-api-key
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
+
+`SUPABASE_SERVICE_ROLE_KEY` is required for anonymous doctor share links.  
+`GROQ_API_KEY` (free at [console.groq.com](https://console.groq.com)) powers the AI assistant.  
+Optional: `GEMINI_API_KEY`, `OPENAI_API_KEY`.
 
 ### Database Setup
 
@@ -55,6 +76,11 @@ Run the SQL schema in your Supabase SQL editor:
 ```bash
 # File: supabase/schema.sql
 ```
+
+In Supabase **Authentication → URL Configuration** set:
+
+- **Site URL:** `http://localhost:3000`
+- **Redirect URLs:** `http://localhost:3000/auth/callback`
 
 Enable Google and Apple OAuth in Supabase Auth settings.
 

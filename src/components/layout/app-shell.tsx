@@ -20,7 +20,7 @@ import {
   X,
   ShieldAlert,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { ThemeToggle } from "./theme-toggle";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
@@ -112,13 +112,86 @@ function SidebarHeader() {
   );
 }
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+function MobileNavLink({
+  item,
+  active,
+  label,
+}: {
+  item: (typeof NAV_ITEMS)[number];
+  active: boolean;
+  label: string;
+}) {
+  const Icon = iconMap[item.icon as keyof typeof iconMap];
+
+  return (
+    <Link
+      href={item.href}
+      aria-current={active ? "page" : undefined}
+      title={label}
+      className={cn(
+        "flex w-[20vw] min-w-[20vw] max-w-[20vw] shrink-0 snap-start flex-col items-center justify-center gap-0.5 px-1 py-2 text-[9px] leading-[1.1] no-underline transition-colors box-border sm:text-[10px]",
+        active
+          ? "bg-lifemed-100 text-lifemed-700 dark:bg-lifemed-900/40 dark:text-lifemed-300"
+          : "text-muted hover:bg-surface-elevated hover:text-foreground"
+      )}
+    >
+      <Icon className="h-4 w-4 shrink-0" />
+      <span className="w-full text-center font-medium line-clamp-2 break-words [overflow-wrap:anywhere]">
+        {label}
+      </span>
+    </Link>
+  );
+}
+
+function MobileBottomNav() {
   const pathname = usePathname();
+  const { t } = useTranslation();
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (!container) return;
+
+    const activeEl = container.querySelector<HTMLElement>('[aria-current="page"]');
+    if (!activeEl) return;
+
+    const edge = 4;
+    const targetLeft = activeEl.offsetLeft - (container.clientWidth - activeEl.offsetWidth) / 2;
+    const maxScroll = container.scrollWidth - container.clientWidth;
+    container.scrollTo({
+      left: Math.max(0, Math.min(maxScroll, targetLeft - edge)),
+      behavior: "smooth",
+    });
+  }, [pathname]);
+
+  return (
+    <nav className="lifemed-mobile-bottom-nav fixed bottom-0 left-0 right-0 z-40 w-full max-w-[100vw] border-t border-border bg-surface/95 backdrop-blur-xl safe-bottom lg:hidden">
+      <div
+        ref={scrollRef}
+        className="flex w-full snap-x snap-mandatory overflow-x-auto overscroll-x-contain scroll-smooth [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+      >
+        {NAV_ITEMS.map((item) => {
+          const active =
+            pathname === item.href ||
+            (item.href !== "/dashboard" && pathname.startsWith(item.href));
+
+          return (
+            <MobileNavLink
+              key={item.href}
+              item={item}
+              active={active}
+              label={t(`nav.${item.key as NavKey}`)}
+            />
+          );
+        })}
+      </div>
+    </nav>
+  );
+}
+
+export function AppShell({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { t } = useTranslation();
-
-  const isActive = (href: string) =>
-    pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
 
   return (
     <>
@@ -205,32 +278,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </AnimatePresence>
 
           <main className="flex-1 overflow-auto">
-            <div className="mx-auto max-w-6xl px-4 py-6 pb-24 lg:px-8 lg:py-8 lg:pb-8 safe-bottom">
+            <div className="mx-auto max-w-6xl px-4 py-6 pb-28 lg:px-8 lg:py-8 lg:pb-8 safe-bottom">
               {children}
             </div>
           </main>
 
-          <nav className="lifemed-mobile-bottom-nav fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-surface/90 backdrop-blur-xl safe-bottom lg:hidden">
-            <div className="flex items-center justify-around px-2 py-2">
-              {NAV_ITEMS.slice(0, 5).map((item) => {
-                const Icon = iconMap[item.icon as keyof typeof iconMap];
-                const active = isActive(item.href);
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={cn(
-                      "flex flex-col items-center gap-0.5 rounded-lg px-3 py-1.5 text-xs no-underline transition-colors",
-                      active ? "text-lifemed-600 dark:text-lifemed-400" : "text-muted"
-                    )}
-                  >
-                    <Icon className="h-5 w-5" />
-                    <span className="font-medium">{t(`nav.${item.key as NavKey}`)}</span>
-                  </Link>
-                );
-              })}
-            </div>
-          </nav>
+          <MobileBottomNav />
         </div>
       </div>
     </>
