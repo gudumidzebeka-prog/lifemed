@@ -98,14 +98,6 @@ export default function DashboardPage() {
       trend: "stable" as const,
       href: "/profile",
     },
-    {
-      label: t("dashboard.statYears"),
-      value: timeline.length
-        ? new Date().getFullYear() - new Date(timeline[0].date).getFullYear()
-        : 0,
-      trend: "up" as const,
-      href: "/timeline",
-    },
   ];
 
   if (loading) {
@@ -131,7 +123,7 @@ export default function DashboardPage() {
         </Button>
       </motion.div>
 
-      <motion.div variants={item} className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <motion.div variants={item} className="grid grid-cols-2 gap-4 lg:grid-cols-3">
         {healthStats.map((stat) => (
           <Link
             key={stat.label}
