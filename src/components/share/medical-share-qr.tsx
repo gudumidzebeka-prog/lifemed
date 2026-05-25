@@ -92,7 +92,7 @@ export function MedicalShareQrBottomSection({ className }: { className?: string 
   return (
     <div
       className={cn(
-        "rounded-2xl border border-border bg-surface p-4 md:hidden",
+        "rounded-2xl border border-border bg-surface p-4",
         className
       )}
     >
