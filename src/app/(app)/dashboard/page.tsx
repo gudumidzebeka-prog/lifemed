@@ -4,7 +4,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge, Disclaimer } from "@/components/ui/badge";
+import { Badge } from "@/components/ui/badge";
 import { ClearDemoDataBanner } from "@/components/onboarding/clear-demo-data-banner";
 import { SetupBanner } from "@/components/onboarding/setup-banner";
 import { useTranslation } from "@/components/providers/locale-provider";
@@ -12,11 +12,11 @@ import { useHealthDataContext } from "@/components/providers/health-data-provide
 import { displayFirstName } from "@/lib/health/empty-profile";
 import { useTimelineTypeLabel, useDocumentCategoryLabel, useMedicationFrequencyLabel } from "@/lib/i18n/hooks";
 import { buildHealthSummary } from "@/lib/health/categories";
+import { DashboardAiPanel } from "@/components/dashboard/dashboard-ai-panel";
 import { getTimelineTypeColor } from "@/data/demo-data";
 import { formatDate, formatRelativeTime } from "@/lib/utils";
 import {
   Upload,
-  Sparkles,
   Calendar,
   Pill,
   ArrowRight,
@@ -298,39 +298,11 @@ export default function DashboardPage() {
       </div>
 
       <motion.div variants={item}>
-        <Card className="gradient-soft border-lifemed-200 dark:border-lifemed-800 overflow-hidden">
-          <CardHeader className="flex flex-row items-start justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-lifemed-500 text-white">
-                <Sparkles className="h-5 w-5" />
-              </div>
-              <div>
-                <CardTitle>{t("dashboard.aiTitle")}</CardTitle>
-                <p className="text-sm text-muted mt-0.5">{t("dashboard.aiSubtitle")}</p>
-              </div>
-            </div>
-            <Button variant="ghost" size="sm" href="/ai-assistant" className="shrink-0">
-              {t("dashboard.askAi")}
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <p className="text-foreground leading-relaxed">{aiSummary}</p>
-            {isEmptySummary && (
-              <div className="mt-4 flex flex-wrap gap-2">
-                <Button size="sm" href="/documents?upload=true">
-                  <Upload className="h-4 w-4" />
-                  {t("dashboard.addDocument")}
-                </Button>
-                <Button variant="secondary" size="sm" href="/timeline?add=true">
-                  <Clock className="h-4 w-4" />
-                  {t("dashboard.addTimelineEvent")}
-                </Button>
-              </div>
-            )}
-            <Disclaimer variant="info" className="mt-4" />
-          </CardContent>
-        </Card>
+        <DashboardAiPanel
+          aiSummary={aiSummary}
+          isEmptySummary={isEmptySummary}
+          locale={locale}
+        />
       </motion.div>
     </motion.div>
   );
