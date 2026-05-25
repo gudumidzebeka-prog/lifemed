@@ -72,6 +72,7 @@ interface HealthDataContextValue {
     dateOfBirth: string;
   }) => Promise<{ error: string | null }>;
   downloadDocument: (doc: HealthDocument) => Promise<{ error: string | null }>;
+  resolveDocumentUrl: (doc: HealthDocument) => Promise<{ url: string | null; error: string | null }>;
   exportHealthData: () => void;
   revokeShareLink: (token: string) => Promise<{ error: string | null }>;
   fetchShareLinks: () => Promise<ShareLink[]>;

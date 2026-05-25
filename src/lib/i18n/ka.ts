@@ -200,6 +200,12 @@ export const ka: TranslationTree = {
     searchPlaceholder: "ძებნა დოკუმენტებში...",
     folderAll: "ყველა ჩანაწერი",
     empty: "დოკუმენტი ვერ მოიძებნა",
+    view: "ნახვა",
+    openFailed: "ფაილი ვერ გაიხსნა",
+    previewUnavailable: "ამ ფორმატის inline ნახვა არ არის — გადმოწერე ან გახსენი ბრაუზერში",
+    openExternal: "ბრაუზერში გახსნა",
+    downloadFailed: "გადმოწერა ვერ მოხერხდა",
+    download: "გადმოწერა",
     categories: {
       "Lab Results": "ლაბორატორია",
       Prescriptions: "რეცეპტები",

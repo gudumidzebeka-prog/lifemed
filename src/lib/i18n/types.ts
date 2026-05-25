@@ -204,6 +204,12 @@ export type TranslationTree = {
     searchPlaceholder: string;
     folderAll: string;
     empty: string;
+    view: string;
+    openFailed: string;
+    previewUnavailable: string;
+    openExternal: string;
+    downloadFailed: string;
+    download: string;
     categories: Record<string, string>;
   };
   categories: {

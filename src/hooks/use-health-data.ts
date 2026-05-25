@@ -65,6 +65,7 @@ import { createClientFromConfig, configureSupabaseRuntimeHint, resolveSupabaseCo
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 import { EMPTY_PROFILE, emptyLiveProfile } from "@/lib/health/empty-profile";
+import { inferMimeType } from "@/lib/health/mime";
 import { clearDemoSeedFromAccount, accountHasDemoSeedData } from "@/lib/health/demo-seed";
 
 import type {
@@ -783,7 +784,7 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
 
         fileUrl: URL.createObjectURL(file),
 
-        fileType: file.type,
+        fileType: inferMimeType(file.name, file.type),
 
         fileSize: file.size,
 
@@ -1119,21 +1120,21 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
 
 
 
-  const downloadDocument = useCallback(
+  const resolveDocumentUrl = useCallback(
 
-    async (doc: HealthDocument) => {
+    async (doc: HealthDocument): Promise<{ url: string | null; error: string | null }> => {
+
+      if (doc.fileUrl === "#") {
+
+        return { url: null, error: "Preview only for demo sample files" };
+
+      }
+
+
 
       if (doc.fileUrl.startsWith("blob:")) {
 
-        const a = document.createElement("a");
-
-        a.href = doc.fileUrl;
-
-        a.download = doc.name;
-
-        a.click();
-
-        return { error: null };
+        return { url: doc.fileUrl, error: null };
 
       }
 
@@ -1145,17 +1146,19 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
 
           const res = await fetch(`/api/documents/${doc.id}/download`);
 
-          const data = await res.json();
+          const data = (await res.json()) as { url?: string; error?: string };
 
-          if (!res.ok) return { error: data.error ?? "Download failed" };
+          if (!res.ok || !data.url) {
 
-          window.open(data.url, "_blank");
+            return { url: null, error: data.error ?? "Download failed" };
 
-          return { error: null };
+          }
+
+          return { url: data.url, error: null };
 
         } catch {
 
-          return { error: "Download failed" };
+          return { url: null, error: "Download failed" };
 
         }
 
@@ -1163,11 +1166,83 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
 
 
 
-      return { error: "Preview only for demo sample files" };
+      return { url: null, error: "Preview only for demo sample files" };
 
     },
 
     [mode]
+
+  );
+
+
+
+  const downloadDocument = useCallback(
+
+    async (doc: HealthDocument) => {
+
+      const { url, error } = await resolveDocumentUrl(doc);
+
+      if (error || !url) return { error: error ?? "Download failed" };
+
+
+
+      try {
+
+        if (url.startsWith("blob:")) {
+
+          const a = document.createElement("a");
+
+          a.href = url;
+
+          a.download = doc.name;
+
+          document.body.appendChild(a);
+
+          a.click();
+
+          a.remove();
+
+          return { error: null };
+
+        }
+
+
+
+        const response = await fetch(url);
+
+        if (!response.ok) return { error: "Download failed" };
+
+        const blob = await response.blob();
+
+        const blobUrl = URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+
+        a.href = blobUrl;
+
+        a.download = doc.name;
+
+        document.body.appendChild(a);
+
+        a.click();
+
+        a.remove();
+
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+
+        return { error: null };
+
+      } catch {
+
+        window.location.assign(url);
+
+        return { error: null };
+
+      }
+
+    },
+
+    [resolveDocumentUrl]
 
   );
 
@@ -1318,6 +1393,8 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
     addFamilyMember,
 
     downloadDocument,
+
+    resolveDocumentUrl,
 
     exportHealthData,
 

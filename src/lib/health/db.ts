@@ -8,6 +8,7 @@ import type {
   ShareLink,
   TimelineEvent,
 } from "@/types/health";
+import { inferMimeType } from "@/lib/health/mime";
 
 interface ProfileRow {
   id: string;
@@ -221,10 +222,11 @@ export async function uploadHealthDocument(
 ) {
   const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
   const storagePath = `${userId}/${Date.now()}-${safeName}`;
+  const contentType = inferMimeType(file.name, file.type);
 
   const { error: uploadError } = await supabase.storage
     .from("health-documents")
-    .upload(storagePath, file, { upsert: false });
+    .upload(storagePath, file, { upsert: false, contentType });
 
   if (uploadError) return { error: uploadError, document: null };
 
@@ -235,7 +237,7 @@ export async function uploadHealthDocument(
       name: file.name,
       category,
       file_path: storagePath,
-      file_type: file.type || "application/octet-stream",
+      file_type: contentType,
       file_size: file.size,
       tags: [],
     })

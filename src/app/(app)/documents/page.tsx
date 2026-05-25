@@ -10,27 +10,32 @@ import { useTranslation } from "@/components/providers/locale-provider";
 import { useHealthDataContext } from "@/components/providers/health-data-provider";
 import { DataModeBanner } from "@/components/layout/data-mode-banner";
 import { useDocumentCategoryLabel } from "@/lib/i18n/hooks";
+import { isImageMime } from "@/lib/health/mime";
 import { formatRelativeTime } from "@/lib/utils";
 import { DOCUMENT_CATEGORIES } from "@/lib/constants";
 import { UploadDocumentModal } from "@/components/documents/upload-document-modal";
+import { DocumentViewerModal } from "@/components/documents/document-viewer-modal";
+import type { HealthDocument } from "@/types/health";
 import {
   Upload,
   Search,
   FolderOpen,
   FileText,
-  Image,
+  Image as ImageIcon,
   Grid,
   List,
   X,
   Download,
   Trash2,
+  Eye,
 } from "lucide-react";
 
 function DocumentsContent() {
   const { t, locale } = useTranslation();
   const getDocumentCategoryLabel = useDocumentCategoryLabel();
   const searchParams = useSearchParams();
-  const { mode, loading, documents, downloadDocument, removeDocument } = useHealthDataContext();
+  const { mode, loading, documents, downloadDocument, resolveDocumentUrl, removeDocument } =
+    useHealthDataContext();
   const [search, setSearch] = useState("");
   const [view, setView] = useState<"grid" | "list">("grid");
   const [dragActive, setDragActive] = useState(false);
@@ -38,6 +43,8 @@ function DocumentsContent() {
   const [selectedFolder, setSelectedFolder] = useState<string>("all");
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [droppedFile, setDroppedFile] = useState<File | null>(null);
+  const [viewerDoc, setViewerDoc] = useState<HealthDocument | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   useEffect(() => {
     if (searchParams.get("upload") === "true") {
@@ -100,10 +107,35 @@ function DocumentsContent() {
     setDroppedFile(null);
   };
 
+  const openDocument = (doc: HealthDocument) => {
+    setActionError(null);
+    setViewerDoc(doc);
+  };
+
+  const handleDownload = async (doc: HealthDocument) => {
+    setActionError(null);
+    const { error } = await downloadDocument(doc);
+    if (error) setActionError(error);
+  };
+
+  const getThumbnailUrl = (doc: HealthDocument) => {
+    if (doc.fileUrl.startsWith("blob:") && isImageMime(doc.fileType)) {
+      return doc.fileUrl;
+    }
+    return null;
+  };
+
   return (
     <div className="space-y-8">
       <DataModeBanner mode={mode} />
       {loading && <div className="text-center text-muted py-4">{t("common.loading")}</div>}
+
+      {actionError && (
+        <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-800 dark:bg-rose-950/30 dark:text-rose-300">
+          {actionError}
+        </div>
+      )}
+
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground sm:text-3xl">{t("documents.title")}</h1>
@@ -121,6 +153,13 @@ function DocumentsContent() {
       </div>
 
       <UploadDocumentModal open={showUploadModal} onClose={closeUploadModal} initialFile={droppedFile} />
+      <DocumentViewerModal
+        open={Boolean(viewerDoc)}
+        document={viewerDoc}
+        onClose={() => setViewerDoc(null)}
+        resolveUrl={resolveDocumentUrl}
+        onDownload={downloadDocument}
+      />
 
       <div
         onDragEnter={handleDrag}
@@ -189,64 +228,122 @@ function DocumentsContent() {
 
       {view === "grid" ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((doc, i) => (
-            <motion.div
-              key={doc.id}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-            >
-              <Card className="card-hover group">
-                <CardContent className="p-5">
-                  <div className="flex items-start justify-between">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-lifemed-50 text-lifemed-600 dark:bg-lifemed-950/50">
-                      {doc.fileType.startsWith("image") ? (
-                        <Image className="h-6 w-6" />
-                      ) : (
-                        <FileText className="h-6 w-6" />
-                      )}
-                    </div>
-                    <div className="flex gap-1">
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => downloadDocument(doc)}>
-                        <Download className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeDocument(doc.id)}>
-                        <Trash2 className="h-4 w-4 text-muted" />
-                      </Button>
-                    </div>
-                  </div>
-                  <h3 className="mt-4 font-medium text-foreground truncate group-hover:text-lifemed-600 transition-colors">
-                    {doc.name}
-                  </h3>
-                  <p className="text-xs text-muted mt-1">{getDocumentCategoryLabel(doc.category)}</p>
-                  <div className="mt-3 flex items-center justify-between text-xs text-muted">
-                    <span>{formatSize(doc.fileSize)}</span>
-                    <span>{formatRelativeTime(doc.uploadedAt, locale)}</span>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
+          {filtered.map((doc, i) => {
+            const thumb = getThumbnailUrl(doc);
+            return (
+              <motion.div
+                key={doc.id}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+              >
+                <Card className="card-hover group overflow-hidden">
+                  <CardContent className="p-0">
+                    <button
+                      type="button"
+                      onClick={() => openDocument(doc)}
+                      className="relative z-10 block w-full p-5 text-left"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-lifemed-50 text-lifemed-600 dark:bg-lifemed-950/50">
+                          {thumb ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={thumb} alt={doc.name} className="h-full w-full object-cover" />
+                          ) : isImageMime(doc.fileType) ? (
+                            <ImageIcon className="h-6 w-6" />
+                          ) : (
+                            <FileText className="h-6 w-6" />
+                          )}
+                        </div>
+                        <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="relative z-10 h-8 w-8"
+                            aria-label={t("documents.view")}
+                            onClick={() => openDocument(doc)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="relative z-10 h-8 w-8"
+                            aria-label={t("documents.download")}
+                            onClick={() => handleDownload(doc)}
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="relative z-10 h-8 w-8"
+                            onClick={() => removeDocument(doc.id)}
+                          >
+                            <Trash2 className="h-4 w-4 text-muted" />
+                          </Button>
+                        </div>
+                      </div>
+                      <h3 className="mt-4 font-medium text-foreground truncate group-hover:text-lifemed-600 transition-colors">
+                        {doc.name}
+                      </h3>
+                      <p className="text-xs text-muted mt-1">{getDocumentCategoryLabel(doc.category)}</p>
+                      <div className="mt-3 flex items-center justify-between text-xs text-muted">
+                        <span>{formatSize(doc.fileSize)}</span>
+                        <span>{formatRelativeTime(doc.uploadedAt, locale)}</span>
+                      </div>
+                    </button>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            );
+          })}
         </div>
       ) : (
         <div className="space-y-2">
           {filtered.map((doc) => (
             <Card key={doc.id} className="card-hover">
               <CardContent className="flex items-center gap-4 p-4">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-lifemed-50 text-lifemed-600">
-                  <FileText className="h-5 w-5" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-foreground truncate">{doc.name}</p>
-                  <p className="text-xs text-muted">
-                    {getDocumentCategoryLabel(doc.category)} · {formatSize(doc.fileSize)} ·{" "}
-                    {formatRelativeTime(doc.uploadedAt, locale)}
-                  </p>
-                </div>
-                <Button variant="ghost" size="icon" onClick={() => downloadDocument(doc)}>
+                <button
+                  type="button"
+                  onClick={() => openDocument(doc)}
+                  className="relative z-10 flex min-w-0 flex-1 items-center gap-4 text-left"
+                >
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-lifemed-50 text-lifemed-600">
+                    {getThumbnailUrl(doc) ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={getThumbnailUrl(doc)!} alt={doc.name} className="h-full w-full object-cover" />
+                    ) : (
+                      <FileText className="h-5 w-5" />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-foreground truncate">{doc.name}</p>
+                    <p className="text-xs text-muted">
+                      {getDocumentCategoryLabel(doc.category)} · {formatSize(doc.fileSize)} ·{" "}
+                      {formatRelativeTime(doc.uploadedAt, locale)}
+                    </p>
+                  </div>
+                </button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="relative z-10"
+                  aria-label={t("documents.view")}
+                  onClick={() => openDocument(doc)}
+                >
+                  <Eye className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="relative z-10"
+                  aria-label={t("documents.download")}
+                  onClick={() => handleDownload(doc)}
+                >
                   <Download className="h-4 w-4" />
                 </Button>
-                <Button variant="ghost" size="icon" onClick={() => removeDocument(doc.id)}>
+                <Button variant="ghost" size="icon" className="relative z-10" onClick={() => removeDocument(doc.id)}>
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </CardContent>

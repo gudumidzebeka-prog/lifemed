@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
@@ -36,5 +36,13 @@ export async function GET(
     return NextResponse.json({ error: "Could not generate download link" }, { status: 500 });
   }
 
-  return NextResponse.json({ url, name: doc.name });
+  if (request.nextUrl.searchParams.get("redirect") === "1") {
+    return NextResponse.redirect(url);
+  }
+
+  return NextResponse.json({
+    url,
+    name: doc.name,
+    fileType: doc.file_type,
+  });
 }

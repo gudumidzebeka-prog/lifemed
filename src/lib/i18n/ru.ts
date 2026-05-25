@@ -199,6 +199,12 @@ export const ru: TranslationTree = {
     searchPlaceholder: "Поиск документов...",
     folderAll: "Все записи",
     empty: "Документы не найдены",
+    view: "Просмотр",
+    openFailed: "Не удалось открыть файл",
+    previewUnavailable: "Предпросмотр недоступен — скачайте или откройте в браузере",
+    openExternal: "Открыть в браузере",
+    downloadFailed: "Не удалось скачать",
+    download: "Скачать",
     categories: {
       "Lab Results": "Лаборатория",
       Prescriptions: "Рецепты",

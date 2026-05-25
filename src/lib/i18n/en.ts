@@ -199,6 +199,12 @@ export const en: TranslationTree = {
     searchPlaceholder: "Search documents...",
     folderAll: "All Records",
     empty: "No documents found",
+    view: "View",
+    openFailed: "Could not open this file",
+    previewUnavailable: "Inline preview is not available for this format — download or open in browser",
+    openExternal: "Open in browser",
+    downloadFailed: "Download failed",
+    download: "Download",
     categories: {
       "Lab Results": "Lab Results",
       Prescriptions: "Prescriptions",
