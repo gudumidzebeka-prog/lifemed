@@ -304,4 +304,25 @@ export function buildHealthSummary(
 
 }
 
+export function getCategoryAddHref(categoryId: string): string {
+  if (categoryId === "medications") return "/profile?med=true";
+  if (categoryId === "allergies") return "/profile?allergies=true";
+  if (categoryId === "lab-results") return "/documents?upload=true";
+  return "/timeline?add=true";
+}
+
+export type CategoryRecordAction =
+  | { type: "document"; documentId: string }
+  | { type: "timeline"; eventId: string }
+  | { type: "medication"; medicationId: string }
+  | { type: "allergy" };
+
+export function resolveCategoryRecordAction(record: CategoryRecord): CategoryRecordAction | null {
+  if (record.documentId) return { type: "document", documentId: record.documentId };
+  if (record.id.startsWith("doc-")) return { type: "document", documentId: record.id.slice(4) };
+  if (record.id.startsWith("tl-")) return { type: "timeline", eventId: record.id.slice(3) };
+  if (record.id.startsWith("med-")) return { type: "medication", medicationId: record.id.slice(4) };
+  if (record.id.startsWith("allergy-")) return { type: "allergy" };
+  return null;
+}
 

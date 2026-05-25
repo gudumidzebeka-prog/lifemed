@@ -63,6 +63,14 @@ function ProfileContent() {
     }
   }, [searchParams]);
 
+  useEffect(() => {
+    if (searchParams.get("allergies") !== "true") return;
+    const timer = window.setTimeout(() => {
+      document.getElementById("profile-allergies")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 150);
+    return () => window.clearTimeout(timer);
+  }, [searchParams]);
+
   const handleAddAllergy = async () => {
     if (!newAllergy.trim()) return;
     await addAllergy(newAllergy.trim());
@@ -148,6 +156,7 @@ function ProfileContent() {
         </Card>
 
         <ExpandableCard
+          id="profile-allergies"
           title={t("profile.allergies")}
           subtitle={t("profile.allergiesKnown", { count: profile.allergies.length })}
           icon={<AlertTriangle className="h-5 w-5" />}

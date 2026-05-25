@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Heart,
   Brain,
@@ -14,18 +15,27 @@ import {
   FlaskConical,
   Eye,
   FileText,
+  Pencil,
+  ArrowRight,
+  Plus,
 } from "lucide-react";
 import { ExpandableCard } from "@/components/ui/expandable-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DocumentViewerModal } from "@/components/documents/document-viewer-modal";
+import { AddMedicationModal } from "@/components/profile/add-medication-modal";
+import { EditTimelineEventModal } from "@/components/timeline/edit-event-modal";
 import { useTranslation } from "@/components/providers/locale-provider";
 import { useHealthDataContext } from "@/components/providers/health-data-provider";
 import { useHealthCategoryLabel } from "@/lib/i18n/hooks";
 import { HEALTH_CATEGORIES } from "@/lib/constants";
-import { buildCategoryRecords } from "@/lib/health/categories";
+import {
+  buildCategoryRecords,
+  getCategoryAddHref,
+  resolveCategoryRecordAction,
+} from "@/lib/health/categories";
 import { formatDate } from "@/lib/utils";
-import type { CategoryRecord, HealthDocument } from "@/types/health";
+import type { CategoryRecord, HealthDocument, Medication, TimelineEvent } from "@/types/health";
 
 const iconMap = {
   Heart,
@@ -41,18 +51,23 @@ const iconMap = {
 };
 
 function getDocumentForRecord(record: CategoryRecord, documents: HealthDocument[]) {
-  const documentId = record.documentId ?? (record.id.startsWith("doc-") ? record.id.slice(4) : null);
-  if (!documentId) return null;
-  return documents.find((doc) => doc.id === documentId) ?? null;
+  const action = resolveCategoryRecordAction(record);
+  if (action?.type !== "document") return null;
+  return documents.find((doc) => doc.id === action.documentId) ?? null;
 }
 
 export default function CategoriesPage() {
+  const router = useRouter();
   const { t, locale } = useTranslation();
   const getHealthCategoryLabel = useHealthCategoryLabel();
   const { loading, timeline, documents, profile, resolveDocumentUrl, downloadDocument } =
     useHealthDataContext();
   const [viewerDoc, setViewerDoc] = useState<HealthDocument | null>(null);
+  const [editMedication, setEditMedication] = useState<Medication | null>(null);
+  const [showMedicationModal, setShowMedicationModal] = useState(false);
+  const [editTimelineEvent, setEditTimelineEvent] = useState<TimelineEvent | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+
   const categoryRecords = useMemo(
     () => buildCategoryRecords(timeline, documents, profile, locale),
     [timeline, documents, profile, locale]
@@ -63,6 +78,59 @@ export default function CategoriesPage() {
     if (!doc) return;
     setActionError(null);
     setViewerDoc(doc);
+  };
+
+  const openMedicationModal = (medication: Medication) => {
+    setEditMedication(medication);
+    setShowMedicationModal(true);
+  };
+
+  const handleRecordClick = (record: CategoryRecord) => {
+    const action = resolveCategoryRecordAction(record);
+    if (!action) return;
+
+    setActionError(null);
+
+    switch (action.type) {
+      case "document":
+        openDocumentRecord(record);
+        break;
+      case "timeline": {
+        const event = timeline.find((item) => item.id === action.eventId);
+        if (event) setEditTimelineEvent(event);
+        break;
+      }
+      case "medication": {
+        const medication = profile.currentMedications.find((item) => item.id === action.medicationId);
+        if (medication) openMedicationModal(medication);
+        break;
+      }
+      case "allergy":
+        router.push("/profile?allergies=true");
+        break;
+    }
+  };
+
+  const getRecordIcon = (record: CategoryRecord) => {
+    const action = resolveCategoryRecordAction(record);
+    if (action?.type === "document") return FileText;
+    if (action?.type === "allergy") return AlertTriangle;
+    if (action?.type === "medication") return Pill;
+    return FileText;
+  };
+
+  const getRecordActionIcon = (record: CategoryRecord) => {
+    const action = resolveCategoryRecordAction(record);
+    if (action?.type === "document") return Eye;
+    if (action?.type === "allergy") return ArrowRight;
+    return Pencil;
+  };
+
+  const getRecordAriaLabel = (record: CategoryRecord) => {
+    const action = resolveCategoryRecordAction(record);
+    if (action?.type === "document") return t("documents.view");
+    if (action?.type === "allergy") return t("profile.allergies");
+    return t("common.edit");
   };
 
   if (loading) {
@@ -76,6 +144,7 @@ export default function CategoriesPage() {
           {actionError}
         </div>
       )}
+
       <DocumentViewerModal
         open={Boolean(viewerDoc)}
         document={viewerDoc}
@@ -87,6 +156,20 @@ export default function CategoriesPage() {
           return { error };
         }}
       />
+      <AddMedicationModal
+        open={showMedicationModal}
+        onClose={() => {
+          setShowMedicationModal(false);
+          setEditMedication(null);
+        }}
+        medication={editMedication}
+      />
+      <EditTimelineEventModal
+        open={Boolean(editTimelineEvent)}
+        onClose={() => setEditTimelineEvent(null)}
+        event={editTimelineEvent}
+      />
+
       <div>
         <h1 className="text-2xl font-bold text-foreground sm:text-3xl">{t("categories.title")}</h1>
         <p className="mt-1 text-muted">{t("categories.subtitle")}</p>
@@ -114,75 +197,68 @@ export default function CategoriesPage() {
               {records.length > 0 ? (
                 <div className="space-y-3">
                   {records.map((record) => {
-                    const linkedDocument = getDocumentForRecord(record, documents);
-                    const isDocument = Boolean(linkedDocument);
+                    const action = resolveCategoryRecordAction(record);
+                    const RecordIcon = getRecordIcon(record);
+                    const ActionIcon = getRecordActionIcon(record);
+                    const isClickable = Boolean(action);
 
-                    if (isDocument && linkedDocument) {
-                      return (
-                        <div
-                          key={record.id}
-                          className="rounded-xl border border-border transition-colors hover:border-lifemed-300 hover:bg-surface-elevated"
-                        >
-                          <div className="flex items-start gap-3 p-4">
-                            <button
-                              type="button"
-                              onClick={() => openDocumentRecord(record)}
-                              className="relative z-10 flex min-w-0 flex-1 items-start gap-3 text-left"
-                            >
-                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-lifemed-50 text-lifemed-600 dark:bg-lifemed-950/50">
-                                <FileText className="h-5 w-5" />
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <h4 className="font-medium text-foreground">{record.title}</h4>
-                                <p className="mt-1 text-sm text-muted">{record.summary}</p>
-                                {record.details && (
-                                  <p className="mt-2 text-xs leading-relaxed text-muted">{record.details}</p>
-                                )}
-                              </div>
-                            </button>
-                            <div className="flex shrink-0 flex-col items-end gap-2">
-                              <time className="text-xs text-lifemed-600 dark:text-lifemed-400">
-                                {formatDate(record.date, locale)}
-                              </time>
+                    return (
+                      <div
+                        key={record.id}
+                        className="rounded-xl border border-border transition-colors hover:border-lifemed-300 hover:bg-surface-elevated"
+                      >
+                        <div className="flex items-start gap-3 p-4">
+                          <button
+                            type="button"
+                            disabled={!isClickable}
+                            onClick={() => handleRecordClick(record)}
+                            className="relative z-10 flex min-w-0 flex-1 items-start gap-3 text-left disabled:cursor-default disabled:opacity-70"
+                            aria-label={getRecordAriaLabel(record)}
+                          >
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-lifemed-50 text-lifemed-600 dark:bg-lifemed-950/50">
+                              <RecordIcon className="h-5 w-5" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <h4 className="font-medium text-foreground">{record.title}</h4>
+                              <p className="mt-1 text-sm text-muted">{record.summary}</p>
+                              {record.details && (
+                                <p className="mt-2 text-xs leading-relaxed text-muted">{record.details}</p>
+                              )}
+                            </div>
+                          </button>
+                          <div className="flex shrink-0 flex-col items-end gap-2">
+                            <time className="text-xs text-lifemed-600 dark:text-lifemed-400">
+                              {formatDate(record.date, locale)}
+                            </time>
+                            {isClickable ? (
                               <Button
                                 type="button"
                                 variant="ghost"
                                 size="icon"
                                 className="relative z-10 h-8 w-8"
-                                aria-label={t("documents.view")}
-                                onClick={() => openDocumentRecord(record)}
+                                aria-label={getRecordAriaLabel(record)}
+                                onClick={() => handleRecordClick(record)}
                               >
-                                <Eye className="h-4 w-4" />
+                                <ActionIcon className="h-4 w-4" />
                               </Button>
-                            </div>
+                            ) : null}
                           </div>
-                        </div>
-                      );
-                    }
-
-                    return (
-                      <div
-                        key={record.id}
-                        className="rounded-xl border border-border p-4 transition-colors hover:bg-surface-elevated"
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <h4 className="font-medium text-foreground">{record.title}</h4>
-                            <p className="mt-1 text-sm text-muted">{record.summary}</p>
-                            {record.details && (
-                              <p className="mt-2 text-xs leading-relaxed text-muted">{record.details}</p>
-                            )}
-                          </div>
-                          <time className="shrink-0 text-xs text-lifemed-600 dark:text-lifemed-400">
-                            {formatDate(record.date, locale)}
-                          </time>
                         </div>
                       </div>
                     );
                   })}
                 </div>
               ) : (
-                <p className="text-sm text-muted py-2">{t("categories.emptyCategory")}</p>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  className="relative z-10"
+                  onClick={() => router.push(getCategoryAddHref(category.id))}
+                >
+                  <Plus className="h-4 w-4" />
+                  {t("categories.emptyCategory")}
+                </Button>
               )}
             </ExpandableCard>
           );

@@ -6,6 +6,7 @@ import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 
 interface ExpandableCardProps {
+  id?: string;
   title: string;
   subtitle?: string;
   icon?: React.ReactNode;
@@ -16,6 +17,7 @@ interface ExpandableCardProps {
 }
 
 export function ExpandableCard({
+  id,
   title,
   subtitle,
   icon,
@@ -28,6 +30,7 @@ export function ExpandableCard({
 
   return (
     <div
+      id={id}
       className={cn(
         "rounded-2xl border border-border bg-surface overflow-hidden transition-shadow duration-300",
         isOpen && "shadow-md shadow-lifemed-500/5",
