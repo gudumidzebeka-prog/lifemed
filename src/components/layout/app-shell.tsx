@@ -243,7 +243,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </header>
 
           <header className="sticky top-0 z-40 hidden items-center justify-between border-b border-border bg-surface/80 px-8 py-3 backdrop-blur-xl safe-top lg:flex">
-            <DesktopDateTime className="ml-[calc(1.5rem+2cm)]" />
+            <DesktopDateTime className="ml-6" />
             <HeaderActions />
           </header>
 

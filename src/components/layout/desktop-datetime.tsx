@@ -3,14 +3,12 @@
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
-function formatDesktopDateTime(date: Date) {
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
-  const year = date.getFullYear();
-  const hours = date.getHours();
-  const minutes = String(date.getMinutes()).padStart(2, "0");
+function formatDesktopDate(date: Date) {
+  return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
+}
 
-  return `${month}/${day}/${year} ${hours}:${minutes}`;
+function formatDesktopTime(date: Date) {
+  return `${date.getHours()}:${String(date.getMinutes()).padStart(2, "0")}`;
 }
 
 export function DesktopDateTime({ className }: { className?: string }) {
@@ -31,9 +29,13 @@ export function DesktopDateTime({ className }: { className?: string }) {
   return (
     <time
       dateTime={now.toISOString()}
-      className={cn("text-base font-semibold tabular-nums text-foreground", className)}
+      className={cn(
+        "inline-flex items-baseline text-base font-semibold tabular-nums text-foreground",
+        className
+      )}
     >
-      {formatDesktopDateTime(now)}
+      <span>{formatDesktopDate(now)}</span>
+      <span className="ml-[2cm]">{formatDesktopTime(now)}</span>
     </time>
   );
 }
