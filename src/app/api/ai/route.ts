@@ -32,33 +32,27 @@ function parseHistory(value: unknown): ChatTurn[] {
     .slice(-16);
 }
 
-function demoFallback(message: string, locale: Locale) {
-  return buildAIHealthContext().then((ctx) => {
-    const medicalDisclaimer = translations[locale].disclaimers.medical;
-    return NextResponse.json({
-      response: `${buildSmartDemoResponse(message, ctx, locale)}\n\n—\n${medicalDisclaimer}`,
-      source: "demo",
-      dataSource: ctx.source,
-      aiConfigured: isAIConfigured(),
-    });
-  });
-}
-
 export async function POST(request: NextRequest) {
-  let locale: Locale = "ka";
+  const locale: Locale = "ka";
   let message = "";
 
   try {
-    const body = await request.json();
+    let body: Record<string, unknown>;
+    try {
+      body = (await request.json()) as Record<string, unknown>;
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    }
+
     message = typeof body.message === "string" ? body.message.trim() : "";
-    locale = parseLocale(body.locale);
+    const parsedLocale = parseLocale(body.locale);
     const history = parseHistory(body.history);
 
     if (!message) {
       return NextResponse.json({ error: "Message is required" }, { status: 400 });
     }
 
-    const medicalDisclaimer = translations[locale].disclaimers.medical;
+    const medicalDisclaimer = translations[parsedLocale].disclaimers.medical;
     const ctx = await buildAIHealthContext();
     const contextPayload = formatContextForPrompt(ctx);
     const patientContext = JSON.stringify(contextPayload, null, 2);
@@ -66,38 +60,42 @@ export async function POST(request: NextRequest) {
     if (isAIConfigured()) {
       try {
         const ai = await generateAIResponse({
-          locale,
+          locale: parsedLocale,
           message,
           history,
           patientContext,
           medicalDisclaimer,
         });
 
-        if (ai?.text) {
-          return NextResponse.json({
-            response: ai.text,
-            source: ai.provider,
-            dataSource: ctx.source,
-          });
-        }
+        return NextResponse.json({
+          response: ai.text,
+          source: ai.provider,
+          dataSource: ctx.source,
+        });
       } catch (err) {
         console.error("AI provider error:", err);
-        return demoFallback(message, locale);
+        return NextResponse.json(
+          {
+            error: translations[parsedLocale].ai.errorConnection,
+            source: "error",
+          },
+          { status: 503 }
+        );
       }
     }
 
     return NextResponse.json({
-      response: `${buildSmartDemoResponse(message, ctx, locale)}\n\n—\n${medicalDisclaimer}`,
+      response: `${buildSmartDemoResponse(message, ctx, parsedLocale)}\n\n—\n${medicalDisclaimer}`,
       source: "demo",
       dataSource: ctx.source,
       aiConfigured: false,
-      hint: translations[locale].ai.setupHint,
+      hint: translations[parsedLocale].ai.setupHint,
     });
   } catch (err) {
     console.error("AI route error:", err);
-    if (message) {
-      return demoFallback(message, locale);
-    }
-    return NextResponse.json({ error: translations[locale].ai.errorConnection }, { status: 500 });
+    return NextResponse.json(
+      { error: translations[locale].ai.errorConnection, source: "error" },
+      { status: 500 }
+    );
   }
 }

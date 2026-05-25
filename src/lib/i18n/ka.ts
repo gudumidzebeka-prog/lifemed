@@ -334,6 +334,8 @@ export const ka: TranslationTree = {
     brand: "LifeMed AI",
     inputPlaceholder: "ჰკითხე ჯანმრთელობის ჩანაწერებზე...",
     errorConnection: "კავშირი ვერ დამყარდა. სცადე ცოტა ხანში.",
+    aiUnavailable:
+      "AI ახლა მიუწვდომელია. შეამოწმე Vercel-ში GEMINI_API_KEY (aistudio.google.com/apikey) და Redeploy გააკეთე.",
     thinking: "პასუხს ვამზადებ...",
     newChat: "ახალი საუბარი",
     noDataYet:

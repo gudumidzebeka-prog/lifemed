@@ -316,6 +316,7 @@ export type TranslationTree = {
     brand: string;
     inputPlaceholder: string;
     errorConnection: string;
+    aiUnavailable: string;
     thinking: string;
     newChat: string;
     noDataYet: string;

@@ -17,38 +17,20 @@ const LOCALE_LANGUAGE: Record<Locale, string> = {
   en: "English",
 };
 
-function cleanEnvKey(value: string | undefined) {
-  if (!value) return "";
-  return value.trim().replace(/^['"]|['"]$/g, "");
-}
-
 const GEMINI_MODELS = [
-  "gemini-2.0-flash-lite",
   "gemini-2.0-flash",
   "gemini-1.5-flash",
+  "gemini-1.5-flash-8b",
 ];
 
-export function resolveAIProvider(): { provider: AIProviderName; model: string } | null {
-  const gemini = getGeminiApiKey();
-  if (gemini) {
-    const preferred = process.env.GEMINI_MODEL?.trim();
-    return {
-      provider: "gemini",
-      model: preferred || GEMINI_MODELS[0],
-    };
-  }
+const GROQ_MODELS = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"];
 
-  const groq = getGroqApiKey();
-  if (groq) {
-    return { provider: "groq", model: process.env.GROQ_MODEL?.trim() || "llama-3.3-70b-versatile" };
+function normalizeHistory(history: ChatTurn[]) {
+  const trimmed = history.slice(-16).filter((turn) => turn.content.trim());
+  if (trimmed.length && trimmed[0].role === "assistant") {
+    return trimmed.slice(1);
   }
-
-  const openai = getOpenAIApiKey();
-  if (openai) {
-    return { provider: "openai", model: process.env.OPENAI_MODEL?.trim() || "gpt-4o-mini" };
-  }
-
-  return null;
+  return trimmed;
 }
 
 function buildSystemPrompt(locale: Locale, patientContext: string, medicalDisclaimer: string) {
@@ -103,17 +85,22 @@ async function callGemini(params: {
     }
   );
 
+  const raw = await res.text();
   if (!res.ok) {
-    const errText = await res.text();
-    throw new Error(`Gemini error ${res.status}: ${errText.slice(0, 200)}`);
+    throw new Error(`Gemini ${params.model} HTTP ${res.status}: ${raw.slice(0, 300)}`);
   }
 
-  const data = (await res.json()) as {
+  const data = JSON.parse(raw) as {
     candidates?: { content?: { parts?: { text?: string }[] } }[];
+    promptFeedback?: { blockReason?: string };
   };
 
+  if (data.promptFeedback?.blockReason) {
+    throw new Error(`Gemini blocked: ${data.promptFeedback.blockReason}`);
+  }
+
   const text = data.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("").trim();
-  if (!text) throw new Error("Gemini returned an empty response");
+  if (!text) throw new Error(`Gemini ${params.model} returned empty text`);
   return text;
 }
 
@@ -142,17 +129,17 @@ async function callGroq(params: {
     }),
   });
 
+  const raw = await res.text();
   if (!res.ok) {
-    const errText = await res.text();
-    throw new Error(`Groq error ${res.status}: ${errText.slice(0, 200)}`);
+    throw new Error(`Groq ${params.model} HTTP ${res.status}: ${raw.slice(0, 300)}`);
   }
 
-  const data = (await res.json()) as {
+  const data = JSON.parse(raw) as {
     choices?: { message?: { content?: string } }[];
   };
 
   const text = data.choices?.[0]?.message?.content?.trim();
-  if (!text) throw new Error("Groq returned an empty response");
+  if (!text) throw new Error(`Groq ${params.model} returned empty text`);
   return text;
 }
 
@@ -181,18 +168,36 @@ async function callOpenAI(params: {
     }),
   });
 
+  const raw = await res.text();
   if (!res.ok) {
-    const errText = await res.text();
-    throw new Error(`OpenAI error ${res.status}: ${errText.slice(0, 200)}`);
+    throw new Error(`OpenAI HTTP ${res.status}: ${raw.slice(0, 300)}`);
   }
 
-  const data = (await res.json()) as {
+  const data = JSON.parse(raw) as {
     choices?: { message?: { content?: string } }[];
   };
 
   const text = data.choices?.[0]?.message?.content?.trim();
-  if (!text) throw new Error("OpenAI returned an empty response");
+  if (!text) throw new Error("OpenAI returned empty text");
   return text;
+}
+
+export async function testGeminiConnection() {
+  const apiKey = getGeminiApiKey();
+  if (!apiKey) return { ok: false as const, error: "GEMINI_API_KEY missing" };
+
+  try {
+    const text = await callGemini({
+      apiKey,
+      model: GEMINI_MODELS[0],
+      systemPrompt: "Reply with exactly: OK",
+      history: [],
+      message: "ping",
+    });
+    return { ok: true as const, model: GEMINI_MODELS[0], sample: text.slice(0, 40) };
+  } catch (error) {
+    return { ok: false as const, error: error instanceof Error ? error.message : String(error) };
+  }
 }
 
 export async function generateAIResponse(params: {
@@ -201,25 +206,19 @@ export async function generateAIResponse(params: {
   history?: ChatTurn[];
   patientContext: string;
   medicalDisclaimer: string;
-}): Promise<{ text: string; provider: AIProviderName } | null> {
-  const resolved = resolveAIProvider();
-  if (!resolved) return null;
-
-  const history = (params.history ?? []).slice(-16);
+}): Promise<{ text: string; provider: AIProviderName }> {
+  const history = normalizeHistory(params.history ?? []);
   const systemPrompt = buildSystemPrompt(params.locale, params.patientContext, params.medicalDisclaimer);
+  const errors: string[] = [];
+
+  const preferredGemini = process.env.GEMINI_MODEL?.trim();
+  const geminiModels = preferredGemini
+    ? [preferredGemini, ...GEMINI_MODELS.filter((model) => model !== preferredGemini)]
+    : GEMINI_MODELS;
 
   const geminiKey = getGeminiApiKey();
-  const groqKey = getGroqApiKey();
-  const openaiKey = getOpenAIApiKey();
-
-  if (resolved.provider === "gemini" && geminiKey) {
-    const models = [
-      resolved.model,
-      ...GEMINI_MODELS.filter((model) => model !== resolved.model),
-    ];
-    let lastError: unknown;
-
-    for (const model of models) {
+  if (geminiKey) {
+    for (const model of geminiModels) {
       try {
         const text = await callGemini({
           apiKey: geminiKey,
@@ -230,45 +229,55 @@ export async function generateAIResponse(params: {
         });
         return { text, provider: "gemini" };
       } catch (error) {
-        lastError = error;
-        console.error(`Gemini model ${model} failed:`, error);
+        const msg = error instanceof Error ? error.message : String(error);
+        errors.push(msg);
+        console.error(`Gemini failed (${model}):`, msg);
       }
     }
-
-    throw lastError ?? new Error("All Gemini models failed");
   }
 
-  if (resolved.provider === "groq" && groqKey) {
-    const text = await callGroq({
-      apiKey: groqKey,
-      model: resolved.model,
-      systemPrompt,
-      history,
-      message: params.message,
-    });
-    return { text, provider: "groq" };
+  const groqKey = getGroqApiKey();
+  if (groqKey) {
+    const preferredGroq = process.env.GROQ_MODEL?.trim();
+    const groqModels = preferredGroq
+      ? [preferredGroq, ...GROQ_MODELS.filter((model) => model !== preferredGroq)]
+      : GROQ_MODELS;
+
+    for (const model of groqModels) {
+      try {
+        const text = await callGroq({
+          apiKey: groqKey,
+          model,
+          systemPrompt,
+          history,
+          message: params.message,
+        });
+        return { text, provider: "groq" };
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : String(error);
+        errors.push(msg);
+        console.error(`Groq failed (${model}):`, msg);
+      }
+    }
   }
 
-  if (resolved.provider === "openai" && openaiKey) {
-    const text = await callOpenAI({
-      apiKey: openaiKey,
-      model: resolved.model,
-      systemPrompt,
-      history,
-      message: params.message,
-    });
-    return { text, provider: "openai" };
+  const openaiKey = getOpenAIApiKey();
+  if (openaiKey) {
+    try {
+      const text = await callOpenAI({
+        apiKey: openaiKey,
+        model: process.env.OPENAI_MODEL?.trim() || "gpt-4o-mini",
+        systemPrompt,
+        history,
+        message: params.message,
+      });
+      return { text, provider: "openai" };
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      errors.push(msg);
+      console.error("OpenAI failed:", msg);
+    }
   }
 
-  return null;
-}
-
-export function isPlaceholderKey(value: string) {
-  const normalized = cleanEnvKey(value).toLowerCase();
-  return (
-    !normalized ||
-    normalized.includes("your-") ||
-    normalized.includes("paste_") ||
-    normalized.includes("example")
-  );
+  throw new Error(errors.join(" | ") || "No AI provider configured");
 }

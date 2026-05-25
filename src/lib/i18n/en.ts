@@ -333,6 +333,8 @@ export const en: TranslationTree = {
     brand: "LifeMed AI",
     inputPlaceholder: "Ask about your health records...",
     errorConnection: "I'm having trouble connecting right now. Please try again in a moment.",
+    aiUnavailable:
+      "AI is unavailable right now. Check GEMINI_API_KEY in Vercel (aistudio.google.com/apikey) and redeploy.",
     thinking: "Preparing your answer...",
     newChat: "New chat",
     noDataYet:

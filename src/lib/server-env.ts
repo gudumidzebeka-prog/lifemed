@@ -2,7 +2,7 @@ export type AIProviderName = "gemini" | "groq" | "openai";
 
 function cleanEnv(value: string | undefined) {
   if (!value) return "";
-  return value.trim().replace(/^['"]|['"]$/g, "");
+  return value.trim().replace(/^['"]|['"]$/g, "").replace(/\s+/g, "");
 }
 
 function isValidKey(value: string | undefined, placeholders: string[]) {

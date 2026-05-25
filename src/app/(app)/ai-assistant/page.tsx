@@ -67,7 +67,9 @@ export default function AIAssistantPage() {
   useEffect(() => {
     fetch("/api/setup/status", { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : null))
-      .then((data: { ai?: boolean } | null) => setAiLive(Boolean(data?.ai)))
+      .then((data: { ai?: boolean; aiLive?: boolean } | null) =>
+        setAiLive(Boolean(data?.aiLive ?? data?.ai))
+      )
       .catch(() => setAiLive(false));
   }, []);
 
@@ -138,7 +140,7 @@ export default function AIAssistantPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error ?? "Request failed");
+        throw new Error(data.error ?? t("ai.aiUnavailable"));
       }
 
       if (data.source === "demo") {
@@ -156,13 +158,14 @@ export default function AIAssistantPage() {
           timestamp: new Date(),
         },
       ]);
-    } catch {
+    } catch (err) {
+      const errorText = err instanceof Error ? err.message : t("ai.errorConnection");
       setMessages((prev) => [
         ...prev,
         {
           id: (Date.now() + 1).toString(),
           role: "assistant",
-          content: t("ai.errorConnection"),
+          content: errorText,
           timestamp: new Date(),
         },
       ]);
