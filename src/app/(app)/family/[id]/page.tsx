@@ -11,6 +11,7 @@ import { useTranslation } from "@/components/providers/locale-provider";
 import { useHealthDataContext } from "@/components/providers/health-data-provider";
 import { useRelationshipLabel } from "@/lib/i18n/hooks";
 import { formatDate } from "@/lib/utils";
+import { calculateAge, isMinor } from "@/lib/health/profile-dates";
 import { ArrowLeft, Syringe, Pencil } from "lucide-react";
 
 export default function FamilyMemberPage() {
@@ -38,10 +39,8 @@ export default function FamilyMemberPage() {
     );
   }
 
-  const age = member.dateOfBirth
-    ? new Date().getFullYear() - new Date(member.dateOfBirth).getFullYear()
-    : null;
-  const isChild = age !== null && age < 18;
+  const age = calculateAge(member.dateOfBirth);
+  const isChild = isMinor(member.dateOfBirth);
 
   return (
     <div className="space-y-8">

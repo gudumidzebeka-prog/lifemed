@@ -10,8 +10,9 @@ import { useTranslation } from "@/components/providers/locale-provider";
 import { useRelationshipLabel } from "@/lib/i18n/hooks";
 import { useHealthDataContext } from "@/components/providers/health-data-provider";
 import { formatDate } from "@/lib/utils";
+import { isMinor } from "@/lib/health/profile-dates";
 import type { FamilyMember } from "@/types/health";
-import { Plus, Users, ChevronRight, Pencil } from "lucide-react";
+import { Plus, ChevronRight, Pencil } from "lucide-react";
 import Link from "next/link";
 
 export default function FamilyPage() {
@@ -51,27 +52,12 @@ export default function FamilyPage() {
 
       <AddFamilyMemberModal open={showMemberModal} onClose={closeMemberModal} member={editMember} />
 
-      <Card className="gradient-soft border-lifemed-200 dark:border-lifemed-800">
-        <CardContent className="flex items-start gap-4 p-6">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-lifemed-100 text-lifemed-600 dark:bg-lifemed-900/40">
-            <Users className="h-6 w-6" />
-          </div>
-          <div>
-            <h3 className="font-semibold text-foreground">{t("family.infoTitle")}</h3>
-            <p className="text-sm text-muted mt-1 leading-relaxed">{t("family.infoDesc")}</p>
-          </div>
-        </CardContent>
-      </Card>
-
       {loading ? (
         <p className="text-center text-muted py-8">{t("common.loading")}</p>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
           {familyMembers.map((member) => {
-            const age = member.dateOfBirth
-              ? new Date().getFullYear() - new Date(member.dateOfBirth).getFullYear()
-              : null;
-            const isChild = age !== null && age < 18;
+            const isChild = isMinor(member.dateOfBirth);
 
             return (
               <Card key={member.id} className="card-hover h-full">
