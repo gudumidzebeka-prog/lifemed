@@ -35,9 +35,9 @@ NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
-# AI — free (recommended: Gemini from https://aistudio.google.com/apikey)
-GEMINI_API_KEY=your-gemini-api-key
-# GROQ_API_KEY=your-groq-api-key
+# AI — Groq recommended (free: console.groq.com)
+GROQ_API_KEY=your-groq-api-key
+# GEMINI_API_KEY=your-gemini-api-key
 # OPENAI_API_KEY=your-openai-api-key
 
 # App URL

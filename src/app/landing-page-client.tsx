@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Disclaimer } from "@/components/ui/badge";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
@@ -66,12 +65,10 @@ export function LandingPageClient({ demoEnabled }: { demoEnabled: boolean }) {
             </div>
             <div className="flex flex-wrap items-center justify-end gap-3">
               <LanguageSwitcher />
-              <Link href="/login">
-                <Button variant="ghost">{t("landing.signIn")}</Button>
-              </Link>
-              <Link href="/signup">
-                <Button>{t("landing.getStarted")}</Button>
-              </Link>
+              <Button variant="ghost" href="/login">
+                {t("landing.signIn")}
+              </Button>
+              <Button href="/signup">{t("landing.getStarted")}</Button>
             </div>
           </nav>
         </div>
@@ -92,24 +89,18 @@ export function LandingPageClient({ demoEnabled }: { demoEnabled: boolean }) {
               {t("landing.subtitle")}
             </p>
             <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-              <Link href="/signup">
-                <Button size="lg" className="min-w-[200px]">
-                  {t("landing.ctaPrimary")}
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
+              <Button size="lg" className="min-w-[200px]" href="/signup">
+                {t("landing.ctaPrimary")}
+                <ArrowRight className="h-4 w-4" />
+              </Button>
               {demoEnabled && (
                 <>
-                  <Link href="/dashboard">
-                    <Button variant="secondary" size="lg" className="min-w-[200px]">
-                      {t("landing.ctaDemo")}
-                    </Button>
-                  </Link>
-                  <Link href="/setup">
-                    <Button variant="ghost" size="lg">
-                      {t("landing.ctaSetup")}
-                    </Button>
-                  </Link>
+                  <Button variant="secondary" size="lg" className="min-w-[200px]" href="/dashboard">
+                    {t("landing.ctaDemo")}
+                  </Button>
+                  <Button variant="ghost" size="lg" href="/setup">
+                    {t("landing.ctaSetup")}
+                  </Button>
                 </>
               )}
             </div>

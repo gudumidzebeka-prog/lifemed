@@ -162,6 +162,8 @@ export const ru: TranslationTree = {
     summaryEmpty: "Записей пока нет. Добавьте события или документы.",
     summaryNoConditions: "не указано",
     summaryRoutine: "рутинный уход",
+    addDocument: "Загрузить документ",
+    addTimelineEvent: "Добавить запись",
   },
   timeline: {
     title: "Медицинская хронология",
@@ -334,14 +336,16 @@ export const ru: TranslationTree = {
     inputPlaceholder: "Спросите о медицинских записях...",
     errorConnection: "Не удалось подключиться. Попробуйте позже.",
     aiUnavailable:
-      "AI сейчас недоступен. Проверьте GEMINI_API_KEY в Vercel (aistudio.google.com/apikey) и redeploy.",
+      "AI сейчас недоступен. Проверьте API-ключ в Vercel и выполните redeploy.",
+    quotaExceeded:
+      "Бесплатная квота Gemini исчерпана — это не ошибка соединения.\n\n✅ Быстрое решение: console.groq.com → бесплатный API key → GROQ_API_KEY в Vercel → Redeploy.\n\nИли создайте новый ключ Gemini: aistudio.google.com/apikey",
     thinking: "Готовлю ответ...",
     newChat: "Новый чат",
     noDataYet:
       "У вас пока нет записей о здоровье. Добавьте профиль, анализы или лекарства и спросите снова.",
     you: "вы",
     setupHint:
-      "Для настоящего AI добавьте бесплатный GEMINI_API_KEY в Vercel (aistudio.google.com → Get API key).",
+      "Для настоящего AI добавьте бесплатный GROQ_API_KEY в Vercel (console.groq.com) или GEMINI_API_KEY (aistudio.google.com).",
     demoModeNote: "Ключ AI не настроен — показываются шаблонные ответы. Добавьте Gemini для чата как в ChatGPT.",
     promptSummarize: "Суммировать мою историю",
     promptLabs: "Объяснить анализы",

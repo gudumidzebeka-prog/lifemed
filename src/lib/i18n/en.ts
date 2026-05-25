@@ -162,6 +162,8 @@ export const en: TranslationTree = {
     summaryEmpty: "No records yet. Add timeline events or documents.",
     summaryNoConditions: "no chronic conditions on file",
     summaryRoutine: "routine care",
+    addDocument: "Upload document",
+    addTimelineEvent: "Add timeline event",
   },
   timeline: {
     title: "Medical Timeline",
@@ -334,14 +336,16 @@ export const en: TranslationTree = {
     inputPlaceholder: "Ask about your health records...",
     errorConnection: "I'm having trouble connecting right now. Please try again in a moment.",
     aiUnavailable:
-      "AI is unavailable right now. Check GEMINI_API_KEY in Vercel (aistudio.google.com/apikey) and redeploy.",
+      "AI is unavailable right now. Check your AI API key in Vercel and redeploy.",
+    quotaExceeded:
+      "Gemini free quota is exhausted — this is not a connection error.\n\n✅ Quick fix: console.groq.com → free API key → add GROQ_API_KEY in Vercel → Redeploy.\n\nOr create a new Gemini key at aistudio.google.com/apikey",
     thinking: "Preparing your answer...",
     newChat: "New chat",
     noDataYet:
       "You don't have health records yet. Add your profile, labs, or medications, then ask again.",
     you: "you",
     setupHint:
-      "For real AI replies, add a free GEMINI_API_KEY in Vercel (aistudio.google.com → Get API key).",
+      "For real AI replies, add a free GROQ_API_KEY in Vercel (console.groq.com) or GEMINI_API_KEY (aistudio.google.com).",
     demoModeNote: "No AI key configured — showing sample replies. Add a Gemini key for ChatGPT-like chat.",
     promptSummarize: "Summarize my history",
     promptLabs: "Explain lab results",

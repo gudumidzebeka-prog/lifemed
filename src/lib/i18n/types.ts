@@ -166,6 +166,8 @@ export type TranslationTree = {
     summaryEmpty: string;
     summaryNoConditions: string;
     summaryRoutine: string;
+    addDocument: string;
+    addTimelineEvent: string;
   };
   timeline: {
     title: string;
@@ -317,6 +319,7 @@ export type TranslationTree = {
     inputPlaceholder: string;
     errorConnection: string;
     aiUnavailable: string;
+    quotaExceeded: string;
     thinking: string;
     newChat: string;
     noDataYet: string;

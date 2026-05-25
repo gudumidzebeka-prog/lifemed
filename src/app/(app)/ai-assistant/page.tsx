@@ -139,6 +139,29 @@ export default function AIAssistantPage() {
 
       const data = await res.json();
 
+      if (typeof data.response === "string" && data.response.trim()) {
+        if (data.source === "error") {
+          setAiLive(false);
+        } else if (
+          data.source === "gemini" ||
+          data.source === "groq" ||
+          data.source === "openai"
+        ) {
+          setAiLive(true);
+        }
+
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: (Date.now() + 1).toString(),
+            role: "assistant",
+            content: data.response,
+            timestamp: new Date(),
+          },
+        ]);
+        return;
+      }
+
       if (!res.ok) {
         throw new Error(data.error ?? t("ai.aiUnavailable"));
       }

@@ -81,20 +81,16 @@ function SidebarFooter() {
 
   return (
     <div className="border-t border-border p-4 space-y-3">
-      <Link href="/emergency" className="block no-underline">
-        <Button variant="danger" className="w-full emergency-pulse" size="sm">
-          <ShieldAlert className="h-4 w-4" />
-          {t("nav.emergency")}
-        </Button>
-      </Link>
+      <Button href="/emergency" variant="danger" className="w-full emergency-pulse" size="sm">
+        <ShieldAlert className="h-4 w-4" />
+        {t("nav.emergency")}
+      </Button>
       <div className="flex items-center justify-between gap-2">
         <LanguageSwitcher size="sm" />
         <ThemeToggle />
-        <Link href="/settings" className="no-underline">
-          <Button variant="ghost" size="sm" className="text-muted">
-            {t("nav.settings")}
-          </Button>
-        </Link>
+        <Button href="/settings" variant="ghost" size="sm" className="text-muted">
+          {t("nav.settings")}
+        </Button>
       </div>
     </div>
   );
@@ -160,11 +156,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
             <div className="flex items-center gap-1">
               <LanguageSwitcher size="sm" />
-              <Link href="/emergency" className="no-underline">
-                <Button variant="ghost" size="icon" className="text-rose-500" aria-label={t("nav.emergency")}>
-                  <ShieldAlert className="h-5 w-5" />
-                </Button>
-              </Link>
+              <Button
+                href="/emergency"
+                variant="ghost"
+                size="icon"
+                className="text-rose-500"
+                aria-label={t("nav.emergency")}
+              >
+                <ShieldAlert className="h-5 w-5" />
+              </Button>
               <ThemeToggle />
               <Button variant="ghost" size="icon" onClick={() => setMobileOpen(true)}>
                 <Menu className="h-5 w-5" />

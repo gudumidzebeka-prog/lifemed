@@ -163,6 +163,8 @@ export const ka: TranslationTree = {
     summaryEmpty: "ჩანაწერები ჯერ არ არის. დაამატე ჩანაწერი ქრონოლოგიაში ან დოკუმენტი.",
     summaryNoConditions: "არ არის მითითებული",
     summaryRoutine: "რუტინული მოვლა",
+    addDocument: "დოკუმენტის ატვირთვა",
+    addTimelineEvent: "ჩანაწერის დამატება",
   },
   timeline: {
     title: "სამედიცინო ქრონოლოგია",
@@ -335,14 +337,16 @@ export const ka: TranslationTree = {
     inputPlaceholder: "ჰკითხე ჯანმრთელობის ჩანაწერებზე...",
     errorConnection: "კავშირი ვერ დამყარდა. სცადე ცოტა ხანში.",
     aiUnavailable:
-      "AI ახლა მიუწვდომელია. შეამოწმე Vercel-ში GEMINI_API_KEY (aistudio.google.com/apikey) და Redeploy გააკეთე.",
+      "AI ახლა მიუწვდომელია. შეამოწმე Vercel-ში AI გასაღები და Redeploy გააკეთე.",
+    quotaExceeded:
+      "Gemini AI-ის უფასო ლიმიტი ამოწურულია — ეს კავშირის შეცდომა არაა.\n\n✅ სწრაფი გამოსავალი: console.groq.com → უფასო API key → Vercel-ში GROQ_API_KEY → Redeploy.\n\nან შექმენი ახალი Gemini key: aistudio.google.com/apikey",
     thinking: "პასუხს ვამზადებ...",
     newChat: "ახალი საუბარი",
     noDataYet:
       "ჯერ არ გაქვს შევსებული ჯანმრთელობის ჩანაწერები. დაამატე პროფილი, ანალიზები ან მედიკამენტები — შემდეგ ისევ ჰკითხე.",
     you: "შენ",
     setupHint:
-      "ნამდვილი AI-სთვის დაამატე უფასო GEMINI_API_KEY Vercel-ში (aistudio.google.com → Get API key).",
+      "ნამდვილი AI-სთვის დაამატე უფასო GROQ_API_KEY Vercel-ში (console.groq.com) ან GEMINI_API_KEY (aistudio.google.com).",
     demoModeNote: "AI გასაღები არ არის — ჩვენებითი პასუხები. დაამატე Gemini key ნამდვილი ჩატისთვის.",
     promptSummarize: "შეჯამე ჩემი ისტორია",
     promptLabs: "აგიხსნა ანალიზები",

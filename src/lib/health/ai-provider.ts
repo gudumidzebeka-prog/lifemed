@@ -18,12 +18,67 @@ const LOCALE_LANGUAGE: Record<Locale, string> = {
 };
 
 const GEMINI_MODELS = [
+  "gemini-2.0-flash-lite",
   "gemini-2.0-flash",
-  "gemini-1.5-flash",
   "gemini-1.5-flash-8b",
+  "gemini-1.5-flash",
 ];
 
 const GROQ_MODELS = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"];
+
+export type AIErrorKind = "quota" | "auth" | "network" | "unknown";
+
+export class AIProviderError extends Error {
+  kind: AIErrorKind;
+  providerErrors: string[];
+
+  constructor(kind: AIErrorKind, providerErrors: string[]) {
+    super(providerErrors.join(" | ") || "No AI provider configured");
+    this.name = "AIProviderError";
+    this.kind = kind;
+    this.providerErrors = providerErrors;
+  }
+}
+
+function classifyAIErrorMessage(message: string): AIErrorKind {
+  const lower = message.toLowerCase();
+  if (
+    lower.includes("429") ||
+    lower.includes("quota") ||
+    lower.includes("exceeded") ||
+    lower.includes("rate limit") ||
+    lower.includes("resource exhausted")
+  ) {
+    return "quota";
+  }
+  if (
+    lower.includes("401") ||
+    lower.includes("403") ||
+    lower.includes("invalid api key") ||
+    lower.includes("api key not valid") ||
+    lower.includes("permission denied")
+  ) {
+    return "auth";
+  }
+  if (
+    lower.includes("fetch failed") ||
+    lower.includes("network") ||
+    lower.includes("timeout") ||
+    lower.includes("econnrefused") ||
+    lower.includes("enotfound")
+  ) {
+    return "network";
+  }
+  return "unknown";
+}
+
+function classifyAIErrors(errors: string[]): AIErrorKind {
+  const kinds = errors.map(classifyAIErrorMessage);
+  if (kinds.includes("quota")) return "quota";
+  if (kinds.includes("auth")) return "auth";
+  if (kinds.includes("network")) return "network";
+  return "unknown";
+}
 
 function normalizeHistory(history: ChatTurn[]) {
   const trimmed = history.slice(-16).filter((turn) => turn.content.trim());
@@ -182,22 +237,112 @@ async function callOpenAI(params: {
   return text;
 }
 
-export async function testGeminiConnection() {
-  const apiKey = getGeminiApiKey();
-  if (!apiKey) return { ok: false as const, error: "GEMINI_API_KEY missing" };
-
+async function testProviderPing(params: {
+  provider: AIProviderName;
+  model: string;
+  call: () => Promise<string>;
+}) {
   try {
-    const text = await callGemini({
-      apiKey,
-      model: GEMINI_MODELS[0],
-      systemPrompt: "Reply with exactly: OK",
-      history: [],
-      message: "ping",
-    });
-    return { ok: true as const, model: GEMINI_MODELS[0], sample: text.slice(0, 40) };
+    const text = await params.call();
+    return {
+      ok: true as const,
+      provider: params.provider,
+      model: params.model,
+      sample: text.slice(0, 40),
+    };
   } catch (error) {
-    return { ok: false as const, error: error instanceof Error ? error.message : String(error) };
+    const message = error instanceof Error ? error.message : String(error);
+    return {
+      ok: false as const,
+      provider: params.provider,
+      model: params.model,
+      error: message,
+      kind: classifyAIErrorMessage(message),
+    };
   }
+}
+
+export async function testAIConnection() {
+  const failures: Array<{ provider: string; error: string }> = [];
+
+  const groqKey = getGroqApiKey();
+  if (groqKey) {
+    const result = await testProviderPing({
+      provider: "groq",
+      model: GROQ_MODELS[0],
+      call: () =>
+        callGroq({
+          apiKey: groqKey,
+          model: GROQ_MODELS[0],
+          systemPrompt: "Reply with exactly: OK",
+          history: [],
+          message: "ping",
+        }),
+    });
+    if (result.ok) return result;
+    if ("error" in result) failures.push({ provider: "Groq", error: result.error });
+  }
+
+  const geminiKey = getGeminiApiKey();
+  if (geminiKey) {
+    const result = await testProviderPing({
+      provider: "gemini",
+      model: GEMINI_MODELS[0],
+      call: () =>
+        callGemini({
+          apiKey: geminiKey,
+          model: GEMINI_MODELS[0],
+          systemPrompt: "Reply with exactly: OK",
+          history: [],
+          message: "ping",
+        }),
+    });
+    if (result.ok) return result;
+    if ("error" in result) failures.push({ provider: "Gemini", error: result.error });
+  }
+
+  const openaiKey = getOpenAIApiKey();
+  if (openaiKey) {
+    const model = process.env.OPENAI_MODEL?.trim() || "gpt-4o-mini";
+    const result = await testProviderPing({
+      provider: "openai",
+      model,
+      call: () =>
+        callOpenAI({
+          apiKey: openaiKey,
+          model,
+          systemPrompt: "Reply with exactly: OK",
+          history: [],
+          message: "ping",
+        }),
+    });
+    if (result.ok) return result;
+    if ("error" in result) failures.push({ provider: "OpenAI", error: result.error });
+  }
+
+  if (!groqKey && !geminiKey && !openaiKey) {
+    return { ok: false as const, error: "No AI provider configured", kind: "unknown" as const };
+  }
+
+  const errors = failures.map((item) => `${item.provider}: ${item.error}`);
+  return {
+    ok: false as const,
+    error: errors.join(" | ") || "All AI providers failed",
+    kind: classifyAIErrors(errors),
+  };
+}
+
+/** @deprecated Use testAIConnection */
+export async function testGeminiConnection() {
+  const result = await testAIConnection();
+  if (result.ok) {
+    return {
+      ok: true as const,
+      model: "model" in result ? result.model : GEMINI_MODELS[0],
+      sample: "sample" in result ? result.sample : "",
+    };
+  }
+  return { ok: false as const, error: "error" in result ? result.error : "AI unavailable" };
 }
 
 export async function generateAIResponse(params: {
@@ -210,31 +355,6 @@ export async function generateAIResponse(params: {
   const history = normalizeHistory(params.history ?? []);
   const systemPrompt = buildSystemPrompt(params.locale, params.patientContext, params.medicalDisclaimer);
   const errors: string[] = [];
-
-  const preferredGemini = process.env.GEMINI_MODEL?.trim();
-  const geminiModels = preferredGemini
-    ? [preferredGemini, ...GEMINI_MODELS.filter((model) => model !== preferredGemini)]
-    : GEMINI_MODELS;
-
-  const geminiKey = getGeminiApiKey();
-  if (geminiKey) {
-    for (const model of geminiModels) {
-      try {
-        const text = await callGemini({
-          apiKey: geminiKey,
-          model,
-          systemPrompt,
-          history,
-          message: params.message,
-        });
-        return { text, provider: "gemini" };
-      } catch (error) {
-        const msg = error instanceof Error ? error.message : String(error);
-        errors.push(msg);
-        console.error(`Gemini failed (${model}):`, msg);
-      }
-    }
-  }
 
   const groqKey = getGroqApiKey();
   if (groqKey) {
@@ -255,8 +375,33 @@ export async function generateAIResponse(params: {
         return { text, provider: "groq" };
       } catch (error) {
         const msg = error instanceof Error ? error.message : String(error);
-        errors.push(msg);
+        errors.push(`Groq ${model}: ${msg}`);
         console.error(`Groq failed (${model}):`, msg);
+      }
+    }
+  }
+
+  const preferredGemini = process.env.GEMINI_MODEL?.trim();
+  const geminiModels = preferredGemini
+    ? [preferredGemini, ...GEMINI_MODELS.filter((model) => model !== preferredGemini)]
+    : GEMINI_MODELS;
+
+  const geminiKey = getGeminiApiKey();
+  if (geminiKey) {
+    for (const model of geminiModels) {
+      try {
+        const text = await callGemini({
+          apiKey: geminiKey,
+          model,
+          systemPrompt,
+          history,
+          message: params.message,
+        });
+        return { text, provider: "gemini" };
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : String(error);
+        errors.push(`Gemini ${model}: ${msg}`);
+        console.error(`Gemini failed (${model}):`, msg);
       }
     }
   }
@@ -279,5 +424,5 @@ export async function generateAIResponse(params: {
     }
   }
 
-  throw new Error(errors.join(" | ") || "No AI provider configured");
+  throw new AIProviderError(classifyAIErrors(errors), errors);
 }

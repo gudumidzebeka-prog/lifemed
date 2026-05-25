@@ -53,12 +53,23 @@ export default function DashboardPage() {
   const nextAppointment = appointments.find((a) => new Date(a.date) >= new Date()) ?? appointments[0];
 
   const healthStats = [
-    { label: t("dashboard.statTimeline"), value: timeline.length, trend: "stable" as const },
-    { label: t("dashboard.statDocuments"), value: documents.length, trend: "up" as const },
+    {
+      label: t("dashboard.statTimeline"),
+      value: timeline.length,
+      trend: "stable" as const,
+      href: "/timeline",
+    },
+    {
+      label: t("dashboard.statDocuments"),
+      value: documents.length,
+      trend: "up" as const,
+      href: "/documents?upload=true",
+    },
     {
       label: t("dashboard.statMedications"),
       value: profile.currentMedications.length,
       trend: "stable" as const,
+      href: "/profile",
     },
     {
       label: t("dashboard.statYears"),
@@ -66,8 +77,11 @@ export default function DashboardPage() {
         ? new Date().getFullYear() - new Date(timeline[0].date).getFullYear()
         : 0,
       trend: "up" as const,
+      href: "/timeline",
     },
   ];
+
+  const isEmptySummary = timeline.length === 0 && documents.length === 0;
 
   if (loading) {
     return <div className="py-20 text-center text-muted">{t("common.loading")}</div>;
@@ -86,25 +100,29 @@ export default function DashboardPage() {
           </h1>
           <p className="mt-1 text-muted">{t("dashboard.subtitle")}</p>
         </div>
-        <Link href="/documents?upload=true">
-          <Button>
-            <Upload className="h-4 w-4" />
-            {t("dashboard.quickUpload")}
-          </Button>
-        </Link>
+        <Button href="/documents?upload=true">
+          <Upload className="h-4 w-4" />
+          {t("dashboard.quickUpload")}
+        </Button>
       </motion.div>
 
       <motion.div variants={item} className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {healthStats.map((stat) => (
-          <Card key={stat.label} className="card-hover">
-            <CardContent className="p-5">
-              <p className="text-sm text-muted">{stat.label}</p>
-              <div className="mt-1 flex items-baseline gap-2">
-                <span className="text-2xl font-bold text-foreground">{stat.value}</span>
-                {stat.trend === "up" && <TrendingUp className="h-4 w-4 text-emerald-500" />}
-              </div>
-            </CardContent>
-          </Card>
+          <Link
+            key={stat.label}
+            href={stat.href}
+            className="group block rounded-2xl no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lifemed-400 focus-visible:ring-offset-2"
+          >
+            <Card className="card-hover h-full cursor-pointer transition-transform group-hover:scale-[1.01]">
+              <CardContent className="p-5">
+                <p className="text-sm text-muted">{stat.label}</p>
+                <div className="mt-1 flex items-baseline gap-2">
+                  <span className="text-2xl font-bold text-foreground">{stat.value}</span>
+                  {stat.trend === "up" && <TrendingUp className="h-4 w-4 text-emerald-500" />}
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
         ))}
       </motion.div>
 
@@ -121,15 +139,25 @@ export default function DashboardPage() {
                   <p className="text-sm text-muted mt-0.5">{t("dashboard.aiSubtitle")}</p>
                 </div>
               </div>
-              <Link href="/ai-assistant">
-                <Button variant="ghost" size="sm">
-                  {t("dashboard.askAi")}
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
+              <Button variant="ghost" size="sm" href="/ai-assistant">
+                {t("dashboard.askAi")}
+                <ArrowRight className="h-4 w-4" />
+              </Button>
             </CardHeader>
             <CardContent>
               <p className="text-foreground leading-relaxed">{aiSummary}</p>
+              {isEmptySummary && (
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <Button size="sm" href="/documents?upload=true">
+                    <Upload className="h-4 w-4" />
+                    {t("dashboard.addDocument")}
+                  </Button>
+                  <Button variant="secondary" size="sm" href="/timeline">
+                    <Clock className="h-4 w-4" />
+                    {t("dashboard.addTimelineEvent")}
+                  </Button>
+                </div>
+              )}
               <Disclaimer variant="info" className="mt-4" />
             </CardContent>
           </Card>
@@ -160,7 +188,7 @@ export default function DashboardPage() {
                   )}
                   <Link
                     href="/appointments"
-                    className="inline-block mt-3 text-xs text-lifemed-600 dark:text-lifemed-400"
+                    className="inline-block mt-3 text-xs text-lifemed-600 dark:text-lifemed-400 hover:underline"
                   >
                     {t("dashboard.viewAppointments")}
                   </Link>
@@ -203,12 +231,10 @@ export default function DashboardPage() {
                 <Clock className="h-5 w-5 text-lifemed-500" />
                 {t("dashboard.recentTimeline")}
               </CardTitle>
-              <Link href="/timeline">
-                <Button variant="ghost" size="sm">
-                  {t("common.viewAll")}
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
+              <Button variant="ghost" size="sm" href="/timeline">
+                {t("common.viewAll")}
+                <ArrowRight className="h-4 w-4" />
+              </Button>
             </CardHeader>
             <CardContent className="space-y-4">
               {recentTimeline.map((event, i) => (
@@ -241,31 +267,41 @@ export default function DashboardPage() {
                 <FileText className="h-5 w-5 text-lifemed-500" />
                 {t("dashboard.recentUploads")}
               </CardTitle>
-              <Link href="/documents">
-                <Button variant="ghost" size="sm">
-                  {t("common.viewAll")}
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
+              <Button variant="ghost" size="sm" href="/documents">
+                {t("common.viewAll")}
+                <ArrowRight className="h-4 w-4" />
+              </Button>
             </CardHeader>
             <CardContent className="space-y-3">
-              {recentDocs.map((doc) => (
-                <div
-                  key={doc.id}
-                  className="flex items-center gap-3 rounded-xl border border-border p-3 transition-colors hover:bg-surface-elevated"
-                >
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-lifemed-50 text-lifemed-600 dark:bg-lifemed-950/50">
-                    <FileText className="h-5 w-5" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">{doc.name}</p>
-                    <p className="text-xs text-muted">
-                      {getDocumentCategoryLabel(doc.category)} ·{" "}
-                      {formatRelativeTime(doc.uploadedAt, locale)}
-                    </p>
-                  </div>
+              {recentDocs.length > 0 ? (
+                recentDocs.map((doc) => (
+                  <Link
+                    key={doc.id}
+                    href="/documents"
+                    className="flex items-center gap-3 rounded-xl border border-border p-3 transition-colors hover:bg-surface-elevated no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lifemed-400"
+                  >
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-lifemed-50 text-lifemed-600 dark:bg-lifemed-950/50">
+                      <FileText className="h-5 w-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">{doc.name}</p>
+                      <p className="text-xs text-muted">
+                        {getDocumentCategoryLabel(doc.category)} ·{" "}
+                        {formatRelativeTime(doc.uploadedAt, locale)}
+                      </p>
+                    </div>
+                  </Link>
+                ))
+              ) : (
+                <div className="rounded-xl border border-dashed border-border p-6 text-center">
+                  <FileText className="mx-auto h-8 w-8 text-muted/50" />
+                  <p className="mt-2 text-sm text-muted">{t("documents.empty")}</p>
+                  <Button className="mt-4" size="sm" href="/documents?upload=true">
+                    <Upload className="h-4 w-4" />
+                    {t("dashboard.addDocument")}
+                  </Button>
                 </div>
-              ))}
+              )}
             </CardContent>
           </Card>
         </motion.div>

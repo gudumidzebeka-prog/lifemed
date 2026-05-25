@@ -5,7 +5,7 @@ import {
   buildSmartDemoResponse,
   formatContextForPrompt,
 } from "@/lib/health/ai-context";
-import { generateAIResponse, type ChatTurn } from "@/lib/health/ai-provider";
+import { generateAIResponse, AIProviderError, type ChatTurn } from "@/lib/health/ai-provider";
 import { isAIConfigured } from "@/lib/server-env";
 
 function parseLocale(value: unknown): Locale {
@@ -74,10 +74,45 @@ export async function POST(request: NextRequest) {
         });
       } catch (err) {
         console.error("AI provider error:", err);
+        const aiText = translations[parsedLocale].ai;
+
+        if (err instanceof AIProviderError) {
+          if (err.kind === "quota") {
+            return NextResponse.json({
+              response: aiText.quotaExceeded,
+              source: "error",
+              errorKind: "quota",
+              dataSource: ctx.source,
+            });
+          }
+
+          if (err.kind === "auth") {
+            return NextResponse.json({
+              response: aiText.aiUnavailable,
+              source: "error",
+              errorKind: "auth",
+              dataSource: ctx.source,
+            });
+          }
+
+          if (err.kind === "network") {
+            return NextResponse.json(
+              {
+                response: aiText.errorConnection,
+                source: "error",
+                errorKind: "network",
+                dataSource: ctx.source,
+              },
+              { status: 503 }
+            );
+          }
+        }
+
         return NextResponse.json(
           {
-            error: translations[parsedLocale].ai.errorConnection,
+            response: aiText.aiUnavailable,
             source: "error",
+            dataSource: ctx.source,
           },
           { status: 503 }
         );

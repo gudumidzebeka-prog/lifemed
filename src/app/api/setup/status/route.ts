@@ -8,7 +8,7 @@ import {
   isOpenAIConfigured,
   isServiceRoleConfigured,
 } from "@/lib/server-env";
-import { testGeminiConnection } from "@/lib/health/ai-provider";
+import { testAIConnection } from "@/lib/health/ai-provider";
 
 function safeHost(url: string) {
   try {
@@ -22,7 +22,7 @@ export async function GET() {
   const supabaseUrl = getSupabaseUrl();
   const host = supabaseUrl ? safeHost(supabaseUrl) : null;
   const configured = isSupabaseConfigured();
-  const aiTest = isGeminiConfigured() ? await testGeminiConnection() : null;
+  const aiTest = isAIConfigured() ? await testAIConnection() : null;
 
   return NextResponse.json({
     supabase: configured,

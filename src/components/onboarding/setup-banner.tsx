@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/components/providers/locale-provider";
@@ -30,13 +29,11 @@ export function SetupBanner() {
             {t("onboarding.setupBannerDesc")}
           </p>
         </div>
-        <Link href="/setup">
-          <Button variant="secondary" size="sm">
-            <Settings className="h-4 w-4" />
-            {t("onboarding.setupBannerCta")}
-            <ArrowRight className="h-4 w-4" />
-          </Button>
-        </Link>
+        <Button variant="secondary" size="sm" href="/setup">
+          <Settings className="h-4 w-4" />
+          {t("onboarding.setupBannerCta")}
+          <ArrowRight className="h-4 w-4" />
+        </Button>
       </div>
     </div>
   );
