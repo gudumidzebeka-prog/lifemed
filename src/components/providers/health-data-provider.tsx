@@ -95,11 +95,13 @@ interface HealthDataContextValue {
     name: string;
     relationship: string;
     dateOfBirth: string;
-  }) => Promise<{ error: string | null }>;
+  }) => Promise<{ error: string | null; member: FamilyMember | null }>;
   editFamilyMember: (
     memberId: string,
     input: { name: string; relationship: string; dateOfBirth: string }
   ) => Promise<{ error: string | null }>;
+  uploadFamilyMemberAvatar: (memberId: string, file: File) => Promise<{ error: string | null }>;
+  removeFamilyMemberAvatar: (memberId: string) => Promise<{ error: string | null }>;
   downloadDocument: (doc: HealthDocument) => Promise<{ error: string | null }>;
   uploadProfileAvatar: (file: File) => Promise<{ error: string | null }>;
   removeProfileAvatar: () => Promise<{ error: string | null }>;

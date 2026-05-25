@@ -5,12 +5,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AddFamilyMemberModal } from "@/components/family/add-family-member-modal";
+import { FamilyMemberAvatar } from "@/components/family/family-member-avatar";
 import { useTranslation } from "@/components/providers/locale-provider";
 import { useRelationshipLabel } from "@/lib/i18n/hooks";
 import { useHealthDataContext } from "@/components/providers/health-data-provider";
 import { formatDate } from "@/lib/utils";
 import type { FamilyMember } from "@/types/health";
-import { Plus, Users, ChevronRight, Baby, UserCircle, Pencil } from "lucide-react";
+import { Plus, Users, ChevronRight, Pencil } from "lucide-react";
 import Link from "next/link";
 
 export default function FamilyPage() {
@@ -71,15 +72,17 @@ export default function FamilyPage() {
               ? new Date().getFullYear() - new Date(member.dateOfBirth).getFullYear()
               : null;
             const isChild = age !== null && age < 18;
-            const Icon = isChild ? Baby : UserCircle;
 
             return (
               <Card key={member.id} className="card-hover h-full">
                 <CardContent className="flex items-center gap-3 p-5">
                   <Link href={`/family/${member.id}`} className="flex min-w-0 flex-1 items-center gap-4 no-underline">
-                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-lifemed-50 text-lifemed-600 dark:bg-lifemed-950/50">
-                      <Icon className="h-7 w-7" />
-                    </div>
+                    <FamilyMemberAvatar
+                      name={member.name}
+                      avatarUrl={member.avatarUrl}
+                      isChild={isChild}
+                      size="sm"
+                    />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <h3 className="font-semibold text-foreground transition-colors group-hover:text-lifemed-600">

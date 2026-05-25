@@ -106,6 +106,7 @@ CREATE TABLE IF NOT EXISTS family_members (
   name TEXT NOT NULL,
   relationship TEXT NOT NULL,
   date_of_birth DATE,
+  avatar_url TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

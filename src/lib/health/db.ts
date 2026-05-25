@@ -454,6 +454,18 @@ interface FamilyRow {
   name: string;
   relationship: string;
   date_of_birth: string | null;
+  avatar_url?: string | null;
+}
+
+function mapFamilyRow(row: FamilyRow) {
+  return {
+    id: row.id,
+    name: row.name,
+    relationship: row.relationship,
+    dateOfBirth: row.date_of_birth ?? "",
+    avatarUrl: row.avatar_url ?? undefined,
+    managedBy: row.manager_id,
+  };
 }
 
 export async function fetchFamilyMembers(supabase: SupabaseClient, managerId: string) {
@@ -465,13 +477,7 @@ export async function fetchFamilyMembers(supabase: SupabaseClient, managerId: st
 
   if (error) return { members: [], error };
 
-  const members = ((data ?? []) as FamilyRow[]).map((row) => ({
-    id: row.id,
-    name: row.name,
-    relationship: row.relationship,
-    dateOfBirth: row.date_of_birth ?? "",
-    managedBy: row.manager_id,
-  }));
+  const members = ((data ?? []) as FamilyRow[]).map(mapFamilyRow);
 
   return { members, error: null };
 }
@@ -497,14 +503,63 @@ export async function createFamilyMember(
   const row = data as FamilyRow;
   return {
     error: null,
-    member: {
-      id: row.id,
-      name: row.name,
-      relationship: row.relationship,
-      dateOfBirth: row.date_of_birth ?? "",
-      managedBy: row.manager_id,
-    },
+    member: mapFamilyRow(row),
   };
+}
+
+export async function uploadFamilyMemberAvatar(
+  supabase: SupabaseClient,
+  managerId: string,
+  memberId: string,
+  file: File
+) {
+  if (!AVATAR_MIME_TYPES.has(file.type) && !file.type.startsWith("image/")) {
+    return { error: { message: "Invalid image type" }, avatarUrl: null as string | null };
+  }
+
+  if (file.size > AVATAR_MAX_BYTES) {
+    return { error: { message: "Image is too large" }, avatarUrl: null as string | null };
+  }
+
+  const storagePath = `${managerId}/family/${memberId}/avatar.${avatarExtension(file)}`;
+  const contentType = inferMimeType(file.name, file.type);
+
+  const { error: uploadError } = await supabase.storage
+    .from("health-documents")
+    .upload(storagePath, file, { upsert: true, contentType });
+
+  if (uploadError) return { error: uploadError, avatarUrl: null };
+
+  const { data, error: memberError } = await supabase
+    .from("family_members")
+    .update({ avatar_url: storagePath })
+    .eq("id", memberId)
+    .eq("manager_id", managerId)
+    .select()
+    .single();
+
+  if (memberError || !data) return { error: memberError, avatarUrl: null };
+
+  return { error: null, avatarUrl: storagePath };
+}
+
+export async function removeFamilyMemberAvatar(
+  supabase: SupabaseClient,
+  managerId: string,
+  memberId: string,
+  avatarPath?: string
+) {
+  if (avatarPath && !avatarPath.startsWith("blob:") && !avatarPath.startsWith("data:")) {
+    await supabase.storage.from("health-documents").remove([avatarPath]);
+  }
+
+  const { error } = await supabase
+    .from("family_members")
+    .update({ avatar_url: null })
+    .eq("id", memberId)
+    .eq("manager_id", managerId);
+
+  return { error };
 }
 
 export async function updateFamilyMember(
@@ -530,13 +585,7 @@ export async function updateFamilyMember(
   const row = data as FamilyRow;
   return {
     error: null,
-    member: {
-      id: row.id,
-      name: row.name,
-      relationship: row.relationship,
-      dateOfBirth: row.date_of_birth ?? "",
-      managedBy: row.manager_id,
-    },
+    member: mapFamilyRow(row),
   };
 }
 

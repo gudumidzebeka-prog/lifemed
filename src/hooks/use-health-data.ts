@@ -60,6 +60,10 @@ import {
 
   updateFamilyMember,
 
+  uploadFamilyMemberAvatar as dbUploadFamilyMemberAvatar,
+
+  removeFamilyMemberAvatar as dbRemoveFamilyMemberAvatar,
+
   updateMedication,
 
   uploadHealthDocument,
@@ -1486,7 +1490,7 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
 
           setFamilyMembers((prev) => prev.filter((m) => m.id !== local.id));
 
-          return { error: error.message };
+          return { error: error.message, member: null };
 
         }
 
@@ -1498,13 +1502,15 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
 
           );
 
+          return { error: null, member };
+
         }
 
       }
 
 
 
-      return { error: null };
+      return { error: null, member: local };
 
     },
 
@@ -1566,6 +1572,87 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
 
     [familyMembers, mode, userId]
 
+  );
+
+
+
+  const uploadFamilyMemberAvatar = useCallback(
+    async (memberId: string, file: File) => {
+      const previous = familyMembers.find((member) => member.id === memberId);
+
+      if (mode === "live" && userId && isSupabaseConfigured()) {
+        const supabase = createClient();
+        const { error, avatarUrl } = await dbUploadFamilyMemberAvatar(
+          supabase,
+          userId,
+          memberId,
+          file
+        );
+
+        if (error) return { error: error.message };
+
+        if (avatarUrl) {
+          setFamilyMembers((prev) =>
+            prev.map((member) =>
+              member.id === memberId ? { ...member, avatarUrl } : member
+            )
+          );
+        }
+
+        return { error: null };
+      }
+
+      try {
+        const dataUrl = await readFileAsDataUrl(file);
+        setFamilyMembers((prev) =>
+          prev.map((member) =>
+            member.id === memberId ? { ...member, avatarUrl: dataUrl } : member
+          )
+        );
+        return { error: null };
+      } catch {
+        if (previous) {
+          setFamilyMembers((prev) =>
+            prev.map((member) => (member.id === memberId ? previous : member))
+          );
+        }
+        return { error: "Failed to read image" };
+      }
+    },
+    [familyMembers, mode, userId]
+  );
+
+  const removeFamilyMemberAvatar = useCallback(
+    async (memberId: string) => {
+      const previous = familyMembers.find((member) => member.id === memberId);
+      if (!previous) return { error: null };
+
+      setFamilyMembers((prev) =>
+        prev.map((member) =>
+          member.id === memberId ? { ...member, avatarUrl: undefined } : member
+        )
+      );
+
+      if (mode === "live" && userId && isSupabaseConfigured()) {
+        const supabase = createClient();
+        const { error } = await dbRemoveFamilyMemberAvatar(
+          supabase,
+          userId,
+          memberId,
+          previous.avatarUrl
+        );
+
+        if (error) {
+          setFamilyMembers((prev) =>
+            prev.map((member) => (member.id === memberId ? previous : member))
+          );
+          return { error: error.message };
+        }
+      }
+
+      return { error: null };
+    },
+    [familyMembers, mode, userId]
   );
 
 
@@ -1935,6 +2022,10 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
     addFamilyMember,
 
     editFamilyMember,
+
+    uploadFamilyMemberAvatar,
+
+    removeFamilyMemberAvatar,
 
     downloadDocument,
 
