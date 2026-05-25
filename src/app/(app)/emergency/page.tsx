@@ -6,11 +6,11 @@ import { useHealthDataContext } from "@/components/providers/health-data-provide
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { EditProfileModal } from "@/components/profile/edit-profile-modal";
 import { AddMedicationModal } from "@/components/profile/add-medication-modal";
 import { EmergencyContactModal } from "@/components/profile/emergency-contact-modal";
 import { useMedicationFrequencyLabel, useRelationshipLabel } from "@/lib/i18n/hooks";
 import { displayFirstName } from "@/lib/health/empty-profile";
+import { normalizeDateOfBirth } from "@/lib/health/profile-dates";
 import { formatDate } from "@/lib/utils";
 import { formatReminderTimes, sanitizeReminderTimes } from "@/lib/health/medication-reminders";
 import type { Medication } from "@/types/health";
@@ -32,16 +32,31 @@ export default function EmergencyPage() {
     removeEmergencyContact,
   } = useHealthDataContext();
 
-  const [showEditModal, setShowEditModal] = useState(false);
   const [showMedModal, setShowMedModal] = useState(false);
   const [editMedication, setEditMedication] = useState<Medication | null>(null);
   const [showContactModal, setShowContactModal] = useState(false);
-  const [newAllergy, setNewAllergy] = useState("");
+
+  const [editingPatient, setEditingPatient] = useState(false);
+  const [patientForm, setPatientForm] = useState({
+    fullName: "",
+    dateOfBirth: "",
+    email: "",
+    phone: "",
+  });
+  const [savingPatient, setSavingPatient] = useState(false);
+
   const [editingBloodType, setEditingBloodType] = useState(false);
   const [bloodTypeInput, setBloodTypeInput] = useState("");
   const [savingBloodType, setSavingBloodType] = useState(false);
+
+  const [editingAllergies, setEditingAllergies] = useState(false);
+  const [newAllergy, setNewAllergy] = useState("");
+
   const [editingChronic, setEditingChronic] = useState(false);
   const [newChronic, setNewChronic] = useState("");
+
+  const [editingMedications, setEditingMedications] = useState(false);
+  const [editingContacts, setEditingContacts] = useState(false);
 
   const openMedicationModal = (medication: Medication | null = null) => {
     setEditMedication(medication);
@@ -55,10 +70,38 @@ export default function EmergencyPage() {
 
   const displayName = profile.fullName.trim() || displayFirstName(profile.fullName);
 
-  const handleAddAllergy = async () => {
-    if (!newAllergy.trim()) return;
-    await addAllergy(newAllergy.trim());
-    setNewAllergy("");
+  const openPatientEditor = () => {
+    setPatientForm({
+      fullName: profile.fullName,
+      dateOfBirth: normalizeDateOfBirth(profile.dateOfBirth),
+      email: profile.email ?? "",
+      phone: profile.phone ?? "",
+    });
+    setEditingPatient(true);
+  };
+
+  const handleSavePatient = async () => {
+    setSavingPatient(true);
+    const updates: {
+      fullName: string;
+      email: string;
+      phone: string;
+      dateOfBirth?: string;
+    } = {
+      fullName: patientForm.fullName.trim(),
+      email: patientForm.email.trim(),
+      phone: patientForm.phone.trim(),
+    };
+
+    if (patientForm.dateOfBirth) {
+      updates.dateOfBirth = normalizeDateOfBirth(patientForm.dateOfBirth);
+    }
+
+    const { error } = await saveProfile(updates);
+    setSavingPatient(false);
+    if (!error) {
+      setEditingPatient(false);
+    }
   };
 
   const openBloodTypeEditor = () => {
@@ -75,8 +118,10 @@ export default function EmergencyPage() {
     }
   };
 
-  const openChronicEditor = () => {
-    setEditingChronic(true);
+  const handleAddAllergy = async () => {
+    if (!newAllergy.trim()) return;
+    await addAllergy(newAllergy.trim());
+    setNewAllergy("");
   };
 
   const handleAddChronic = async () => {
@@ -98,24 +143,14 @@ export default function EmergencyPage() {
   return (
     <div className="min-h-[calc(100vh-6rem)] flex flex-col">
       <div className="rounded-2xl bg-gradient-to-br from-rose-500 to-rose-600 p-6 text-white shadow-lg shadow-rose-500/20 mb-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
-              <AlertTriangle className="h-6 w-6" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold">{t("emergency.title")}</h1>
-              <p className="text-rose-100 text-sm mt-0.5">{t("emergency.subtitle")}</p>
-            </div>
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
+            <AlertTriangle className="h-6 w-6" />
           </div>
-          <Button
-            variant="secondary"
-            className="relative z-10 w-full border-white/30 bg-white/15 text-white hover:bg-white/25 sm:w-auto"
-            onClick={() => setShowEditModal(true)}
-          >
-            <Pencil className="h-4 w-4" />
-            {t("emergency.fillCard")}
-          </Button>
+          <div>
+            <h1 className="text-xl font-bold">{t("emergency.title")}</h1>
+            <p className="text-rose-100 text-sm mt-0.5">{t("emergency.subtitle")}</p>
+          </div>
         </div>
       </div>
 
@@ -125,7 +160,6 @@ export default function EmergencyPage() {
         </div>
       )}
 
-      <EditProfileModal open={showEditModal} onClose={() => setShowEditModal(false)} />
       <AddMedicationModal
         open={showMedModal}
         onClose={closeMedicationModal}
@@ -138,23 +172,80 @@ export default function EmergencyPage() {
           title={t("emergency.patient")}
           icon={<Heart className="h-5 w-5" />}
           action={
-            <Button variant="ghost" size="sm" className="relative z-10 -mr-2 h-8" onClick={() => setShowEditModal(true)}>
-              <Pencil className="h-3.5 w-3.5" />
-              {t("emergency.edit")}
-            </Button>
+            <SectionEditButton
+              label={t("emergency.edit")}
+              onClick={openPatientEditor}
+            />
           }
         >
-          <p className="text-2xl font-bold text-foreground">{displayName}</p>
-          <p className="text-muted mt-1">
-            {t("emergency.dob")}{" "}
-            {profile.dateOfBirth
-              ? formatDate(profile.dateOfBirth, locale, {
-                  month: "long",
-                  day: "numeric",
-                  year: "numeric",
-                })
-              : t("common.unknown")}
-          </p>
+          {!editingPatient ? (
+            <>
+              <p className="text-2xl font-bold text-foreground">{displayName}</p>
+              <p className="text-muted mt-1">
+                {t("emergency.dob")}{" "}
+                {profile.dateOfBirth
+                  ? formatDate(profile.dateOfBirth, locale, {
+                      month: "long",
+                      day: "numeric",
+                      year: "numeric",
+                    })
+                  : t("common.unknown")}
+              </p>
+              {(profile.email || profile.phone) && (
+                <div className="mt-2 space-y-1 text-sm text-muted">
+                  {profile.email && (
+                    <p className="flex items-center gap-2">
+                      <Mail className="h-4 w-4" />
+                      {profile.email}
+                    </p>
+                  )}
+                  {profile.phone && (
+                    <p className="flex items-center gap-2">
+                      <Phone className="h-4 w-4" />
+                      {profile.phone}
+                    </p>
+                  )}
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="space-y-3">
+              <Input
+                label={t("profile.fullName")}
+                value={patientForm.fullName}
+                onChange={(e) => setPatientForm({ ...patientForm, fullName: e.target.value })}
+              />
+              <Input
+                label={t("profile.dob")}
+                type="date"
+                value={patientForm.dateOfBirth}
+                onChange={(e) => setPatientForm({ ...patientForm, dateOfBirth: e.target.value })}
+              />
+              <Input
+                label={t("modals.profileEmail")}
+                type="email"
+                placeholder={t("modals.profileEmailPlaceholder")}
+                value={patientForm.email}
+                onChange={(e) => setPatientForm({ ...patientForm, email: e.target.value })}
+              />
+              <Input
+                label={t("modals.profilePhone")}
+                type="tel"
+                placeholder={t("modals.profilePhonePlaceholder")}
+                value={patientForm.phone}
+                onChange={(e) => setPatientForm({ ...patientForm, phone: e.target.value })}
+              />
+              <Button
+                type="button"
+                size="sm"
+                className="relative z-10"
+                onClick={handleSavePatient}
+                disabled={savingPatient}
+              >
+                {savingPatient ? t("common.saving") : t("common.save")}
+              </Button>
+            </div>
+          )}
         </EmergencySection>
 
         <EmergencySection
@@ -162,15 +253,10 @@ export default function EmergencyPage() {
           icon={<Droplets className="h-5 w-5" />}
           highlight
           action={
-            <Button
-              variant="ghost"
-              size="sm"
-              className="relative z-10 -mr-2 h-8"
+            <SectionEditButton
+              label={t("emergency.edit")}
               onClick={openBloodTypeEditor}
-            >
-              <Pencil className="h-3.5 w-3.5" />
-              {t("emergency.edit")}
-            </Button>
+            />
           }
         >
           <p className="text-4xl font-bold text-rose-600 dark:text-rose-400">
@@ -201,53 +287,58 @@ export default function EmergencyPage() {
           title={t("emergency.allergies")}
           icon={<AlertTriangle className="h-5 w-5" />}
           urgent
+          action={
+            <SectionEditButton
+              label={t("emergency.edit")}
+              onClick={() => setEditingAllergies(true)}
+            />
+          }
         >
           {profile.allergies.length > 0 ? (
             <div className="flex flex-wrap gap-2">
               {profile.allergies.map((allergy) => (
                 <Badge key={allergy} variant="danger" className="gap-1 pr-1">
                   {allergy}
-                  <button
-                    type="button"
-                    onClick={() => removeAllergy(allergy)}
-                    className="relative z-10 ml-1 rounded-full p-0.5 hover:bg-rose-200/50"
-                    aria-label={`${t("common.remove")} ${allergy}`}
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
+                  {editingAllergies && (
+                    <button
+                      type="button"
+                      onClick={() => removeAllergy(allergy)}
+                      className="relative z-10 ml-1 rounded-full p-0.5 hover:bg-rose-200/50"
+                      aria-label={`${t("common.remove")} ${allergy}`}
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  )}
                 </Badge>
               ))}
             </div>
           ) : (
-            <p className="text-muted mb-3">{t("emergency.noAllergies")}</p>
+            <p className="text-muted">{t("emergency.noAllergies")}</p>
           )}
-          <div className="mt-3 flex gap-2">
-            <Input
-              placeholder={t("profile.newAllergyPlaceholder")}
-              value={newAllergy}
-              onChange={(e) => setNewAllergy(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleAddAllergy()}
-            />
-            <Button type="button" size="sm" className="relative z-10 shrink-0" onClick={handleAddAllergy}>
-              <Plus className="h-4 w-4" />
-              {t("emergency.add")}
-            </Button>
-          </div>
+          {editingAllergies && (
+            <div className="mt-3 flex gap-2">
+              <Input
+                placeholder={t("profile.newAllergyPlaceholder")}
+                value={newAllergy}
+                onChange={(e) => setNewAllergy(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleAddAllergy()}
+              />
+              <Button type="button" size="sm" className="relative z-10 shrink-0" onClick={handleAddAllergy}>
+                <Plus className="h-4 w-4" />
+                {t("emergency.add")}
+              </Button>
+            </div>
+          )}
         </EmergencySection>
 
         <EmergencySection
           title={t("emergency.chronic")}
           icon={<Heart className="h-5 w-5" />}
           action={
-            <Button
-              variant="ghost"
-              size="sm"
-              className="relative z-10 -mr-2 h-8"
-              onClick={openChronicEditor}
-            >
-              <Pencil className="h-3.5 w-3.5" />
-              {t("emergency.edit")}
-            </Button>
+            <SectionEditButton
+              label={t("emergency.edit")}
+              onClick={() => setEditingChronic(true)}
+            />
           }
         >
           {profile.chronicIllnesses.length > 0 ? (
@@ -299,59 +390,87 @@ export default function EmergencyPage() {
           title={t("emergency.medications")}
           icon={<Pill className="h-5 w-5" />}
           action={
-            <Button variant="ghost" size="sm" className="relative z-10 -mr-2 h-8" onClick={() => setShowMedModal(true)}>
-              <Plus className="h-3.5 w-3.5" />
-              {t("emergency.add")}
-            </Button>
+            <SectionEditButton
+              label={t("emergency.edit")}
+              onClick={() => setEditingMedications(true)}
+            />
           }
         >
           {profile.currentMedications.length > 0 ? (
             <div className="space-y-3">
               {profile.currentMedications.map((med) => (
                 <div key={med.id} className="flex items-start justify-between gap-2 border-l-2 border-lifemed-400 pl-3">
-                  <button
-                    type="button"
-                    onClick={() => openMedicationModal(med)}
-                    className="relative z-10 min-w-0 flex-1 text-left"
-                    aria-label={t("common.edit")}
-                  >
-                    <p className="font-medium text-foreground">{med.name}</p>
-                    <p className="text-sm text-muted">
-                      {med.dosage} · {getMedicationFrequencyLabel(med.frequency)}
-                    </p>
-                    {sanitizeReminderTimes(med.reminderTimes ?? []).length > 0 ? (
-                      <p className="text-xs text-lifemed-600 dark:text-lifemed-400 mt-1">
-                        {t("profile.reminderTimes", {
-                          times: formatReminderTimes(med.reminderTimes, t("profile.noReminderTimes")),
-                        })}
+                  {editingMedications ? (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => openMedicationModal(med)}
+                        className="relative z-10 min-w-0 flex-1 text-left"
+                        aria-label={t("common.edit")}
+                      >
+                        <p className="font-medium text-foreground">{med.name}</p>
+                        <p className="text-sm text-muted">
+                          {med.dosage} · {getMedicationFrequencyLabel(med.frequency)}
+                        </p>
+                        {sanitizeReminderTimes(med.reminderTimes ?? []).length > 0 ? (
+                          <p className="text-xs text-lifemed-600 dark:text-lifemed-400 mt-1">
+                            {t("profile.reminderTimes", {
+                              times: formatReminderTimes(med.reminderTimes, t("profile.noReminderTimes")),
+                            })}
+                          </p>
+                        ) : null}
+                      </button>
+                      <div className="flex shrink-0 gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="relative z-10 h-8 w-8"
+                          onClick={() => openMedicationModal(med)}
+                          aria-label={t("common.edit")}
+                        >
+                          <Pencil className="h-4 w-4 text-muted" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="relative z-10 shrink-0"
+                          onClick={() => removeMedication(med.id)}
+                        >
+                          <X className="h-4 w-4 text-muted" />
+                        </Button>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-foreground">{med.name}</p>
+                      <p className="text-sm text-muted">
+                        {med.dosage} · {getMedicationFrequencyLabel(med.frequency)}
                       </p>
-                    ) : null}
-                  </button>
-                  <div className="flex shrink-0 gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="relative z-10 h-8 w-8"
-                      onClick={() => openMedicationModal(med)}
-                      aria-label={t("common.edit")}
-                    >
-                      <Pencil className="h-4 w-4 text-muted" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="relative z-10 shrink-0" onClick={() => removeMedication(med.id)}>
-                      <X className="h-4 w-4 text-muted" />
-                    </Button>
-                  </div>
+                      {sanitizeReminderTimes(med.reminderTimes ?? []).length > 0 ? (
+                        <p className="text-xs text-lifemed-600 dark:text-lifemed-400 mt-1">
+                          {t("profile.reminderTimes", {
+                            times: formatReminderTimes(med.reminderTimes, t("profile.noReminderTimes")),
+                          })}
+                        </p>
+                      ) : null}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
           ) : (
-            <div className="space-y-3">
-              <p className="text-muted">{t("emergency.noMedications")}</p>
-              <Button variant="secondary" size="sm" className="relative z-10" onClick={() => openMedicationModal(null)}>
-                <Plus className="h-4 w-4" />
-                {t("emergency.addMedication")}
-              </Button>
-            </div>
+            <p className="text-muted">{t("emergency.noMedications")}</p>
+          )}
+          {editingMedications && (
+            <Button
+              variant="secondary"
+              size="sm"
+              className="relative z-10 mt-3"
+              onClick={() => openMedicationModal(null)}
+            >
+              <Plus className="h-4 w-4" />
+              {t("emergency.addMedication")}
+            </Button>
           )}
         </EmergencySection>
 
@@ -359,10 +478,10 @@ export default function EmergencyPage() {
           title={t("emergency.contacts")}
           icon={<Phone className="h-5 w-5" />}
           action={
-            <Button variant="ghost" size="sm" className="relative z-10 -mr-2 h-8" onClick={() => setShowContactModal(true)}>
-              <Plus className="h-3.5 w-3.5" />
-              {t("emergency.add")}
-            </Button>
+            <SectionEditButton
+              label={t("emergency.edit")}
+              onClick={() => setEditingContacts(true)}
+            />
           }
         >
           {profile.emergencyContacts.length > 0 ? (
@@ -374,14 +493,16 @@ export default function EmergencyPage() {
                       <p className="font-semibold text-foreground">{contact.name}</p>
                       <p className="text-sm text-muted">{getRelationshipLabel(contact.relationship)}</p>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="relative z-10 shrink-0"
-                      onClick={() => removeEmergencyContact(contact.id)}
-                    >
-                      <X className="h-4 w-4 text-muted" />
-                    </Button>
+                    {editingContacts && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="relative z-10 shrink-0"
+                        onClick={() => removeEmergencyContact(contact.id)}
+                      >
+                        <X className="h-4 w-4 text-muted" />
+                      </Button>
+                    )}
                   </div>
                   <a
                     href={`tel:${contact.phone.replace(/\D/g, "")}`}
@@ -403,19 +524,33 @@ export default function EmergencyPage() {
               ))}
             </div>
           ) : (
-            <div className="space-y-3">
-              <p className="text-muted">{t("emergency.noContacts")}</p>
-              <Button variant="secondary" size="sm" className="relative z-10" onClick={() => setShowContactModal(true)}>
-                <Plus className="h-4 w-4" />
-                {t("emergency.addContact")}
-              </Button>
-            </div>
+            <p className="text-muted">{t("emergency.noContacts")}</p>
+          )}
+          {editingContacts && (
+            <Button
+              variant="secondary"
+              size="sm"
+              className="relative z-10 mt-3"
+              onClick={() => setShowContactModal(true)}
+            >
+              <Plus className="h-4 w-4" />
+              {t("emergency.addContact")}
+            </Button>
           )}
         </EmergencySection>
       </div>
 
       <p className="mt-8 text-center text-xs text-muted pb-4">{t("emergency.footer")}</p>
     </div>
+  );
+}
+
+function SectionEditButton({ label, onClick }: { label: string; onClick: () => void }) {
+  return (
+    <Button variant="ghost" size="sm" className="relative z-10 -mr-2 h-8" onClick={onClick}>
+      <Pencil className="h-3.5 w-3.5" />
+      {label}
+    </Button>
   );
 }
 
