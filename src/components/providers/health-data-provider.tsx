@@ -47,7 +47,10 @@ interface HealthDataContextValue {
   ) => Promise<{ error: string | null }>;
   saveProfile: (
     updates: Partial<
-      Pick<HealthProfile, "fullName" | "dateOfBirth" | "bloodType" | "allergies" | "chronicIllnesses">
+      Pick<
+        HealthProfile,
+        "fullName" | "dateOfBirth" | "email" | "phone" | "bloodType" | "allergies" | "chronicIllnesses"
+      >
     >
   ) => Promise<{ error: string | null }>;
   addAllergy: (allergy: string) => Promise<{ error: string | null }>;

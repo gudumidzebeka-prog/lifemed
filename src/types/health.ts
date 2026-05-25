@@ -27,6 +27,8 @@ export interface HealthProfile {
   userId: string;
   fullName: string;
   dateOfBirth: string;
+  email?: string;
+  phone?: string;
   bloodType?: string;
   allergies: string[];
   emergencyContacts: EmergencyContact[];

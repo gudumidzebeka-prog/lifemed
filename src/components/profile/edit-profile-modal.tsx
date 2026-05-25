@@ -21,7 +21,8 @@ export function EditProfileModal({ open, onClose }: EditProfileModalProps) {
   const [form, setForm] = useState({
     fullName: profile.fullName,
     dateOfBirth: normalizeDateOfBirth(profile.dateOfBirth),
-    allergies: profile.allergies.join(", "),
+    email: profile.email ?? "",
+    phone: profile.phone ?? "",
   });
 
   useEffect(() => {
@@ -29,17 +30,12 @@ export function EditProfileModal({ open, onClose }: EditProfileModalProps) {
       setForm({
         fullName: profile.fullName,
         dateOfBirth: normalizeDateOfBirth(profile.dateOfBirth),
-        allergies: profile.allergies.join(", "),
+        email: profile.email ?? "",
+        phone: profile.phone ?? "",
       });
       setError(null);
     }
   }, [open, profile]);
-
-  const parseList = (value: string) =>
-    value
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,11 +46,13 @@ export function EditProfileModal({ open, onClose }: EditProfileModalProps) {
 
     const updates: {
       fullName: string;
-      allergies: string[];
+      email: string;
+      phone: string;
       dateOfBirth?: string;
     } = {
       fullName: form.fullName.trim(),
-      allergies: parseList(form.allergies),
+      email: form.email.trim(),
+      phone: form.phone.trim(),
     };
 
     if (form.dateOfBirth) {
@@ -89,10 +87,18 @@ export function EditProfileModal({ open, onClose }: EditProfileModalProps) {
           onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })}
         />
         <Input
-          label={t("modals.profileAllergies")}
-          placeholder={t("modals.profileAllergiesPlaceholder")}
-          value={form.allergies}
-          onChange={(e) => setForm({ ...form, allergies: e.target.value })}
+          label={t("modals.profileEmail")}
+          type="email"
+          placeholder={t("modals.profileEmailPlaceholder")}
+          value={form.email}
+          onChange={(e) => setForm({ ...form, email: e.target.value })}
+        />
+        <Input
+          label={t("modals.profilePhone")}
+          type="tel"
+          placeholder={t("modals.profilePhonePlaceholder")}
+          value={form.phone}
+          onChange={(e) => setForm({ ...form, phone: e.target.value })}
         />
 
         <div className="flex gap-3 pt-2">

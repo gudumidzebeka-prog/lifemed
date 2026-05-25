@@ -88,6 +88,7 @@ import {
   saveCachedProfileFields,
 } from "@/lib/health/profile-local-cache";
 import { normalizeDateOfBirth } from "@/lib/health/profile-dates";
+import { withAuthContact } from "@/lib/health/profile-contact";
 import { inferMimeType } from "@/lib/health/mime";
 
 import type {
@@ -228,7 +229,10 @@ function withMedicationReminders(profile: HealthProfile): HealthProfile {
 }
 
 type ProfileFieldUpdates = Partial<
-  Pick<HealthProfile, "fullName" | "dateOfBirth" | "bloodType" | "allergies" | "chronicIllnesses">
+  Pick<
+    HealthProfile,
+    "fullName" | "dateOfBirth" | "email" | "phone" | "bloodType" | "allergies" | "chronicIllnesses"
+  >
 >;
 
 function applyProfileFieldUpdates(profile: HealthProfile, updates: ProfileFieldUpdates): HealthProfile {
@@ -239,6 +243,12 @@ function applyProfileFieldUpdates(profile: HealthProfile, updates: ProfileFieldU
   }
   if (updates.dateOfBirth !== undefined) {
     next.dateOfBirth = normalizeDateOfBirth(updates.dateOfBirth);
+  }
+  if (updates.email !== undefined) {
+    next.email = updates.email.trim() || undefined;
+  }
+  if (updates.phone !== undefined) {
+    next.phone = updates.phone.trim() || undefined;
   }
   if (updates.bloodType !== undefined) {
     next.bloodType = updates.bloodType.trim() ? updates.bloodType.trim() : undefined;
@@ -404,7 +414,7 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
 
 
 
-      const baseProfile = liveProfile ?? emptyLiveProfile(user);
+      const baseProfile = withAuthContact(liveProfile ?? emptyLiveProfile(user), user);
       const mergedProfile = mergeProfileWithCache(baseProfile, user.id);
 
       setProfile(withMedicationReminders(mergedProfile));
@@ -412,6 +422,8 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
       const shouldHealProfile =
         mergedProfile.dateOfBirth !== (baseProfile.dateOfBirth ?? "") ||
         mergedProfile.fullName !== baseProfile.fullName ||
+        (mergedProfile.email ?? "") !== (baseProfile.email ?? "") ||
+        (mergedProfile.phone ?? "") !== (baseProfile.phone ?? "") ||
         (mergedProfile.bloodType ?? "") !== (baseProfile.bloodType ?? "") ||
         JSON.stringify(mergedProfile.allergies) !== JSON.stringify(baseProfile.allergies) ||
         JSON.stringify(mergedProfile.chronicIllnesses) !==
@@ -421,6 +433,8 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
         await upsertHealthProfile(supabase, user.id, {
           fullName: mergedProfile.fullName,
           dateOfBirth: mergedProfile.dateOfBirth,
+          email: mergedProfile.email,
+          phone: mergedProfile.phone,
           bloodType: mergedProfile.bloodType,
           allergies: mergedProfile.allergies,
           chronicIllnesses: mergedProfile.chronicIllnesses,
@@ -668,6 +682,10 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
           fullName: next.fullName,
 
           dateOfBirth: next.dateOfBirth,
+
+          email: next.email,
+
+          phone: next.phone,
 
           bloodType: next.bloodType,
 

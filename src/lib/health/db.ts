@@ -15,6 +15,8 @@ interface ProfileRow {
   id: string;
   full_name: string;
   date_of_birth: string | null;
+  email?: string | null;
+  phone?: string | null;
   blood_type: string | null;
   allergies: string[] | null;
   chronic_illnesses: string[] | null;
@@ -86,7 +88,9 @@ export async function fetchHealthProfile(
     id: row.id,
     userId: row.id,
     fullName: row.full_name,
-    dateOfBirth: row.date_of_birth ?? "",
+    dateOfBirth: normalizeDateOfBirth(row.date_of_birth),
+    email: row.email ?? undefined,
+    phone: row.phone ?? undefined,
     bloodType: row.blood_type ?? undefined,
     allergies: row.allergies ?? [],
     chronicIllnesses: row.chronic_illnesses ?? [],
@@ -156,10 +160,15 @@ export async function fetchHealthDocuments(
   }));
 }
 
+type ProfilePersistFields = Pick<
+  HealthProfile,
+  "fullName" | "dateOfBirth" | "email" | "phone" | "bloodType" | "allergies" | "chronicIllnesses"
+>;
+
 export async function updateProfile(
   supabase: SupabaseClient,
   userId: string,
-  updates: Partial<Pick<HealthProfile, "fullName" | "dateOfBirth" | "bloodType" | "allergies" | "chronicIllnesses">>
+  updates: Partial<ProfilePersistFields>
 ) {
   const patch: Record<string, unknown> = {};
 
@@ -168,6 +177,8 @@ export async function updateProfile(
     const normalized = normalizeDateOfBirth(updates.dateOfBirth);
     patch.date_of_birth = normalized || null;
   }
+  if (updates.email !== undefined) patch.email = updates.email.trim() || null;
+  if (updates.phone !== undefined) patch.phone = updates.phone.trim() || null;
   if (updates.bloodType !== undefined) patch.blood_type = updates.bloodType || null;
   if (updates.allergies !== undefined) patch.allergies = updates.allergies;
   if (updates.chronicIllnesses !== undefined) patch.chronic_illnesses = updates.chronicIllnesses;
@@ -181,13 +192,15 @@ export async function updateProfile(
 export async function upsertHealthProfile(
   supabase: SupabaseClient,
   userId: string,
-  profile: Pick<HealthProfile, "fullName" | "dateOfBirth" | "bloodType" | "allergies" | "chronicIllnesses">
+  profile: ProfilePersistFields
 ) {
   const { error } = await supabase.from("profiles").upsert(
     {
       id: userId,
       full_name: profile.fullName,
       date_of_birth: normalizeDateOfBirth(profile.dateOfBirth) || null,
+      email: profile.email?.trim() || null,
+      phone: profile.phone?.trim() || null,
       blood_type: profile.bloodType || null,
       allergies: profile.allergies ?? [],
       chronic_illnesses: profile.chronicIllnesses ?? [],

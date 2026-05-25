@@ -450,6 +450,8 @@ export type TranslationTree = {
     profileEditTitle: string;
     profileFullName: string;
     profileDob: string;
+    profileEmail: string;
+    profilePhone: string;
     profileBloodType: string;
     profileAllergies: string;
     profileChronic: string;
@@ -468,6 +470,8 @@ export type TranslationTree = {
     medAddTime: string;
     medRemoveTime: string;
     profileBloodTypePlaceholder: string;
+    profileEmailPlaceholder: string;
+    profilePhonePlaceholder: string;
     profileAllergiesPlaceholder: string;
     profileChronicPlaceholder: string;
     contactAddTitle: string;

@@ -9,6 +9,8 @@ CREATE TABLE IF NOT EXISTS profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   full_name TEXT NOT NULL,
   date_of_birth DATE,
+  email TEXT,
+  phone TEXT,
   blood_type TEXT,
   allergies TEXT[] DEFAULT '{}',
   chronic_illnesses TEXT[] DEFAULT '{}',

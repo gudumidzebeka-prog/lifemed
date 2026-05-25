@@ -15,6 +15,8 @@ export const demoProfile: HealthProfile = {
   userId: "user-1",
   fullName: "Sarah Chen",
   dateOfBirth: "1992-03-15",
+  email: "sarah.chen@email.com",
+  phone: "+1 (555) 123-4567",
   bloodType: "O+",
   allergies: ["Penicillin", "Shellfish"],
   emergencyContacts: [

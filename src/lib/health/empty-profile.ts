@@ -27,6 +27,7 @@ export function emptyLiveProfile(user: {
     userId: user.id,
     fullName,
     dateOfBirth: "",
+    email: user.email,
     allergies: [],
     chronicIllnesses: [],
     emergencyContacts: [],
