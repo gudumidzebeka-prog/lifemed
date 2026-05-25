@@ -18,7 +18,10 @@ import { EditProfileModal } from "@/components/profile/edit-profile-modal";
 import { ProfileAvatar } from "@/components/profile/profile-avatar";
 import { AddMedicationModal } from "@/components/profile/add-medication-modal";
 import { EmergencyContactModal } from "@/components/profile/emergency-contact-modal";
-import { MedicalShareQrBottomSection } from "@/components/share/medical-share-qr";
+import {
+  MedicalShareQr,
+  MedicalShareQrBottomSection,
+} from "@/components/share/medical-share-qr";
 import type { EmergencyContact, Medication } from "@/types/health";
 import {
   User,
@@ -233,6 +236,11 @@ function ProfileContent() {
               ))}
             </div>
           </div>
+          <MedicalShareQr
+            size="sm"
+            title={t("profile.medicalQrTitle")}
+            className="hidden shrink-0 md:block"
+          />
         </CardContent>
       </Card>
 
@@ -470,7 +478,7 @@ function ProfileContent() {
         </ExpandableCard>
       </div>
 
-      <MedicalShareQrBottomSection />
+      <MedicalShareQrBottomSection className="md:hidden" />
     </div>
   );
 }

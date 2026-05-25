@@ -8,7 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { AddMedicationModal } from "@/components/profile/add-medication-modal";
 import { EmergencyContactModal } from "@/components/profile/emergency-contact-modal";
-import { MedicalShareQrBottomSection } from "@/components/share/medical-share-qr";
+import {
+  MedicalShareQr,
+  MedicalShareQrBottomSection,
+} from "@/components/share/medical-share-qr";
 import { useMedicationFrequencyLabel, useRelationshipLabel } from "@/lib/i18n/hooks";
 import { displayFirstName } from "@/lib/health/empty-profile";
 import { normalizeDateOfBirth } from "@/lib/health/profile-dates";
@@ -155,14 +158,22 @@ export default function EmergencyPage() {
   return (
     <div className="min-h-[calc(100vh-6rem)] flex flex-col">
       <div className="rounded-2xl bg-gradient-to-br from-rose-500 to-rose-600 p-6 text-white shadow-lg shadow-rose-500/20 mb-6">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
-            <AlertTriangle className="h-6 w-6" />
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
+              <AlertTriangle className="h-6 w-6" />
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-xl font-bold">{t("emergency.title")}</h1>
+              <p className="text-rose-100 text-sm mt-0.5">{t("emergency.subtitle")}</p>
+            </div>
           </div>
-          <div className="min-w-0">
-            <h1 className="text-xl font-bold">{t("emergency.title")}</h1>
-            <p className="text-rose-100 text-sm mt-0.5">{t("emergency.subtitle")}</p>
-          </div>
+          <MedicalShareQr
+            size="sm"
+            title={t("profile.medicalQrTitle")}
+            variant="light"
+            className="hidden shrink-0 md:block"
+          />
         </div>
       </div>
 
@@ -567,7 +578,7 @@ export default function EmergencyPage() {
           )}
         </EmergencySection>
 
-        <MedicalShareQrBottomSection />
+        <MedicalShareQrBottomSection className="md:hidden" />
       </div>
 
       <p className="mt-8 text-center text-xs text-muted pb-4">{t("emergency.footer")}</p>
