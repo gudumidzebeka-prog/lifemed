@@ -4,16 +4,25 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/components/providers/locale-provider";
 import { useHealthDataContext } from "@/components/providers/health-data-provider";
-import { clearDemoSeedFromAccount, isDemoSeedProfile } from "@/lib/health/demo-seed";
+import { accountHasDemoSeedData, clearDemoSeedFromAccount } from "@/lib/health/demo-seed";
 import { AlertTriangle } from "lucide-react";
 
 export function ClearDemoDataBanner() {
   const { t } = useTranslation();
-  const { mode, profile, reload } = useHealthDataContext();
+  const { mode, profile, timeline, documents, familyMembers, appointments, reload } =
+    useHealthDataContext();
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
 
-  if (done || mode !== "live" || !isDemoSeedProfile(profile)) {
+  const hasDemoData = accountHasDemoSeedData({
+    profile,
+    timeline,
+    documents,
+    familyMembers,
+    appointments,
+  });
+
+  if (done || mode !== "live" || !hasDemoData) {
     return null;
   }
 

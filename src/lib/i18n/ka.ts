@@ -126,8 +126,9 @@ export const ka: TranslationTree = {
     demoDescConfigured: "Supabase დაკავშირებულია — შედი ანგარიშით რეალური მონაცემებისთვის.",
     demoDescNotConfigured:
       "ეს საცდელი მონაცემებია. Supabase-ისთვის დაამატე .env.local (იხ. setup გზამკვლევი).",
-    clearDemoTitle: "ნაჩვენებია საცდელი პროფილი (Sarah Chen)",
-    clearDemoDesc: "ეს დემო მონაცემებია, არა შენი. დააჭირე წასაშლელად და გამოიყენე საკუთარი პროფილი.",
+    clearDemoTitle: "ნაჩვენებია საცდელი მონაცემები (Sarah Chen)",
+    clearDemoDesc:
+      "შენს ანგარიშში დემო ჩანაწერები დარჩა. დააჭირე წასაშლელად — შენი სახელი არ შეიცვლება, მხოლოდ სარას მონაცემები წაიშლება.",
     clearDemoAction: "დემო მონაცემების წაშლა",
   },
   onboarding: {

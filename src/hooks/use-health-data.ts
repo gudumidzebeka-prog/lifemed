@@ -65,7 +65,7 @@ import { createClientFromConfig, configureSupabaseRuntimeHint, resolveSupabaseCo
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 import { EMPTY_PROFILE, emptyLiveProfile } from "@/lib/health/empty-profile";
-import { clearDemoSeedFromAccount, isDemoSeedProfile } from "@/lib/health/demo-seed";
+import { clearDemoSeedFromAccount, accountHasDemoSeedData } from "@/lib/health/demo-seed";
 
 import type {
 
@@ -333,7 +333,15 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
 
       if (!aptResult.error) setAppointments(aptResult.appointments);
 
-      if (liveProfile && isDemoSeedProfile(liveProfile)) {
+      if (
+        accountHasDemoSeedData({
+          profile: liveProfile,
+          timeline: liveTimeline,
+          documents: liveDocuments,
+          familyMembers: familyResult.error ? [] : familyResult.members,
+          appointments: aptResult.error ? [] : aptResult.appointments,
+        })
+      ) {
         const cleared = await clearDemoSeedFromAccount();
         if (cleared) {
           const [freshProfile, freshTimeline, freshDocuments, freshFamily, freshApts] =
