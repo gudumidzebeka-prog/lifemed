@@ -269,6 +269,10 @@ export type TranslationTree = {
     photoUploading: string;
     photoInvalidType: string;
     photoTooLarge: string;
+    medicalQrTitle: string;
+    medicalQrDoctorHint: string;
+    medicalQrStickyHint: string;
+    medicalQrUnavailable: string;
   };
   emergency: {
     title: string;
@@ -324,6 +328,10 @@ export type TranslationTree = {
     allergiesLabel: string;
     chronicLabel: string;
     medicationsLabel: string;
+    dobLabel: string;
+    phoneLabel: string;
+    emailLabel: string;
+    contactsLabel: string;
     timelineTitle: string;
     documentsTitle: string;
   };

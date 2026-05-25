@@ -6,10 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge, Disclaimer } from "@/components/ui/badge";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { useTranslation } from "@/components/providers/locale-provider";
-import { useDocumentCategoryLabel, useMedicationFrequencyLabel } from "@/lib/i18n/hooks";
+import { useDocumentCategoryLabel, useMedicationFrequencyLabel, useRelationshipLabel } from "@/lib/i18n/hooks";
 import { APP_NAME } from "@/lib/constants";
 import { formatDate } from "@/lib/utils";
-import { Heart, Shield, Clock, FileText, Loader2 } from "lucide-react";
+import { Heart, Shield, Clock, FileText, Loader2, Phone, Mail } from "lucide-react";
 import type { HealthDocument, HealthProfile, TimelineEvent } from "@/types/health";
 
 interface SharePayload {
@@ -26,6 +26,7 @@ export default function PublicSharePage() {
   const { t, locale } = useTranslation();
   const getDocumentCategoryLabel = useDocumentCategoryLabel();
   const getMedicationFrequencyLabel = useMedicationFrequencyLabel();
+  const getRelationshipLabel = useRelationshipLabel();
   const [data, setData] = useState<SharePayload | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -67,6 +68,7 @@ export default function PublicSharePage() {
   }
 
   const profile = data.profile;
+  const showEmergencyDetails = data.scopes.includes("emergency");
 
   const scopeLabels: Record<string, string> = {
     timeline: t("share.scopeTimeline"),
@@ -106,12 +108,40 @@ export default function PublicSharePage() {
           </Badge>
         </div>
 
-        {(data.scopes.includes("profile") || data.scopes.includes("emergency")) && profile && (
+        {(data.scopes.includes("profile") || showEmergencyDetails) && profile && (
           <Card>
             <CardHeader>
               <CardTitle>{profile.fullName}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
+              {profile.dateOfBirth && (
+                <p>
+                  {t("share.dobLabel")}{" "}
+                  <strong>
+                    {formatDate(profile.dateOfBirth, locale, {
+                      month: "long",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </strong>
+                </p>
+              )}
+              {profile.phone && (
+                <p className="flex items-center gap-2">
+                  <Phone className="h-4 w-4 text-muted" />
+                  <span>
+                    {t("share.phoneLabel")} <strong>{profile.phone}</strong>
+                  </span>
+                </p>
+              )}
+              {profile.email && (
+                <p className="flex items-center gap-2">
+                  <Mail className="h-4 w-4 text-muted" />
+                  <span>
+                    {t("share.emailLabel")} <strong>{profile.email}</strong>
+                  </span>
+                </p>
+              )}
               {profile.bloodType && (
                 <p>
                   {t("share.bloodTypeLabel")} <strong>{profile.bloodType}</strong>
@@ -139,6 +169,38 @@ export default function PublicSharePage() {
                   </ul>
                 </div>
               )}
+            </CardContent>
+          </Card>
+        )}
+
+        {showEmergencyDetails && profile && profile.emergencyContacts.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>{t("share.contactsLabel")}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {profile.emergencyContacts.map((contact) => (
+                <div key={contact.id} className="rounded-xl border border-border p-4">
+                  <p className="font-semibold text-foreground">{contact.name}</p>
+                  <p className="text-sm text-muted">{getRelationshipLabel(contact.relationship)}</p>
+                  <a
+                    href={`tel:${contact.phone.replace(/\D/g, "")}`}
+                    className="mt-2 inline-flex items-center gap-2 font-medium text-lifemed-600 dark:text-lifemed-400"
+                  >
+                    <Phone className="h-4 w-4" />
+                    {contact.phone}
+                  </a>
+                  {contact.email && (
+                    <a
+                      href={`mailto:${contact.email}`}
+                      className="mt-1 inline-flex items-center gap-2 text-sm text-muted"
+                    >
+                      <Mail className="h-4 w-4" />
+                      {contact.email}
+                    </a>
+                  )}
+                </div>
+              ))}
             </CardContent>
           </Card>
         )}

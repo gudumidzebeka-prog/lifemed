@@ -18,6 +18,11 @@ import { EditProfileModal } from "@/components/profile/edit-profile-modal";
 import { ProfileAvatar } from "@/components/profile/profile-avatar";
 import { AddMedicationModal } from "@/components/profile/add-medication-modal";
 import { EmergencyContactModal } from "@/components/profile/emergency-contact-modal";
+import {
+  MedicalShareQr,
+  MedicalShareQrBottomSection,
+  MedicalShareQrStickyBar,
+} from "@/components/share/medical-share-qr";
 import type { EmergencyContact, Medication } from "@/types/health";
 import {
   User,
@@ -197,12 +202,19 @@ function ProfileContent() {
       />
 
       <Card>
-        <CardContent className="flex flex-col items-center gap-4 p-8 sm:flex-row sm:items-start">
-          <ProfileAvatar
-            fullName={profile.fullName}
-            avatarUrl={profile.avatarUrl}
-            editable
-          />
+        <CardContent className="flex flex-col gap-4 p-8 sm:flex-row sm:items-start">
+          <div className="flex items-start gap-4 mx-auto sm:mx-0">
+            <ProfileAvatar
+              fullName={profile.fullName}
+              avatarUrl={profile.avatarUrl}
+              editable
+            />
+            <MedicalShareQr
+              size="sm"
+              title={t("profile.medicalQrTitle")}
+              className="hidden sm:block"
+            />
+          </div>
           <div className="text-center sm:text-left flex-1">
             <h2 className="text-xl font-bold text-foreground">
               {profile.fullName.trim() || displayFirstName(profile.fullName)}
@@ -232,6 +244,11 @@ function ProfileContent() {
               ))}
             </div>
           </div>
+          <MedicalShareQr
+            size="sm"
+            title={t("profile.medicalQrTitle")}
+            className="sm:hidden mx-auto"
+          />
         </CardContent>
       </Card>
 
@@ -468,6 +485,9 @@ function ProfileContent() {
           </div>
         </ExpandableCard>
       </div>
+
+      <MedicalShareQrBottomSection className="mt-4" />
+      <MedicalShareQrStickyBar />
     </div>
   );
 }
