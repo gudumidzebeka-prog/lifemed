@@ -21,7 +21,6 @@ import { EmergencyContactModal } from "@/components/profile/emergency-contact-mo
 import {
   MedicalShareQr,
   MedicalShareQrBottomSection,
-  MedicalShareQrStickyBar,
 } from "@/components/share/medical-share-qr";
 import type { EmergencyContact, Medication } from "@/types/health";
 import {
@@ -202,13 +201,13 @@ function ProfileContent() {
       />
 
       <Card>
-        <CardContent className="flex flex-col items-center gap-4 p-8 sm:flex-row sm:items-start">
+        <CardContent className="flex items-start gap-3 p-6 sm:gap-4 sm:p-8">
           <ProfileAvatar
             fullName={profile.fullName}
             avatarUrl={profile.avatarUrl}
             editable
           />
-          <div className="text-center sm:text-left flex-1 min-w-0">
+          <div className="text-left flex-1 min-w-0">
             <h2 className="text-xl font-bold text-foreground">
               {profile.fullName.trim() || displayFirstName(profile.fullName)}
             </h2>
@@ -223,7 +222,7 @@ function ProfileContent() {
                   })
                 : t("profile.dobMissing")}
             </p>
-            <div className="mt-3 flex flex-wrap gap-2 justify-center sm:justify-start">
+            <div className="mt-3 flex flex-wrap gap-2 justify-start">
               {profile.bloodType && (
                 <Badge variant="info">
                   <Droplets className="h-3 w-3" />
@@ -240,7 +239,7 @@ function ProfileContent() {
           <MedicalShareQr
             size="sm"
             title={t("profile.medicalQrTitle")}
-            className="shrink-0 self-center sm:self-start"
+            className="shrink-0"
           />
         </CardContent>
       </Card>
@@ -480,7 +479,6 @@ function ProfileContent() {
       </div>
 
       <MedicalShareQrBottomSection className="mt-4" />
-      <MedicalShareQrStickyBar />
     </div>
   );
 }
