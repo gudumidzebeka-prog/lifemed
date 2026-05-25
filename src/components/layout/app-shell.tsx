@@ -80,35 +80,55 @@ function NavLinks({
   );
 }
 
-function HeaderActions({ className }: { className?: string }) {
+function EmergencyCardButton({ className }: { className?: string }) {
   const { t } = useTranslation();
 
   return (
-    <div className={cn("flex items-center gap-1", className)}>
+    <Button
+      href="/emergency"
+      variant="danger"
+      className={cn("emergency-pulse shrink-0", className)}
+      size="sm"
+    >
+      <ShieldAlert className="h-4 w-4" />
+      {t("nav.emergency")}
+    </Button>
+  );
+}
+
+function HeaderActions({
+  className,
+  variant,
+}: {
+  className?: string;
+  variant: "mobile" | "desktop";
+}) {
+  const { t } = useTranslation();
+
+  return (
+    <div className={cn("flex items-center gap-2", className)}>
+      {variant === "desktop" && <EmergencyCardButton />}
       <LanguageSwitcher size="sm" />
-      <Button
-        href="/emergency"
-        variant="ghost"
-        size="icon"
-        className="text-rose-500"
-        aria-label={t("nav.emergency")}
-      >
-        <ShieldAlert className="h-5 w-5" />
-      </Button>
+      {variant === "mobile" && (
+        <Button
+          href="/emergency"
+          variant="ghost"
+          size="icon"
+          className="text-rose-500"
+          aria-label={t("nav.emergency")}
+        >
+          <ShieldAlert className="h-5 w-5" />
+        </Button>
+      )}
       <ThemeToggle />
     </div>
   );
 }
 
 function SidebarFooter() {
-  const { t } = useTranslation();
-
   return (
-    <div className="border-t border-border p-4">
-      <Button href="/emergency" variant="danger" className="w-full emergency-pulse" size="sm">
-        <ShieldAlert className="h-4 w-4" />
-        {t("nav.emergency")}
-      </Button>
+    <div className="border-t border-border p-4 lg:hidden">
+      <EmergencyCardButton className="w-full" />
     </div>
   );
 }
@@ -235,7 +255,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <LiveModeBadge />
             </div>
             <div className="flex items-center gap-1">
-              <HeaderActions />
+              <HeaderActions variant="mobile" />
               <Button variant="ghost" size="icon" onClick={() => setMobileOpen(true)}>
                 <Menu className="h-5 w-5" />
               </Button>
@@ -244,7 +264,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
           <header className="sticky top-0 z-40 hidden items-center justify-between border-b border-border bg-surface/80 px-8 py-3 backdrop-blur-xl safe-top lg:flex">
             <DesktopDateTime className="ml-6" />
-            <HeaderActions />
+            <HeaderActions variant="desktop" />
           </header>
 
           <AnimatePresence>
