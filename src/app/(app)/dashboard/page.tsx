@@ -25,6 +25,7 @@ import {
   TrendingUp,
   FileText,
   Clock,
+  Plus,
 } from "lucide-react";
 
 const container = {
@@ -152,7 +153,7 @@ export default function DashboardPage() {
                     <Upload className="h-4 w-4" />
                     {t("dashboard.addDocument")}
                   </Button>
-                  <Button variant="secondary" size="sm" href="/timeline">
+                  <Button variant="secondary" size="sm" href="/timeline?add=true">
                     <Clock className="h-4 w-4" />
                     {t("dashboard.addTimelineEvent")}
                   </Button>
@@ -194,7 +195,13 @@ export default function DashboardPage() {
                   </Link>
                 </>
               ) : (
-                <p className="text-sm text-muted">{t("dashboard.noAppointments")}</p>
+                <div className="space-y-3">
+                  <p className="text-sm text-muted">{t("dashboard.noAppointments")}</p>
+                  <Button variant="secondary" size="sm" href="/appointments?add=true">
+                    <Plus className="h-4 w-4" />
+                    {t("appointments.add")}
+                  </Button>
+                </div>
               )}
             </CardContent>
           </Card>
@@ -207,17 +214,27 @@ export default function DashboardPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {profile.currentMedications.map((med) => (
-                <div key={med.id} className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{med.name}</p>
-                    <p className="text-xs text-muted">
-                      {med.dosage} · {getMedicationFrequencyLabel(med.frequency)}
-                    </p>
+              {profile.currentMedications.length > 0 ? (
+                profile.currentMedications.map((med) => (
+                  <div key={med.id} className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{med.name}</p>
+                      <p className="text-xs text-muted">
+                        {med.dosage} · {getMedicationFrequencyLabel(med.frequency)}
+                      </p>
+                    </div>
+                    <Badge variant="success">{t("common.active")}</Badge>
                   </div>
-                  <Badge variant="success">{t("common.active")}</Badge>
+                ))
+              ) : (
+                <div className="space-y-3">
+                  <p className="text-sm text-muted">{t("dashboard.noMedications")}</p>
+                  <Button variant="secondary" size="sm" href="/profile?med=true">
+                    <Plus className="h-4 w-4" />
+                    {t("profile.addMedication")}
+                  </Button>
                 </div>
-              ))}
+              )}
             </CardContent>
           </Card>
         </motion.div>
@@ -237,25 +254,36 @@ export default function DashboardPage() {
               </Button>
             </CardHeader>
             <CardContent className="space-y-4">
-              {recentTimeline.map((event, i) => (
-                <div key={event.id} className="flex gap-4">
-                  <div className="flex flex-col items-center">
-                    <div className="h-3 w-3 rounded-full bg-lifemed-400 ring-4 ring-lifemed-100 dark:ring-lifemed-900/40" />
-                    {i < recentTimeline.length - 1 && (
-                      <div className="w-px flex-1 bg-border mt-1" />
-                    )}
-                  </div>
-                  <div className="flex-1 pb-4">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-medium text-foreground">{event.title}</span>
-                      <span className={cnBadge(getTimelineTypeColor(event.type))}>
-                        {getTimelineTypeLabel(event.type)}
-                      </span>
+              {recentTimeline.length > 0 ? (
+                recentTimeline.map((event, i) => (
+                  <div key={event.id} className="flex gap-4">
+                    <div className="flex flex-col items-center">
+                      <div className="h-3 w-3 rounded-full bg-lifemed-400 ring-4 ring-lifemed-100 dark:ring-lifemed-900/40" />
+                      {i < recentTimeline.length - 1 && (
+                        <div className="w-px flex-1 bg-border mt-1" />
+                      )}
                     </div>
-                    <p className="text-xs text-muted mt-0.5">{formatDate(event.date, locale)}</p>
+                    <div className="flex-1 pb-4">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm font-medium text-foreground">{event.title}</span>
+                        <span className={cnBadge(getTimelineTypeColor(event.type))}>
+                          {getTimelineTypeLabel(event.type)}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted mt-0.5">{formatDate(event.date, locale)}</p>
+                    </div>
                   </div>
+                ))
+              ) : (
+                <div className="rounded-xl border border-dashed border-border p-6 text-center">
+                  <Clock className="mx-auto h-8 w-8 text-muted/50" />
+                  <p className="mt-2 text-sm text-muted">{t("dashboard.noTimeline")}</p>
+                  <Button className="mt-4" size="sm" href="/timeline?add=true">
+                    <Plus className="h-4 w-4" />
+                    {t("dashboard.addTimelineEvent")}
+                  </Button>
                 </div>
-              ))}
+              )}
             </CardContent>
           </Card>
         </motion.div>
@@ -267,7 +295,7 @@ export default function DashboardPage() {
                 <FileText className="h-5 w-5 text-lifemed-500" />
                 {t("dashboard.recentUploads")}
               </CardTitle>
-              <Button variant="ghost" size="sm" href="/documents">
+              <Button variant="ghost" size="sm" href="/documents?upload=true">
                 {t("common.viewAll")}
                 <ArrowRight className="h-4 w-4" />
               </Button>

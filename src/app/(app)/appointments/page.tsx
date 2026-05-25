@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DataModeBanner } from "@/components/layout/data-mode-banner";
@@ -12,9 +13,26 @@ import type { Locale } from "@/lib/i18n";
 import { Calendar, Plus, Trash2, MapPin } from "lucide-react";
 
 export default function AppointmentsPage() {
+  const { t } = useTranslation();
+
+  return (
+    <Suspense fallback={<div className="py-20 text-center text-muted">{t("common.loading")}</div>}>
+      <AppointmentsContent />
+    </Suspense>
+  );
+}
+
+function AppointmentsContent() {
   const { t, locale } = useTranslation();
+  const searchParams = useSearchParams();
   const { mode, loading, appointments, removeAppointment } = useHealthDataContext();
   const [showModal, setShowModal] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get("add") === "true") {
+      setShowModal(true);
+    }
+  }, [searchParams]);
 
   const upcoming = appointments
     .filter((a) => new Date(a.date) >= new Date())

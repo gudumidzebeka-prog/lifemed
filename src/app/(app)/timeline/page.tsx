@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,13 +19,30 @@ import type { TimelineEvent, TimelineEventType } from "@/types/health";
 import { TIMELINE_EVENT_TYPES } from "@/lib/constants";
 
 export default function TimelinePage() {
+  const { t } = useTranslation();
+
+  return (
+    <Suspense fallback={<div className="py-20 text-center text-muted">{t("common.loading")}</div>}>
+      <TimelineContent />
+    </Suspense>
+  );
+}
+
+function TimelineContent() {
   const { t, locale } = useTranslation();
+  const searchParams = useSearchParams();
   const getTimelineTypeLabel = useTimelineTypeLabel();
   const { mode, loading, timeline, removeTimelineEvent } = useHealthDataContext();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<TimelineEventType | "all">("all");
   const [showAddModal, setShowAddModal] = useState(false);
   const [editEvent, setEditEvent] = useState<TimelineEvent | null>(null);
+
+  useEffect(() => {
+    if (searchParams.get("add") === "true") {
+      setShowAddModal(true);
+    }
+  }, [searchParams]);
 
   const filtered = timeline
     .filter((event) => {

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useTranslation } from "@/components/providers/locale-provider";
 import { useHealthDataContext } from "@/components/providers/health-data-provider";
 import { DataModeBanner } from "@/components/layout/data-mode-banner";
@@ -28,7 +29,18 @@ import {
 } from "lucide-react";
 
 export default function ProfilePage() {
+  const { t } = useTranslation();
+
+  return (
+    <Suspense fallback={<div className="py-20 text-center text-muted">{t("common.loading")}</div>}>
+      <ProfileContent />
+    </Suspense>
+  );
+}
+
+function ProfileContent() {
   const { t, locale } = useTranslation();
+  const searchParams = useSearchParams();
   const getMedicationFrequencyLabel = useMedicationFrequencyLabel();
   const getRelationshipLabel = useRelationshipLabel();
   const {
@@ -44,6 +56,12 @@ export default function ProfilePage() {
   const [showMedModal, setShowMedModal] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
   const [newAllergy, setNewAllergy] = useState("");
+
+  useEffect(() => {
+    if (searchParams.get("med") === "true") {
+      setShowMedModal(true);
+    }
+  }, [searchParams]);
 
   const handleAddAllergy = async () => {
     if (!newAllergy.trim()) return;

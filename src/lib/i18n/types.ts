@@ -168,6 +168,8 @@ export type TranslationTree = {
     summaryRoutine: string;
     addDocument: string;
     addTimelineEvent: string;
+    noTimeline: string;
+    noMedications: string;
   };
   timeline: {
     title: string;

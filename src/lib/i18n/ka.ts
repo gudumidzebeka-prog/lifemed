@@ -165,6 +165,8 @@ export const ka: TranslationTree = {
     summaryRoutine: "რუტინული მოვლა",
     addDocument: "დოკუმენტის ატვირთვა",
     addTimelineEvent: "ჩანაწერის დამატება",
+    noTimeline: "ქრონოლოგიაში ჩანაწერი ჯერ არ არის",
+    noMedications: "მედიკამენტები ჯერ არ არის დამატებული",
   },
   timeline: {
     title: "სამედიცინო ქრონოლოგია",

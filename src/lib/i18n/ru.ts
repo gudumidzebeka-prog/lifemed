@@ -164,6 +164,8 @@ export const ru: TranslationTree = {
     summaryRoutine: "рутинный уход",
     addDocument: "Загрузить документ",
     addTimelineEvent: "Добавить запись",
+    noTimeline: "В хронологии пока нет записей",
+    noMedications: "Медикаменты ещё не добавлены",
   },
   timeline: {
     title: "Медицинская хронология",

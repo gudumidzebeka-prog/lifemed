@@ -40,7 +40,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
     if (href) {
       return (
-        <Link href={href} className={cn(classes, "no-underline")}>
+        <Link href={href} className={cn(classes, "no-underline relative z-10 cursor-pointer")}>
           {children}
         </Link>
       );

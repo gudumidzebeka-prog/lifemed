@@ -164,6 +164,8 @@ export const en: TranslationTree = {
     summaryRoutine: "routine care",
     addDocument: "Upload document",
     addTimelineEvent: "Add timeline event",
+    noTimeline: "No timeline events yet",
+    noMedications: "No medications added yet",
   },
   timeline: {
     title: "Medical Timeline",
