@@ -503,6 +503,7 @@ export const en: TranslationTree = {
     profileAllergiesPlaceholder: "Penicillin, Shellfish",
     profileChronicPlaceholder: "Lupus",
     contactAddTitle: "Add emergency contact",
+    contactEditTitle: "Edit emergency contact",
     contactName: "Name",
     contactRelationship: "Relationship",
     contactRelationshipPlaceholder: "spouse, parent, doctor...",

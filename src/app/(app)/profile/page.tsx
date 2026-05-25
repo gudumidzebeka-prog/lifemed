@@ -18,7 +18,7 @@ import { EditProfileModal } from "@/components/profile/edit-profile-modal";
 import { ProfileAvatar } from "@/components/profile/profile-avatar";
 import { AddMedicationModal } from "@/components/profile/add-medication-modal";
 import { EmergencyContactModal } from "@/components/profile/emergency-contact-modal";
-import type { Medication } from "@/types/health";
+import type { EmergencyContact, Medication } from "@/types/health";
 import {
   User,
   Droplets,
@@ -62,6 +62,7 @@ function ProfileContent() {
   const [showMedModal, setShowMedModal] = useState(false);
   const [editMedication, setEditMedication] = useState<Medication | null>(null);
   const [showContactModal, setShowContactModal] = useState(false);
+  const [editContact, setEditContact] = useState<EmergencyContact | null>(null);
   const [newAllergy, setNewAllergy] = useState("");
   const [newChronic, setNewChronic] = useState("");
   const [bloodTypeInput, setBloodTypeInput] = useState(profile.bloodType ?? "");
@@ -81,6 +82,16 @@ function ProfileContent() {
   const closeMedicationModal = () => {
     setShowMedModal(false);
     setEditMedication(null);
+  };
+
+  const openContactModal = (contact: EmergencyContact | null = null) => {
+    setEditContact(contact);
+    setShowContactModal(true);
+  };
+
+  const closeContactModal = () => {
+    setShowContactModal(false);
+    setEditContact(null);
   };
 
   useEffect(() => {
@@ -179,7 +190,11 @@ function ProfileContent() {
         onClose={closeMedicationModal}
         medication={editMedication}
       />
-      <EmergencyContactModal open={showContactModal} onClose={() => setShowContactModal(false)} />
+      <EmergencyContactModal
+        open={showContactModal}
+        onClose={closeContactModal}
+        contact={editContact}
+      />
 
       <Card>
         <CardContent className="flex flex-col items-center gap-4 p-8 sm:flex-row sm:items-start">
@@ -392,13 +407,23 @@ function ProfileContent() {
                     {contact.phone}
                   </a>
                 </div>
-                <Button variant="ghost" size="icon" onClick={() => removeEmergencyContact(contact.id)}>
-                  <Trash2 className="h-4 w-4 text-muted" />
-                </Button>
+                <div className="flex shrink-0 gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => openContactModal(contact)}
+                    aria-label={t("common.edit")}
+                  >
+                    <Pencil className="h-4 w-4 text-muted" />
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => removeEmergencyContact(contact.id)}>
+                    <Trash2 className="h-4 w-4 text-muted" />
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
-          <Button variant="ghost" size="sm" className="mt-3" onClick={() => setShowContactModal(true)}>
+          <Button variant="ghost" size="sm" className="mt-3" onClick={() => openContactModal(null)}>
             <Plus className="h-4 w-4" />
             {t("profile.addContact")}
           </Button>

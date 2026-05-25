@@ -56,6 +56,8 @@ import {
 
   updateAppointment,
 
+  updateEmergencyContact,
+
   updateMedication,
 
   uploadHealthDocument,
@@ -873,6 +875,80 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
     },
 
     [mode, userId]
+
+  );
+
+
+
+  const editEmergencyContact = useCallback(
+
+    async (contactId: string, contact: Omit<EmergencyContact, "id">) => {
+
+      const prevContacts = profile.emergencyContacts;
+
+      setProfile((prev) => ({
+
+        ...prev,
+
+        emergencyContacts: prev.emergencyContacts.map((item) =>
+
+          item.id === contactId ? { ...item, ...contact } : item
+
+        ),
+
+      }));
+
+
+
+      if (mode === "live" && userId && isSupabaseConfigured()) {
+
+        const supabase = createClient();
+
+        const { contact: updated, error } = await updateEmergencyContact(
+
+          supabase,
+
+          userId,
+
+          contactId,
+
+          contact
+
+        );
+
+        if (error) {
+
+          setProfile((prev) => ({ ...prev, emergencyContacts: prevContacts }));
+
+          return { error: error.message };
+
+        }
+
+        if (updated) {
+
+          setProfile((prev) => ({
+
+            ...prev,
+
+            emergencyContacts: prev.emergencyContacts.map((item) =>
+
+              item.id === contactId ? updated : item
+
+            ),
+
+          }));
+
+        }
+
+      }
+
+
+
+      return { error: null };
+
+    },
+
+    [mode, userId, profile.emergencyContacts]
 
   );
 
@@ -1777,6 +1853,8 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
     removeChronicIllness,
 
     addEmergencyContact,
+
+    editEmergencyContact,
 
     removeEmergencyContact,
 

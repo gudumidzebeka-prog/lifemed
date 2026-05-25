@@ -475,6 +475,7 @@ export type TranslationTree = {
     profileAllergiesPlaceholder: string;
     profileChronicPlaceholder: string;
     contactAddTitle: string;
+    contactEditTitle: string;
     contactName: string;
     contactRelationship: string;
     contactRelationshipPlaceholder: string;

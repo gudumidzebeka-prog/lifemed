@@ -503,6 +503,7 @@ export const ru: TranslationTree = {
     profileAllergiesPlaceholder: "Пенициллин, морепродукты",
     profileChronicPlaceholder: "lupus",
     contactAddTitle: "Добавить экстренный контакт",
+    contactEditTitle: "Редактировать экстренный контакт",
     contactName: "Имя",
     contactRelationship: "Отношение",
     contactRelationshipPlaceholder: "супруг, родитель, врач...",

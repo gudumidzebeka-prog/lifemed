@@ -504,6 +504,7 @@ export const ka: TranslationTree = {
     profileAllergiesPlaceholder: "პenicillin, კრევეტი",
     profileChronicPlaceholder: "lupus",
     contactAddTitle: "საგანგებო კონტაქტის დამატება",
+    contactEditTitle: "საგანგებო კონტაქტის რედაქტირება",
     contactName: "სახელი",
     contactRelationship: "ურთიერთობა",
     contactRelationshipPlaceholder: "მეუღლე, მშობელი, ექიმი...",

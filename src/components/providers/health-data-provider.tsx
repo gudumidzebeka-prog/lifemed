@@ -58,6 +58,10 @@ interface HealthDataContextValue {
   addChronicIllness: (illness: string) => Promise<{ error: string | null }>;
   removeChronicIllness: (illness: string) => Promise<{ error: string | null }>;
   addEmergencyContact: (contact: Omit<EmergencyContact, "id">) => Promise<{ error: string | null }>;
+  editEmergencyContact: (
+    contactId: string,
+    contact: Omit<EmergencyContact, "id">
+  ) => Promise<{ error: string | null }>;
   removeEmergencyContact: (contactId: string) => Promise<{ error: string | null }>;
   uploadDocument: (file: File, category: string) => Promise<{ error: string | null }>;
   removeDocument: (documentId: string) => Promise<{ error: string | null }>;

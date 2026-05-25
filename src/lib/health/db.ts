@@ -587,6 +587,40 @@ export async function createEmergencyContact(
   };
 }
 
+export async function updateEmergencyContact(
+  supabase: SupabaseClient,
+  userId: string,
+  contactId: string,
+  contact: Omit<EmergencyContact, "id">
+) {
+  const { data, error } = await supabase
+    .from("emergency_contacts")
+    .update({
+      name: contact.name,
+      relationship: contact.relationship,
+      phone: contact.phone,
+      email: contact.email ?? null,
+    })
+    .eq("id", contactId)
+    .eq("user_id", userId)
+    .select()
+    .single();
+
+  if (error || !data) return { contact: null, error };
+
+  const row = data as ContactRow;
+  return {
+    error: null,
+    contact: {
+      id: row.id,
+      name: row.name,
+      relationship: row.relationship,
+      phone: row.phone,
+      email: row.email ?? undefined,
+    } satisfies EmergencyContact,
+  };
+}
+
 export async function deleteEmergencyContact(
   supabase: SupabaseClient,
   userId: string,

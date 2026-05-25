@@ -13,7 +13,7 @@ import { displayFirstName } from "@/lib/health/empty-profile";
 import { normalizeDateOfBirth } from "@/lib/health/profile-dates";
 import { formatDate } from "@/lib/utils";
 import { formatReminderTimes, sanitizeReminderTimes } from "@/lib/health/medication-reminders";
-import type { Medication } from "@/types/health";
+import type { EmergencyContact, Medication } from "@/types/health";
 import { Phone, Mail, AlertTriangle, Pill, Heart, Droplets, Pencil, Plus, X } from "lucide-react";
 
 export default function EmergencyPage() {
@@ -35,6 +35,7 @@ export default function EmergencyPage() {
   const [showMedModal, setShowMedModal] = useState(false);
   const [editMedication, setEditMedication] = useState<Medication | null>(null);
   const [showContactModal, setShowContactModal] = useState(false);
+  const [editContact, setEditContact] = useState<EmergencyContact | null>(null);
 
   const [editingPatient, setEditingPatient] = useState(false);
   const [patientForm, setPatientForm] = useState({
@@ -66,6 +67,16 @@ export default function EmergencyPage() {
   const closeMedicationModal = () => {
     setShowMedModal(false);
     setEditMedication(null);
+  };
+
+  const openContactModal = (contact: EmergencyContact | null = null) => {
+    setEditContact(contact);
+    setShowContactModal(true);
+  };
+
+  const closeContactModal = () => {
+    setShowContactModal(false);
+    setEditContact(null);
   };
 
   const displayName = profile.fullName.trim() || displayFirstName(profile.fullName);
@@ -165,7 +176,11 @@ export default function EmergencyPage() {
         onClose={closeMedicationModal}
         medication={editMedication}
       />
-      <EmergencyContactModal open={showContactModal} onClose={() => setShowContactModal(false)} />
+      <EmergencyContactModal
+        open={showContactModal}
+        onClose={closeContactModal}
+        contact={editContact}
+      />
 
       <div className="flex-1 space-y-4">
         <EmergencySection
@@ -494,14 +509,26 @@ export default function EmergencyPage() {
                       <p className="text-sm text-muted">{getRelationshipLabel(contact.relationship)}</p>
                     </div>
                     {editingContacts && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="relative z-10 shrink-0"
-                        onClick={() => removeEmergencyContact(contact.id)}
-                      >
-                        <X className="h-4 w-4 text-muted" />
-                      </Button>
+                      <div className="flex shrink-0 gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="relative z-10 h-8 w-8"
+                          onClick={() => openContactModal(contact)}
+                          aria-label={t("common.edit")}
+                        >
+                          <Pencil className="h-4 w-4 text-muted" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="relative z-10 shrink-0"
+                          onClick={() => removeEmergencyContact(contact.id)}
+                          aria-label={t("common.remove")}
+                        >
+                          <X className="h-4 w-4 text-muted" />
+                        </Button>
+                      </div>
                     )}
                   </div>
                   <a
@@ -531,7 +558,7 @@ export default function EmergencyPage() {
               variant="secondary"
               size="sm"
               className="relative z-10 mt-3"
-              onClick={() => setShowContactModal(true)}
+              onClick={() => openContactModal(null)}
             >
               <Plus className="h-4 w-4" />
               {t("emergency.addContact")}
