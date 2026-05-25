@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Disclaimer } from "@/components/ui/badge";
 import { useTranslation } from "@/components/providers/locale-provider";
-import { Loader2, Send, Sparkles, Upload, Clock } from "lucide-react";
+import { Loader2, Send, Sparkles } from "lucide-react";
 import type { Locale } from "@/lib/i18n";
 
 interface ChatMessage {
@@ -120,20 +120,7 @@ export function DashboardAiPanel({ aiSummary, isEmptySummary, locale }: Dashboar
       </CardHeader>
 
       <CardContent className="space-y-4">
-        <p className="leading-relaxed text-foreground">{aiSummary}</p>
-
-        {isEmptySummary && (
-          <div className="flex flex-wrap gap-2">
-            <Button size="sm" href="/documents?upload=true">
-              <Upload className="h-4 w-4" />
-              {t("dashboard.addDocument")}
-            </Button>
-            <Button variant="secondary" size="sm" href="/timeline?add=true">
-              <Clock className="h-4 w-4" />
-              {t("dashboard.addTimelineEvent")}
-            </Button>
-          </div>
-        )}
+        {!isEmptySummary && <p className="leading-relaxed text-foreground">{aiSummary}</p>}
 
         {messages.length > 0 && (
           <div className="space-y-3 rounded-xl border border-border bg-surface/80 p-4">
