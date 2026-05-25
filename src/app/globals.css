@@ -20,13 +20,13 @@
   --color-lifemed-900: #214543;
   --color-lifemed-950: #0f2827;
 
-  --color-surface: #d9f2f0;
-  --color-surface-elevated: #b3e5e0;
-  --color-field: #d9f2f0;
+  --color-surface: #b3e5e0;
+  --color-surface-elevated: #7dd3cc;
+  --color-field: #b3e5e0;
   --color-muted: #64748b;
-  --color-border: #b3e5e0;
+  --color-border: #7dd3cc;
   --color-foreground: #0f172a;
-  --color-background: #f0fafa;
+  --color-background: #d9f2f0;
 
   --radius-sm: 0.5rem;
   --radius-md: 0.75rem;
