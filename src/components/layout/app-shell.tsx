@@ -23,6 +23,7 @@ import {
 import { useState, useRef, useEffect } from "react";
 import { ThemeToggle } from "./theme-toggle";
 import { LifeMedLogo } from "./lifemed-logo";
+import { DesktopDateTime } from "./desktop-datetime";
 import { LiveModeBadge } from "./live-mode-badge";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
@@ -241,7 +242,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
           </header>
 
-          <header className="sticky top-0 z-40 hidden items-center justify-end border-b border-border bg-surface/80 px-8 py-3 backdrop-blur-xl safe-top lg:flex">
+          <header className="sticky top-0 z-40 hidden items-center justify-between border-b border-border bg-surface/80 px-8 py-3 backdrop-blur-xl safe-top lg:flex">
+            <DesktopDateTime />
             <HeaderActions />
           </header>
 

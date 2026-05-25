@@ -52,10 +52,7 @@ export function LifeMedLogo({ variant = "compact", className }: LifeMedLogoProps
       {isCompact ? (
         <span className="font-semibold text-foreground">{APP_NAME}</span>
       ) : (
-        <div>
-          <p className="font-semibold text-foreground">{APP_NAME}</p>
-          <p className="text-xs text-muted">{t("nav.sidebarTagline")}</p>
-        </div>
+        <p className="font-semibold text-foreground">{APP_NAME}</p>
       )}
     </a>
   );
