@@ -4,7 +4,6 @@ import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslation } from "@/components/providers/locale-provider";
 import { useHealthDataContext } from "@/components/providers/health-data-provider";
-import { DataModeBanner } from "@/components/layout/data-mode-banner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,7 +44,6 @@ function ProfileContent() {
   const getMedicationFrequencyLabel = useMedicationFrequencyLabel();
   const getRelationshipLabel = useRelationshipLabel();
   const {
-    mode,
     loading,
     profile,
     addAllergy,
@@ -76,7 +74,6 @@ function ProfileContent() {
 
   return (
     <div className="space-y-8">
-      <DataModeBanner mode={mode} />
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground sm:text-3xl">{t("profile.title")}</h1>

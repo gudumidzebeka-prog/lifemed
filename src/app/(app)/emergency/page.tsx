@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useTranslation } from "@/components/providers/locale-provider";
 import { useHealthDataContext } from "@/components/providers/health-data-provider";
-import { DataModeBanner } from "@/components/layout/data-mode-banner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -20,7 +19,6 @@ export default function EmergencyPage() {
   const getMedicationFrequencyLabel = useMedicationFrequencyLabel();
   const getRelationshipLabel = useRelationshipLabel();
   const {
-    mode,
     loading,
     profile,
     addAllergy,
@@ -54,8 +52,6 @@ export default function EmergencyPage() {
 
   return (
     <div className="min-h-[calc(100vh-6rem)] flex flex-col">
-      <DataModeBanner mode={mode} />
-
       <div className="rounded-2xl bg-gradient-to-br from-rose-500 to-rose-600 p-6 text-white shadow-lg shadow-rose-500/20 mb-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">

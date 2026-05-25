@@ -18,7 +18,6 @@ import {
 import { ExpandableCard } from "@/components/ui/expandable-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { DataModeBanner } from "@/components/layout/data-mode-banner";
 import { DocumentViewerModal } from "@/components/documents/document-viewer-modal";
 import { useTranslation } from "@/components/providers/locale-provider";
 import { useHealthDataContext } from "@/components/providers/health-data-provider";
@@ -50,7 +49,7 @@ function getDocumentForRecord(record: CategoryRecord, documents: HealthDocument[
 export default function CategoriesPage() {
   const { t, locale } = useTranslation();
   const getHealthCategoryLabel = useHealthCategoryLabel();
-  const { mode, loading, timeline, documents, profile, resolveDocumentUrl, downloadDocument } =
+  const { loading, timeline, documents, profile, resolveDocumentUrl, downloadDocument } =
     useHealthDataContext();
   const [viewerDoc, setViewerDoc] = useState<HealthDocument | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -72,7 +71,6 @@ export default function CategoriesPage() {
 
   return (
     <div className="space-y-8">
-      <DataModeBanner mode={mode} />
       {actionError && (
         <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-800 dark:bg-rose-950/30 dark:text-rose-300">
           {actionError}

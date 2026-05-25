@@ -4,7 +4,6 @@ import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { DataModeBanner } from "@/components/layout/data-mode-banner";
 import { AddAppointmentModal } from "@/components/appointments/add-appointment-modal";
 import { useTranslation } from "@/components/providers/locale-provider";
 import { useHealthDataContext } from "@/components/providers/health-data-provider";
@@ -25,7 +24,7 @@ export default function AppointmentsPage() {
 function AppointmentsContent() {
   const { t, locale } = useTranslation();
   const searchParams = useSearchParams();
-  const { mode, loading, appointments, removeAppointment } = useHealthDataContext();
+  const { loading, appointments, removeAppointment } = useHealthDataContext();
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
@@ -48,7 +47,6 @@ function AppointmentsContent() {
 
   return (
     <div className="space-y-8">
-      <DataModeBanner mode={mode} />
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground sm:text-3xl">{t("appointments.title")}</h1>

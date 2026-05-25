@@ -5,9 +5,7 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Disclaimer } from "@/components/ui/badge";
-import { DataModeBanner } from "@/components/layout/data-mode-banner";
 import { useTranslation } from "@/components/providers/locale-provider";
-import { useHealthDataContext } from "@/components/providers/health-data-provider";
 import { cn } from "@/lib/utils";
 import {
   Sparkles,
@@ -28,7 +26,6 @@ interface Message {
 
 export default function AIAssistantPage() {
   const { t, locale } = useTranslation();
-  const { mode } = useHealthDataContext();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -240,7 +237,6 @@ export default function AIAssistantPage() {
           {t("ai.demoModeNote")}
         </div>
       )}
-      {!focusChat && <DataModeBanner mode={mode} />}
 
       {!focusChat && (
         <div className="flex gap-2 overflow-x-auto pb-3 mb-4">

@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { DataModeBanner } from "@/components/layout/data-mode-banner";
 import { AddFamilyMemberModal } from "@/components/family/add-family-member-modal";
 import { useTranslation } from "@/components/providers/locale-provider";
 import { useRelationshipLabel } from "@/lib/i18n/hooks";
@@ -16,13 +15,11 @@ import Link from "next/link";
 export default function FamilyPage() {
   const { t, locale } = useTranslation();
   const getRelationshipLabel = useRelationshipLabel();
-  const { mode, loading, familyMembers } = useHealthDataContext();
+  const { loading, familyMembers } = useHealthDataContext();
   const [showAddModal, setShowAddModal] = useState(false);
 
   return (
     <div className="space-y-8">
-      <DataModeBanner mode={mode} />
-
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground sm:text-3xl">{t("family.title")}</h1>

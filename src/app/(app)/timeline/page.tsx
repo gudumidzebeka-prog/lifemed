@@ -9,7 +9,6 @@ import { AddTimelineEventModal } from "@/components/timeline/add-event-modal";
 import { EditTimelineEventModal } from "@/components/timeline/edit-event-modal";
 import { useTranslation } from "@/components/providers/locale-provider";
 import { useHealthDataContext } from "@/components/providers/health-data-provider";
-import { DataModeBanner } from "@/components/layout/data-mode-banner";
 import { useTimelineTypeLabel } from "@/lib/i18n/hooks";
 import { getTimelineTypeColor } from "@/data/demo-data";
 import { formatDate } from "@/lib/utils";
@@ -32,7 +31,7 @@ function TimelineContent() {
   const { t, locale } = useTranslation();
   const searchParams = useSearchParams();
   const getTimelineTypeLabel = useTimelineTypeLabel();
-  const { mode, loading, timeline, removeTimelineEvent } = useHealthDataContext();
+  const { loading, timeline, removeTimelineEvent } = useHealthDataContext();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<TimelineEventType | "all">("all");
   const [showAddModal, setShowAddModal] = useState(false);
@@ -68,7 +67,6 @@ function TimelineContent() {
 
   return (
     <div className="space-y-8">
-      <DataModeBanner mode={mode} />
       {loading && <div className="text-center text-muted py-8">{t("common.loading")}</div>}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>

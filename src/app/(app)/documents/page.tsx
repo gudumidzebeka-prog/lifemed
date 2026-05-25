@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTranslation } from "@/components/providers/locale-provider";
 import { useHealthDataContext } from "@/components/providers/health-data-provider";
-import { DataModeBanner } from "@/components/layout/data-mode-banner";
 import { useDocumentCategoryLabel } from "@/lib/i18n/hooks";
 import { isImageMime } from "@/lib/health/mime";
 import { formatRelativeTime } from "@/lib/utils";
@@ -34,7 +33,7 @@ function DocumentsContent() {
   const { t, locale } = useTranslation();
   const getDocumentCategoryLabel = useDocumentCategoryLabel();
   const searchParams = useSearchParams();
-  const { mode, loading, documents, downloadDocument, resolveDocumentUrl, removeDocument } =
+  const { loading, documents, downloadDocument, resolveDocumentUrl, removeDocument } =
     useHealthDataContext();
   const [search, setSearch] = useState("");
   const [view, setView] = useState<"grid" | "list">("grid");
@@ -127,7 +126,6 @@ function DocumentsContent() {
 
   return (
     <div className="space-y-8">
-      <DataModeBanner mode={mode} />
       {loading && <div className="text-center text-muted py-4">{t("common.loading")}</div>}
 
       {actionError && (
