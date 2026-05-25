@@ -242,15 +242,24 @@ export type TranslationTree = {
   emergency: {
     title: string;
     subtitle: string;
+    fillCard: string;
+    fillHint: string;
+    edit: string;
+    add: string;
     patient: string;
     dob: string;
     bloodType: string;
     allergies: string;
     noAllergies: string;
+    addAllergy: string;
     chronic: string;
     noneReported: string;
     medications: string;
+    noMedications: string;
+    addMedication: string;
     contacts: string;
+    noContacts: string;
+    addContact: string;
     footer: string;
   };
   share: {
