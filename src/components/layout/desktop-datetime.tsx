@@ -31,7 +31,7 @@ export function DesktopDateTime({ className }: { className?: string }) {
   return (
     <time
       dateTime={now.toISOString()}
-      className={cn("text-sm tabular-nums text-muted", className)}
+      className={cn("text-base font-semibold tabular-nums text-foreground", className)}
     >
       {formatDesktopDateTime(now)}
     </time>
