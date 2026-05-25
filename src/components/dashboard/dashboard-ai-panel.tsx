@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Disclaimer } from "@/components/ui/badge";
 import { useTranslation } from "@/components/providers/locale-provider";
+import { APP_NAME } from "@/lib/constants";
 import { Loader2, Send, Sparkles } from "lucide-react";
 import type { Locale } from "@/lib/i18n";
 
@@ -92,7 +93,7 @@ export function DashboardAiPanel({ locale }: DashboardAiPanelProps) {
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-lifemed-500 text-white">
               <Sparkles className="h-5 w-5" />
             </div>
-            <CardTitle>AI</CardTitle>
+            <CardTitle>{APP_NAME} AI</CardTitle>
           </div>
 
           <form
