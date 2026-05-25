@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslation } from "@/components/providers/locale-provider";
 import { useHealthDataContext } from "@/components/providers/health-data-provider";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +13,6 @@ import { useMedicationFrequencyLabel, useRelationshipLabel } from "@/lib/i18n/ho
 import { formatDate } from "@/lib/utils";
 import { formatReminderTimes, sanitizeReminderTimes } from "@/lib/health/medication-reminders";
 import { displayFirstName } from "@/lib/health/empty-profile";
-import { normalizeDateOfBirth } from "@/lib/health/profile-dates";
 import { EditProfileModal } from "@/components/profile/edit-profile-modal";
 import { ProfileAvatar } from "@/components/profile/profile-avatar";
 import { AddMedicationModal } from "@/components/profile/add-medication-modal";
@@ -24,7 +23,6 @@ import {
 } from "@/components/share/medical-share-qr";
 import type { EmergencyContact, Medication } from "@/types/health";
 import {
-  User,
   Droplets,
   AlertTriangle,
   Pill,
@@ -70,11 +68,6 @@ function ProfileContent() {
   const [newAllergy, setNewAllergy] = useState("");
   const [newChronic, setNewChronic] = useState("");
   const [bloodTypeInput, setBloodTypeInput] = useState(profile.bloodType ?? "");
-  const [personalForm, setPersonalForm] = useState({
-    fullName: profile.fullName,
-    dateOfBirth: normalizeDateOfBirth(profile.dateOfBirth),
-  });
-  const [savingPersonal, setSavingPersonal] = useState(false);
   const [savingBloodType, setSavingBloodType] = useState(false);
   const [fieldError, setFieldError] = useState<string | null>(null);
 
@@ -99,12 +92,8 @@ function ProfileContent() {
   };
 
   useEffect(() => {
-    setPersonalForm({
-      fullName: profile.fullName,
-      dateOfBirth: normalizeDateOfBirth(profile.dateOfBirth),
-    });
     setBloodTypeInput(profile.bloodType ?? "");
-  }, [profile.fullName, profile.dateOfBirth, profile.bloodType]);
+  }, [profile.bloodType]);
 
   useEffect(() => {
     if (searchParams.get("med") === "true") {
@@ -135,27 +124,6 @@ function ProfileContent() {
     }
     setNewChronic("");
     setFieldError(null);
-  };
-
-  const handleSaveFullName = async () => {
-    if (loading || personalForm.fullName.trim() === profile.fullName.trim()) return;
-
-    setSavingPersonal(true);
-    setFieldError(null);
-    const { error } = await saveProfile({ fullName: personalForm.fullName.trim() });
-    setSavingPersonal(false);
-    if (error) setFieldError(error);
-  };
-
-  const handleDateOfBirthChange = async (value: string) => {
-    setPersonalForm((prev) => ({ ...prev, dateOfBirth: value }));
-    if (value.length !== 10 || loading) return;
-
-    const normalized = normalizeDateOfBirth(value);
-    if (!normalized || normalized === normalizeDateOfBirth(profile.dateOfBirth)) return;
-
-    const { error } = await saveProfile({ dateOfBirth: normalized });
-    if (error) setFieldError(error);
   };
 
   const handleSaveBloodType = async () => {
@@ -245,30 +213,7 @@ function ProfileContent() {
       </Card>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5 text-lifemed-500" />
-              {t("profile.personalDetails")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {fieldError && <p className="text-sm text-rose-600">{fieldError}</p>}
-            <Input
-              label={t("profile.fullName")}
-              value={personalForm.fullName}
-              onChange={(e) => setPersonalForm({ ...personalForm, fullName: e.target.value })}
-              onBlur={handleSaveFullName}
-            />
-            <Input
-              label={t("profile.dob")}
-              type="date"
-              value={personalForm.dateOfBirth}
-              onChange={(e) => handleDateOfBirthChange(e.target.value)}
-            />
-            {savingPersonal && <p className="text-xs text-muted">{t("common.saving")}</p>}
-          </CardContent>
-        </Card>
+        {fieldError && <p className="text-sm text-rose-600 lg:col-span-2">{fieldError}</p>}
 
         <ExpandableCard
           title={t("profile.bloodType")}
