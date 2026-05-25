@@ -233,6 +233,7 @@ export const en: TranslationTree = {
     subtitle: "Your personal health information",
     editProfile: "Edit profile",
     born: "Born {date}",
+    dobMissing: "Date of birth not set yet",
     personalDetails: "Personal Details",
     fullName: "Full name",
     dob: "Date of birth",

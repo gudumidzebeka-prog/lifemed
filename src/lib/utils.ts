@@ -12,12 +12,15 @@ export function formatDate(
   locale: Locale = "ka",
   options?: Intl.DateTimeFormatOptions
 ) {
+  const value = typeof date === "string" ? new Date(date) : date;
+  if (Number.isNaN(value.getTime())) return "";
+
   return new Intl.DateTimeFormat(LOCALE_BCP47[locale], {
     month: "short",
     day: "numeric",
     year: "numeric",
     ...options,
-  }).format(typeof date === "string" ? new Date(date) : date);
+  }).format(value);
 }
 
 export function formatRelativeTime(date: string | Date, locale: Locale = "ka") {

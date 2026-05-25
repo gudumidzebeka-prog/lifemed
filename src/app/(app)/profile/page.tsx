@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { ExpandableCard } from "@/components/ui/expandable-card";
 import { useMedicationFrequencyLabel, useRelationshipLabel } from "@/lib/i18n/hooks";
 import { formatDate } from "@/lib/utils";
+import { displayFirstName } from "@/lib/health/empty-profile";
 import { EditProfileModal } from "@/components/profile/edit-profile-modal";
 import { AddMedicationModal } from "@/components/profile/add-medication-modal";
 import { EmergencyContactModal } from "@/components/profile/emergency-contact-modal";
@@ -94,21 +95,27 @@ function ProfileContent() {
       <Card>
         <CardContent className="flex flex-col items-center gap-4 p-8 sm:flex-row sm:items-start">
           <div className="flex h-24 w-24 items-center justify-center rounded-3xl gradient-primary text-3xl font-bold text-white shadow-lg shadow-lifemed-500/20">
-            {profile.fullName
-              .split(" ")
+            {(profile.fullName.trim() || displayFirstName(profile.fullName))
+              .split(/\s+/)
               .map((n) => n[0])
-              .join("")}
+              .join("")
+              .slice(0, 2)
+              .toUpperCase()}
           </div>
           <div className="text-center sm:text-left flex-1">
-            <h2 className="text-xl font-bold text-foreground">{profile.fullName}</h2>
+            <h2 className="text-xl font-bold text-foreground">
+              {profile.fullName.trim() || displayFirstName(profile.fullName)}
+            </h2>
             <p className="text-muted mt-1">
-              {t("profile.born", {
-                date: formatDate(profile.dateOfBirth, locale, {
-                  month: "long",
-                  day: "numeric",
-                  year: "numeric",
-                }),
-              })}
+              {profile.dateOfBirth
+                ? t("profile.born", {
+                    date: formatDate(profile.dateOfBirth, locale, {
+                      month: "long",
+                      day: "numeric",
+                      year: "numeric",
+                    }),
+                  })
+                : t("profile.dobMissing")}
             </p>
             <div className="mt-3 flex flex-wrap gap-2 justify-center sm:justify-start">
               {profile.bloodType && (

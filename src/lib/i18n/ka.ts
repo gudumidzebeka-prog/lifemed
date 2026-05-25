@@ -234,6 +234,7 @@ export const ka: TranslationTree = {
     subtitle: "პირადი სამედიცინო ინფორმაცია",
     editProfile: "პროფილის რედაქტირება",
     born: "დაბ. {date}",
+    dobMissing: "დაბადების თარიღი ჯერ არ არის შევსებული",
     personalDetails: "პირადი მონაცემები",
     fullName: "სრული სახელი",
     dob: "დაბადების თარიღი",

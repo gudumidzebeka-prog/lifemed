@@ -233,6 +233,7 @@ export const ru: TranslationTree = {
     subtitle: "Личная медицинская информация",
     editProfile: "Редактировать профиль",
     born: "Рожд. {date}",
+    dobMissing: "Дата рождения пока не указана",
     personalDetails: "Личные данные",
     fullName: "Полное имя",
     dob: "Дата рождения",

@@ -219,6 +219,7 @@ export type TranslationTree = {
     subtitle: string;
     editProfile: string;
     born: string;
+    dobMissing: string;
     personalDetails: string;
     fullName: string;
     dob: string;
