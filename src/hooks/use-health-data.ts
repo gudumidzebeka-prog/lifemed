@@ -50,13 +50,13 @@ import {
 
   fetchTimelineEvents,
 
-  updateProfile,
-
   updateTimelineEvent,
 
   updateAppointment,
 
   updateMedication,
+
+  upsertHealthProfile,
 
   uploadHealthDocument,
 
@@ -76,6 +76,11 @@ import {
 } from "@/lib/health/medication-reminder-storage";
 
 import { sanitizeReminderTimes } from "@/lib/health/medication-reminders";
+import {
+  loadCachedProfileFields,
+  mergeProfileWithCache,
+  saveCachedProfileFields,
+} from "@/lib/health/profile-local-cache";
 import { inferMimeType } from "@/lib/health/mime";
 import { clearDemoSeedFromAccount, accountHasDemoSeedData } from "@/lib/health/demo-seed";
 
@@ -118,7 +123,12 @@ function newLocalId() {
 
 
 function getInitialProfile(supabaseConfigured: boolean) {
-  return supabaseConfigured ? EMPTY_PROFILE : demoProfile;
+  if (supabaseConfigured) return EMPTY_PROFILE;
+  const cached = loadCachedProfileFields(null);
+  if (cached) {
+    return { ...demoProfile, ...cached, id: demoProfile.id, userId: demoProfile.userId };
+  }
+  return demoProfile;
 }
 
 function getInitialTimeline(supabaseConfigured: boolean) {
@@ -342,7 +352,28 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
 
 
 
-      setProfile(withMedicationReminders(liveProfile ?? emptyLiveProfile(user)));
+      const baseProfile = liveProfile ?? emptyLiveProfile(user);
+      const mergedProfile = mergeProfileWithCache(baseProfile, user.id);
+
+      setProfile(withMedicationReminders(mergedProfile));
+
+      const shouldHealProfile =
+        mergedProfile.dateOfBirth !== (baseProfile.dateOfBirth ?? "") ||
+        mergedProfile.fullName !== baseProfile.fullName ||
+        (mergedProfile.bloodType ?? "") !== (baseProfile.bloodType ?? "") ||
+        JSON.stringify(mergedProfile.allergies) !== JSON.stringify(baseProfile.allergies) ||
+        JSON.stringify(mergedProfile.chronicIllnesses) !==
+          JSON.stringify(baseProfile.chronicIllnesses);
+
+      if (shouldHealProfile) {
+        await upsertHealthProfile(supabase, user.id, {
+          fullName: mergedProfile.fullName,
+          dateOfBirth: mergedProfile.dateOfBirth,
+          bloodType: mergedProfile.bloodType,
+          allergies: mergedProfile.allergies,
+          chronicIllnesses: mergedProfile.chronicIllnesses,
+        });
+      }
 
       setTimeline(liveTimeline);
 
@@ -372,7 +403,7 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
               fetchAppointments(supabase, user.id),
             ]);
 
-          setProfile(withMedicationReminders(freshProfile ?? emptyLiveProfile(user)));
+          setProfile(withMedicationReminders(mergeProfileWithCache(freshProfile ?? emptyLiveProfile(user), user.id)));
           setTimeline(freshTimeline);
           setDocuments(freshDocuments);
           if (!freshFamily.error) setFamilyMembers(freshFamily.members);
@@ -598,9 +629,13 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
 
     ) => {
 
+      const previous = profile;
+
       const next = { ...profile, ...updates };
 
       setProfile(next);
+
+      saveCachedProfileFields(userId, next);
 
 
 
@@ -608,9 +643,29 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
 
         const supabase = createClient();
 
-        const { error } = await updateProfile(supabase, userId, updates);
+        const { error } = await upsertHealthProfile(supabase, userId, {
 
-        if (error) return { error: error.message };
+          fullName: next.fullName,
+
+          dateOfBirth: next.dateOfBirth,
+
+          bloodType: next.bloodType,
+
+          allergies: next.allergies,
+
+          chronicIllnesses: next.chronicIllnesses,
+
+        });
+
+        if (error) {
+
+          setProfile(previous);
+
+          saveCachedProfileFields(userId, previous);
+
+          return { error: error.message };
+
+        }
 
       }
 

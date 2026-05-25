@@ -158,16 +158,36 @@ export async function updateProfile(
   userId: string,
   updates: Partial<Pick<HealthProfile, "fullName" | "dateOfBirth" | "bloodType" | "allergies" | "chronicIllnesses">>
 ) {
-  const { error } = await supabase
-    .from("profiles")
-    .update({
-      full_name: updates.fullName,
-      date_of_birth: updates.dateOfBirth || null,
-      blood_type: updates.bloodType || null,
-      allergies: updates.allergies,
-      chronic_illnesses: updates.chronicIllnesses,
-    })
-    .eq("id", userId);
+  const patch: Record<string, unknown> = {};
+
+  if (updates.fullName !== undefined) patch.full_name = updates.fullName;
+  if (updates.dateOfBirth !== undefined) patch.date_of_birth = updates.dateOfBirth || null;
+  if (updates.bloodType !== undefined) patch.blood_type = updates.bloodType || null;
+  if (updates.allergies !== undefined) patch.allergies = updates.allergies;
+  if (updates.chronicIllnesses !== undefined) patch.chronic_illnesses = updates.chronicIllnesses;
+
+  if (Object.keys(patch).length === 0) return { error: null };
+
+  const { error } = await supabase.from("profiles").update(patch).eq("id", userId);
+  return { error };
+}
+
+export async function upsertHealthProfile(
+  supabase: SupabaseClient,
+  userId: string,
+  profile: Pick<HealthProfile, "fullName" | "dateOfBirth" | "bloodType" | "allergies" | "chronicIllnesses">
+) {
+  const { error } = await supabase.from("profiles").upsert(
+    {
+      id: userId,
+      full_name: profile.fullName,
+      date_of_birth: profile.dateOfBirth || null,
+      blood_type: profile.bloodType || null,
+      allergies: profile.allergies ?? [],
+      chronic_illnesses: profile.chronicIllnesses ?? [],
+    },
+    { onConflict: "id" }
+  );
 
   return { error };
 }
