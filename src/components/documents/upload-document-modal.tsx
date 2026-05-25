@@ -14,9 +14,15 @@ interface UploadDocumentModalProps {
   open: boolean;
   onClose: () => void;
   initialFile?: File | null;
+  initialCategory?: string;
 }
 
-export function UploadDocumentModal({ open, onClose, initialFile = null }: UploadDocumentModalProps) {
+export function UploadDocumentModal({
+  open,
+  onClose,
+  initialFile = null,
+  initialCategory,
+}: UploadDocumentModalProps) {
   const { t } = useTranslation();
   const getDocumentCategoryLabel = useDocumentCategoryLabel();
   const { uploadDocument } = useHealthDataContext();
@@ -27,8 +33,11 @@ export function UploadDocumentModal({ open, onClose, initialFile = null }: Uploa
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (open) setFile(initialFile ?? null);
-  }, [open, initialFile]);
+    if (!open) return;
+    setFile(initialFile ?? null);
+    setCategory(initialCategory ?? DOCUMENT_CATEGORIES[0]);
+    setError(null);
+  }, [open, initialFile, initialCategory]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

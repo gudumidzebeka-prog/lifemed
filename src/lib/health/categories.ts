@@ -311,6 +311,36 @@ export function getCategoryAddHref(categoryId: string): string {
   return "/timeline?add=true";
 }
 
+const CATEGORY_DEFAULT_TIMELINE_TYPE: Partial<Record<string, TimelineEvent["type"]>> = {
+  vaccinations: "vaccination",
+  surgeries: "surgery",
+  immunology: "diagnosis",
+  cardiology: "doctor_visit",
+  neurology: "doctor_visit",
+  nephrology: "doctor_visit",
+  dermatology: "doctor_visit",
+};
+
+export type CategoryAddAction =
+  | { type: "medication" }
+  | { type: "allergy" }
+  | { type: "upload"; documentCategory: string }
+  | { type: "timeline"; eventType: TimelineEvent["type"]; healthCategory: string };
+
+export function getCategoryAddAction(categoryId: string): CategoryAddAction {
+  if (categoryId === "medications") return { type: "medication" };
+  if (categoryId === "allergies") return { type: "allergy" };
+  if (categoryId === "lab-results") {
+    return { type: "upload", documentCategory: "Lab Results" };
+  }
+
+  return {
+    type: "timeline",
+    eventType: CATEGORY_DEFAULT_TIMELINE_TYPE[categoryId] ?? "doctor_visit",
+    healthCategory: categoryId,
+  };
+}
+
 export type CategoryRecordAction =
   | { type: "document"; documentId: string }
   | { type: "timeline"; eventId: string }

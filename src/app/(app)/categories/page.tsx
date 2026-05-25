@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import {
   Heart,
   Brain,
@@ -16,14 +15,16 @@ import {
   Eye,
   FileText,
   Pencil,
-  ArrowRight,
   Plus,
 } from "lucide-react";
 import { ExpandableCard } from "@/components/ui/expandable-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DocumentViewerModal } from "@/components/documents/document-viewer-modal";
+import { UploadDocumentModal } from "@/components/documents/upload-document-modal";
 import { AddMedicationModal } from "@/components/profile/add-medication-modal";
+import { AllergyManageModal } from "@/components/profile/allergy-manage-modal";
+import { AddTimelineEventModal } from "@/components/timeline/add-event-modal";
 import { EditTimelineEventModal } from "@/components/timeline/edit-event-modal";
 import { useTranslation } from "@/components/providers/locale-provider";
 import { useHealthDataContext } from "@/components/providers/health-data-provider";
@@ -31,11 +32,11 @@ import { useHealthCategoryLabel } from "@/lib/i18n/hooks";
 import { HEALTH_CATEGORIES } from "@/lib/constants";
 import {
   buildCategoryRecords,
-  getCategoryAddHref,
+  getCategoryAddAction,
   resolveCategoryRecordAction,
 } from "@/lib/health/categories";
 import { formatDate } from "@/lib/utils";
-import type { CategoryRecord, HealthDocument, Medication, TimelineEvent } from "@/types/health";
+import type { CategoryRecord, HealthDocument, Medication, TimelineEvent, TimelineEventType } from "@/types/health";
 
 const iconMap = {
   Heart,
@@ -57,7 +58,6 @@ function getDocumentForRecord(record: CategoryRecord, documents: HealthDocument[
 }
 
 export default function CategoriesPage() {
-  const router = useRouter();
   const { t, locale } = useTranslation();
   const getHealthCategoryLabel = useHealthCategoryLabel();
   const { loading, timeline, documents, profile, resolveDocumentUrl, downloadDocument } =
@@ -65,6 +65,12 @@ export default function CategoriesPage() {
   const [viewerDoc, setViewerDoc] = useState<HealthDocument | null>(null);
   const [editMedication, setEditMedication] = useState<Medication | null>(null);
   const [showMedicationModal, setShowMedicationModal] = useState(false);
+  const [showAllergyModal, setShowAllergyModal] = useState(false);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [uploadDocumentCategory, setUploadDocumentCategory] = useState<string | undefined>();
+  const [showTimelineAddModal, setShowTimelineAddModal] = useState(false);
+  const [timelineAddType, setTimelineAddType] = useState<TimelineEventType>("doctor_visit");
+  const [timelineAddCategory, setTimelineAddCategory] = useState<string | undefined>();
   const [editTimelineEvent, setEditTimelineEvent] = useState<TimelineEvent | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
@@ -80,9 +86,32 @@ export default function CategoriesPage() {
     setViewerDoc(doc);
   };
 
-  const openMedicationModal = (medication: Medication) => {
+  const openMedicationModal = (medication: Medication | null = null) => {
     setEditMedication(medication);
     setShowMedicationModal(true);
+  };
+
+  const openCategoryAdd = (categoryId: string) => {
+    setActionError(null);
+    const action = getCategoryAddAction(categoryId);
+
+    switch (action.type) {
+      case "medication":
+        openMedicationModal(null);
+        break;
+      case "allergy":
+        setShowAllergyModal(true);
+        break;
+      case "upload":
+        setUploadDocumentCategory(action.documentCategory);
+        setShowUploadModal(true);
+        break;
+      case "timeline":
+        setTimelineAddType(action.eventType);
+        setTimelineAddCategory(action.healthCategory);
+        setShowTimelineAddModal(true);
+        break;
+    }
   };
 
   const handleRecordClick = (record: CategoryRecord) => {
@@ -106,7 +135,7 @@ export default function CategoriesPage() {
         break;
       }
       case "allergy":
-        router.push("/profile?allergies=true");
+        setShowAllergyModal(true);
         break;
     }
   };
@@ -122,7 +151,6 @@ export default function CategoriesPage() {
   const getRecordActionIcon = (record: CategoryRecord) => {
     const action = resolveCategoryRecordAction(record);
     if (action?.type === "document") return Eye;
-    if (action?.type === "allergy") return ArrowRight;
     return Pencil;
   };
 
@@ -163,6 +191,21 @@ export default function CategoriesPage() {
           setEditMedication(null);
         }}
         medication={editMedication}
+      />
+      <AllergyManageModal open={showAllergyModal} onClose={() => setShowAllergyModal(false)} />
+      <UploadDocumentModal
+        open={showUploadModal}
+        onClose={() => {
+          setShowUploadModal(false);
+          setUploadDocumentCategory(undefined);
+        }}
+        initialCategory={uploadDocumentCategory}
+      />
+      <AddTimelineEventModal
+        open={showTimelineAddModal}
+        onClose={() => setShowTimelineAddModal(false)}
+        initialType={timelineAddType}
+        initialCategory={timelineAddCategory}
       />
       <EditTimelineEventModal
         open={Boolean(editTimelineEvent)}
@@ -247,6 +290,16 @@ export default function CategoriesPage() {
                       </div>
                     );
                   })}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="relative z-10"
+                    onClick={() => openCategoryAdd(category.id)}
+                  >
+                    <Plus className="h-4 w-4" />
+                    {t("categories.emptyCategory")}
+                  </Button>
                 </div>
               ) : (
                 <Button
@@ -254,7 +307,7 @@ export default function CategoriesPage() {
                   variant="secondary"
                   size="sm"
                   className="relative z-10"
-                  onClick={() => router.push(getCategoryAddHref(category.id))}
+                  onClick={() => openCategoryAdd(category.id)}
                 >
                   <Plus className="h-4 w-4" />
                   {t("categories.emptyCategory")}

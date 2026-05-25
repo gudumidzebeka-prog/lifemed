@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,21 +15,40 @@ import type { TimelineEventType } from "@/types/health";
 interface AddTimelineEventModalProps {
   open: boolean;
   onClose: () => void;
+  initialType?: TimelineEventType;
+  initialCategory?: string;
 }
 
-export function AddTimelineEventModal({ open, onClose }: AddTimelineEventModalProps) {
+const defaultForm = (initialType: TimelineEventType = "doctor_visit") => ({
+  type: initialType,
+  title: "",
+  description: "",
+  date: new Date().toISOString().slice(0, 10),
+  provider: "",
+  category: undefined as string | undefined,
+});
+
+export function AddTimelineEventModal({
+  open,
+  onClose,
+  initialType = "doctor_visit",
+  initialCategory,
+}: AddTimelineEventModalProps) {
   const { t } = useTranslation();
   const getTimelineTypeLabel = useTimelineTypeLabel();
   const { addTimelineEvent } = useHealthDataContext();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [form, setForm] = useState({
-    type: "doctor_visit" as TimelineEventType,
-    title: "",
-    description: "",
-    date: new Date().toISOString().slice(0, 10),
-    provider: "",
-  });
+  const [form, setForm] = useState(defaultForm(initialType));
+
+  useEffect(() => {
+    if (!open) return;
+    setForm({
+      ...defaultForm(initialType),
+      category: initialCategory,
+    });
+    setError(null);
+  }, [open, initialType, initialCategory]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,6 +61,7 @@ export function AddTimelineEventModal({ open, onClose }: AddTimelineEventModalPr
       description: form.description || undefined,
       date: form.date,
       provider: form.provider || undefined,
+      category: form.category,
     });
 
     setLoading(false);
@@ -50,13 +70,6 @@ export function AddTimelineEventModal({ open, onClose }: AddTimelineEventModalPr
       return;
     }
 
-    setForm({
-      type: "doctor_visit",
-      title: "",
-      description: "",
-      date: new Date().toISOString().slice(0, 10),
-      provider: "",
-    });
     onClose();
   };
 
