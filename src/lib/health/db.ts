@@ -507,6 +507,14 @@ export async function createFamilyMember(
   };
 }
 
+function getErrorMessage(error: unknown, fallback: string) {
+  if (error && typeof error === "object" && "message" in error) {
+    const message = (error as { message?: string }).message;
+    if (message) return message;
+  }
+  return fallback;
+}
+
 export async function uploadFamilyMemberAvatar(
   supabase: SupabaseClient,
   managerId: string,
@@ -538,7 +546,12 @@ export async function uploadFamilyMemberAvatar(
     .select()
     .single();
 
-  if (memberError || !data) return { error: memberError, avatarUrl: null };
+  if (memberError || !data) {
+    return {
+      error: memberError ?? { message: "Could not save family member photo" },
+      avatarUrl: null,
+    };
+  }
 
   return { error: null, avatarUrl: storagePath };
 }

@@ -97,6 +97,11 @@ import {
   mergeProfileWithCache,
   saveCachedProfileFields,
 } from "@/lib/health/profile-local-cache";
+import {
+  loadCachedFamilyMembers,
+  mergeFamilyMembersWithCache,
+  saveCachedFamilyMembers,
+} from "@/lib/health/family-local-cache";
 import { normalizeDateOfBirth } from "@/lib/health/profile-dates";
 import { withAuthContact, syncProfileContactToAuth } from "@/lib/health/profile-contact";
 import { inferMimeType } from "@/lib/health/mime";
@@ -156,7 +161,9 @@ function getInitialDocuments(supabaseConfigured: boolean) {
 }
 
 function getInitialFamilyMembers(supabaseConfigured: boolean) {
-  return supabaseConfigured ? [] : demoFamilyMembers;
+  if (supabaseConfigured) return [];
+  const cached = loadCachedFamilyMembers(null);
+  return cached.length > 0 ? cached : demoFamilyMembers;
 }
 
 function getInitialAppointments(supabaseConfigured: boolean) {
@@ -459,7 +466,9 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
 
       setDocuments(liveDocuments);
 
-      if (!familyResult.error) setFamilyMembers(familyResult.members);
+      if (!familyResult.error) {
+        setFamilyMembers(mergeFamilyMembersWithCache(familyResult.members, user.id));
+      }
 
       if (!aptResult.error) setAppointments(aptResult.appointments);
 
@@ -498,6 +507,13 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
     reload();
 
   }, [reload]);
+
+
+
+  useEffect(() => {
+    if (loading) return;
+    saveCachedFamilyMembers(userId, familyMembers);
+  }, [familyMembers, userId, loading]);
 
 
 
@@ -1576,9 +1592,24 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
 
 
 
+  const readFileAsDataUrl = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = () => reject(new Error("Failed to read image"));
+      reader.readAsDataURL(file);
+    });
+
+
+
   const uploadFamilyMemberAvatar = useCallback(
     async (memberId: string, file: File) => {
-      const previous = familyMembers.find((member) => member.id === memberId);
+      let dataUrl: string;
+      try {
+        dataUrl = await readFileAsDataUrl(file);
+      } catch {
+        return { error: "Failed to read image" };
+      }
 
       if (mode === "live" && userId && isSupabaseConfigured()) {
         const supabase = createClient();
@@ -1589,37 +1620,24 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
           file
         );
 
-        if (error) return { error: error.message };
-
-        if (avatarUrl) {
+        if (!error && avatarUrl) {
           setFamilyMembers((prev) =>
             prev.map((member) =>
               member.id === memberId ? { ...member, avatarUrl } : member
             )
           );
+          return { error: null };
         }
-
-        return { error: null };
       }
 
-      try {
-        const dataUrl = await readFileAsDataUrl(file);
-        setFamilyMembers((prev) =>
-          prev.map((member) =>
-            member.id === memberId ? { ...member, avatarUrl: dataUrl } : member
-          )
-        );
-        return { error: null };
-      } catch {
-        if (previous) {
-          setFamilyMembers((prev) =>
-            prev.map((member) => (member.id === memberId ? previous : member))
-          );
-        }
-        return { error: "Failed to read image" };
-      }
+      setFamilyMembers((prev) =>
+        prev.map((member) =>
+          member.id === memberId ? { ...member, avatarUrl: dataUrl } : member
+        )
+      );
+      return { error: null };
     },
-    [familyMembers, mode, userId]
+    [mode, userId]
   );
 
   const removeFamilyMemberAvatar = useCallback(
@@ -1655,15 +1673,6 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
     [familyMembers, mode, userId]
   );
 
-
-
-  const readFileAsDataUrl = (file: File) =>
-    new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result));
-      reader.onerror = () => reject(new Error("Failed to read image"));
-      reader.readAsDataURL(file);
-    });
 
 
   const uploadProfileAvatar = useCallback(
