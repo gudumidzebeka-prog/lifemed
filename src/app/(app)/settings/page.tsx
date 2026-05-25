@@ -102,7 +102,6 @@ export default function SettingsPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-foreground sm:text-3xl">{t("settings.title")}</h1>
-        <p className="mt-1 text-muted">{t("settings.subtitle")}</p>
       </div>
 
       {message && <p className="text-sm text-lifemed-600 dark:text-lifemed-400">{message}</p>}
