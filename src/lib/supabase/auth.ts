@@ -78,6 +78,59 @@ export async function signUpWithEmail(name: string, email: string, password: str
   }
 }
 
+export async function requestPasswordReset(email: string) {
+  if (!isSupabaseConfigured()) {
+    return {
+      error: { message: "Password reset requires Supabase configuration" },
+      demo: true,
+    };
+  }
+
+  try {
+    const res = await fetch("/api/auth/forgot-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify({ email: normalizeEmail(email) }),
+    });
+
+    const data = (await res.json()) as { error?: string };
+
+    if (!res.ok) {
+      return { error: { message: data.error ?? "Password reset failed" }, demo: false };
+    }
+
+    return { error: null, demo: false };
+  } catch (err) {
+    return { error: { message: authErrorMessage(err) }, demo: false };
+  }
+}
+
+export async function resetPassword(newPassword: string) {
+  if (!isSupabaseConfigured()) {
+    return { error: { message: "Password reset requires Supabase configuration" }, demo: true };
+  }
+
+  try {
+    const res = await fetch("/api/auth/reset-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify({ password: newPassword.trim() }),
+    });
+
+    const data = (await res.json()) as { error?: string };
+
+    if (!res.ok) {
+      return { error: { message: data.error ?? "Password update failed" }, demo: false };
+    }
+
+    return { error: null, demo: false };
+  } catch (err) {
+    return { error: { message: authErrorMessage(err) }, demo: false };
+  }
+}
+
 export async function signOut() {
   if (!isSupabaseConfigured()) {
     window.location.href = "/";

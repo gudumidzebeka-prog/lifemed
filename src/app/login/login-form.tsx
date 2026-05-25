@@ -103,6 +103,14 @@ export function LoginForm() {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
+            <div className="flex justify-end">
+              <Link
+                href="/forgot-password"
+                className="text-sm text-lifemed-600 font-medium hover:underline"
+              >
+                {t("auth.forgotPasswordLink")}
+              </Link>
+            </div>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? t("auth.signInLoading") : t("auth.signIn")}
             </Button>

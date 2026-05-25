@@ -12,7 +12,7 @@ export const PROTECTED_ROUTES = [
   "/appointments",
 ] as const;
 
-export const AUTH_ROUTES = ["/login", "/signup"] as const;
+export const AUTH_ROUTES = ["/login", "/signup", "/forgot-password"] as const;
 
 export function isProtectedRoute(pathname: string) {
   return PROTECTED_ROUTES.some(

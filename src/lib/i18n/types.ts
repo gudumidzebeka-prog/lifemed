@@ -120,6 +120,24 @@ export type TranslationTree = {
     emailPlaceholder: string;
     passwordPlaceholder: string;
     passwordMinPlaceholder: string;
+    forgotPasswordLink: string;
+    forgotPasswordTitle: string;
+    forgotPasswordHero: string;
+    forgotPasswordSubtitle: string;
+    forgotPasswordSubmit: string;
+    forgotPasswordLoading: string;
+    forgotPasswordSuccess: string;
+    forgotPasswordDemoNote: string;
+    resetPasswordTitle: string;
+    resetPasswordHero: string;
+    resetPasswordSubtitle: string;
+    resetPasswordNew: string;
+    resetPasswordConfirm: string;
+    resetPasswordSubmit: string;
+    resetPasswordLoading: string;
+    resetPasswordMismatch: string;
+    resetInvalidLink: string;
+    resetBackToLogin: string;
   };
   dataMode: {
     liveTitle: string;
