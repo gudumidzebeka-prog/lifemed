@@ -5,7 +5,6 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Disclaimer } from "@/components/ui/badge";
-import { OAuthButtons } from "@/components/auth/oauth-buttons";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { useTranslation } from "@/components/providers/locale-provider";
 import { signUpWithEmail } from "@/lib/supabase/auth";
@@ -123,17 +122,6 @@ export default function SignupPage() {
               {loading ? t("auth.createAccountLoading") : t("auth.createAccount")}
             </Button>
           </form>
-
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-border" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted">{t("auth.oauthDividerSignup")}</span>
-            </div>
-          </div>
-
-          <OAuthButtons mode="signup" />
 
           <p className="text-center text-sm text-muted">
             {t("auth.hasAccount")}{" "}

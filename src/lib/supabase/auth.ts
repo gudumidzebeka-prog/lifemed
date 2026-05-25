@@ -5,11 +5,6 @@ function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
 }
 
-export function getAuthRedirectUrl() {
-  if (typeof window === "undefined") return "";
-  return `${window.location.origin}/auth/callback`;
-}
-
 function authErrorMessage(err: unknown) {
   const message = err instanceof Error ? err.message : "Unable to connect to authentication service";
   if (message.includes("Unexpected token") || message.includes("<!DOCTYPE")) {
@@ -81,21 +76,6 @@ export async function signUpWithEmail(name: string, email: string, password: str
       needsConfirmation: false,
     };
   }
-}
-
-export async function signInWithOAuth(provider: "google" | "apple") {
-  if (!isSupabaseConfigured()) {
-    window.location.href = "/dashboard";
-    return;
-  }
-
-  const supabase = createClient();
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider,
-    options: { redirectTo: getAuthRedirectUrl() },
-  });
-
-  if (error) throw error;
 }
 
 export async function signOut() {

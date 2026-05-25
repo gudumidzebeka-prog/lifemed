@@ -105,8 +105,6 @@ export type TranslationTree = {
     noAccount: string;
     hasAccount: string;
     signInLink: string;
-    oauthDividerLogin: string;
-    oauthDividerSignup: string;
     email: string;
     password: string;
     fullName: string;
@@ -118,10 +116,6 @@ export type TranslationTree = {
     demoLoginNote: string;
     signupHeroTitle: string;
     signupHeroSubtitle: string;
-    oauthGoogle: string;
-    oauthApple: string;
-    oauthNotConfiguredLogin: string;
-    oauthNotConfiguredSignup: string;
     namePlaceholder: string;
     emailPlaceholder: string;
     passwordPlaceholder: string;
