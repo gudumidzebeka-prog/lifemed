@@ -124,7 +124,6 @@ export default function DashboardPage() {
           <h1 className="text-2xl font-bold text-foreground sm:text-3xl">
             {t("dashboard.greeting", { name: displayFirstName(profile.fullName, t("ai.you")) })}
           </h1>
-          <p className="mt-1 text-muted">{t("dashboard.subtitle")}</p>
         </div>
         <Button href="/documents?upload=true">
           <Upload className="h-4 w-4" />
