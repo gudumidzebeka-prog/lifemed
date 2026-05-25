@@ -16,12 +16,10 @@ interface ChatMessage {
 }
 
 interface DashboardAiPanelProps {
-  aiSummary: string;
-  isEmptySummary: boolean;
   locale: Locale;
 }
 
-export function DashboardAiPanel({ aiSummary, isEmptySummary, locale }: DashboardAiPanelProps) {
+export function DashboardAiPanel({ locale }: DashboardAiPanelProps) {
   const { t } = useTranslation();
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -94,10 +92,7 @@ export function DashboardAiPanel({ aiSummary, isEmptySummary, locale }: Dashboar
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-lifemed-500 text-white">
               <Sparkles className="h-5 w-5" />
             </div>
-            <div>
-              <CardTitle>{t("dashboard.aiTitle")}</CardTitle>
-              <p className="mt-0.5 text-sm text-muted">{t("dashboard.aiSubtitle")}</p>
-            </div>
+            <CardTitle>AI</CardTitle>
           </div>
 
           <form
@@ -120,8 +115,6 @@ export function DashboardAiPanel({ aiSummary, isEmptySummary, locale }: Dashboar
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {!isEmptySummary && <p className="leading-relaxed text-foreground">{aiSummary}</p>}
-
         {messages.length > 0 && (
           <div className="space-y-3 rounded-xl border border-border bg-surface/80 p-4">
             {messages.map((message) => (

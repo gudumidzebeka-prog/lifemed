@@ -11,7 +11,6 @@ import { useTranslation } from "@/components/providers/locale-provider";
 import { useHealthDataContext } from "@/components/providers/health-data-provider";
 import { displayFirstName } from "@/lib/health/empty-profile";
 import { useTimelineTypeLabel, useDocumentCategoryLabel, useMedicationFrequencyLabel } from "@/lib/i18n/hooks";
-import { buildHealthSummary } from "@/lib/health/categories";
 import { DashboardAiPanel } from "@/components/dashboard/dashboard-ai-panel";
 import { getTimelineTypeColor } from "@/data/demo-data";
 import { formatDate, formatRelativeTime } from "@/lib/utils";
@@ -48,7 +47,6 @@ export default function DashboardPage() {
 
   const recentTimeline = [...timeline].slice(-4).reverse();
   const recentDocs = documents.slice(0, 3);
-  const aiSummary = buildHealthSummary(profile, timeline, documents, locale);
   const nextAppointment = appointments.find((a) => new Date(a.date) >= new Date()) ?? appointments[0];
 
   const healthStats = [
@@ -79,8 +77,6 @@ export default function DashboardPage() {
       href: "/timeline",
     },
   ];
-
-  const isEmptySummary = timeline.length === 0 && documents.length === 0;
 
   if (loading) {
     return <div className="py-20 text-center text-muted">{t("common.loading")}</div>;
@@ -298,11 +294,7 @@ export default function DashboardPage() {
       </div>
 
       <motion.div variants={item}>
-        <DashboardAiPanel
-          aiSummary={aiSummary}
-          isEmptySummary={isEmptySummary}
-          locale={locale}
-        />
+        <DashboardAiPanel locale={locale} />
       </motion.div>
     </motion.div>
   );
