@@ -304,7 +304,7 @@ export default function AIAssistantPage() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder={t("ai.inputPlaceholder")}
-              className="flex-1 rounded-xl border border-border bg-background px-4 py-3 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-lifemed-400"
+              className="flex-1 rounded-xl border border-border bg-field px-4 py-3 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-lifemed-400 dark:bg-surface"
               disabled={loading}
             />
             <Button type="submit" size="icon" className="h-11 w-11" disabled={loading || !input.trim()}>

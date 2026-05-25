@@ -41,7 +41,7 @@ export function MedicationReminderFields({ times, onChange }: MedicationReminder
               type="time"
               value={time}
               onChange={(event) => updateTime(index, event.target.value)}
-              className="h-11 flex-1 rounded-xl border border-border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-lifemed-400"
+              className="h-11 flex-1 rounded-xl border border-border bg-field px-3 text-sm focus:outline-none focus:ring-2 focus:ring-lifemed-400 dark:bg-surface"
               aria-label={t("modals.medReminderTimes")}
             />
             <Button

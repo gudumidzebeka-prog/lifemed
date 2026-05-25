@@ -22,6 +22,7 @@
 
   --color-surface: #e0f0e7;
   --color-surface-elevated: #e6f3ec;
+  --color-field: #d6ebe0;
   --color-muted: #64748b;
   --color-border: #b5d0c0;
   --color-foreground: #0f172a;
@@ -37,6 +38,7 @@
 .dark {
   --color-surface: #151c22;
   --color-surface-elevated: #1a2229;
+  --color-field: #151c22;
   --color-muted: #94a3b8;
   --color-border: #2a3441;
   --color-foreground: #f1f5f9;

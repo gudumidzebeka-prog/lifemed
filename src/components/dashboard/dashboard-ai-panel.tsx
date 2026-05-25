@@ -189,7 +189,7 @@ export function DashboardAiPanel({ locale }: DashboardAiPanelProps) {
             placeholder={t("ai.inputPlaceholder")}
             disabled={loading}
             aria-label={t("ai.inputPlaceholder")}
-            className="flex-1 rounded-xl border border-border bg-background px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-lifemed-400 disabled:opacity-50 sm:text-sm"
+            className="flex-1 rounded-xl border border-border bg-field px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-lifemed-400 disabled:opacity-50 dark:bg-surface sm:text-sm"
           />
           <Button
             type="submit"
