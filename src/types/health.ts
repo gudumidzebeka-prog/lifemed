@@ -128,4 +128,6 @@ export interface CategoryRecord {
   date: string;
   summary: string;
   details?: string;
+  /** Present when this row represents an uploaded document */
+  documentId?: string;
 }

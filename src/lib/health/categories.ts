@@ -108,6 +108,8 @@ function documentToRecord(doc: HealthDocument, locale: Locale): CategoryRecord {
 
       : undefined,
 
+    documentId: doc.id,
+
   };
 
 }
