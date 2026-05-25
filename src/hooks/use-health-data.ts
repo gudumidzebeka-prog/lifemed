@@ -87,11 +87,10 @@ import {
   mergeProfileWithCache,
   saveCachedProfileFields,
 } from "@/lib/health/profile-local-cache";
+import { normalizeDateOfBirth } from "@/lib/health/profile-dates";
 import { inferMimeType } from "@/lib/health/mime";
-import { clearDemoSeedFromAccount, accountHasDemoSeedData } from "@/lib/health/demo-seed";
 
 import type {
-
   Appointment,
 
   EmergencyContact,
@@ -226,6 +225,53 @@ function withMedicationReminders(profile: HealthProfile): HealthProfile {
     ...profile,
     currentMedications: mergeMedicationReminderTimes(profile.currentMedications),
   };
+}
+
+type ProfileFieldUpdates = Partial<
+  Pick<HealthProfile, "fullName" | "dateOfBirth" | "bloodType" | "allergies" | "chronicIllnesses">
+>;
+
+function applyProfileFieldUpdates(profile: HealthProfile, updates: ProfileFieldUpdates): HealthProfile {
+  const next = { ...profile };
+
+  if (updates.fullName !== undefined) {
+    next.fullName = updates.fullName;
+  }
+  if (updates.dateOfBirth !== undefined) {
+    next.dateOfBirth = normalizeDateOfBirth(updates.dateOfBirth);
+  }
+  if (updates.bloodType !== undefined) {
+    next.bloodType = updates.bloodType.trim() ? updates.bloodType.trim() : undefined;
+  }
+  if (updates.allergies !== undefined) {
+    next.allergies = updates.allergies;
+  }
+  if (updates.chronicIllnesses !== undefined) {
+    next.chronicIllnesses = updates.chronicIllnesses;
+  }
+
+  return next;
+}
+
+async function resolveLiveUserId(
+  mode: DataMode,
+  userId: string | null,
+  setUserId: (userId: string | null) => void
+): Promise<string | null> {
+  if (mode !== "live" || !isSupabaseConfigured()) return null;
+  if (userId) return userId;
+
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user?.id) {
+    setUserId(user.id);
+    return user.id;
+  }
+
+  return null;
 }
 
 
@@ -388,34 +434,6 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
       if (!familyResult.error) setFamilyMembers(familyResult.members);
 
       if (!aptResult.error) setAppointments(aptResult.appointments);
-
-      if (
-        accountHasDemoSeedData({
-          profile: liveProfile,
-          timeline: liveTimeline,
-          documents: liveDocuments,
-          familyMembers: familyResult.error ? [] : familyResult.members,
-          appointments: aptResult.error ? [] : aptResult.appointments,
-        })
-      ) {
-        const cleared = await clearDemoSeedFromAccount();
-        if (cleared) {
-          const [freshProfile, freshTimeline, freshDocuments, freshFamily, freshApts] =
-            await Promise.all([
-              fetchHealthProfile(supabase, user.id),
-              fetchTimelineEvents(supabase, user.id),
-              fetchHealthDocuments(supabase, user.id),
-              fetchFamilyMembers(supabase, user.id),
-              fetchAppointments(supabase, user.id),
-            ]);
-
-          setProfile(withMedicationReminders(mergeProfileWithCache(freshProfile ?? emptyLiveProfile(user), user.id)));
-          setTimeline(freshTimeline);
-          setDocuments(freshDocuments);
-          if (!freshFamily.error) setFamilyMembers(freshFamily.members);
-          if (!freshApts.error) setAppointments(freshApts.appointments);
-        }
-      }
 
     } catch {
 
@@ -625,31 +643,27 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
 
   const saveProfile = useCallback(
 
-    async (
-
-      updates: Partial<
-
-        Pick<HealthProfile, "fullName" | "dateOfBirth" | "bloodType" | "allergies" | "chronicIllnesses">
-
-      >
-
-    ) => {
+    async (updates: ProfileFieldUpdates) => {
 
       const previous = profile;
 
-      const next = { ...profile, ...updates };
+      const next = applyProfileFieldUpdates(profile, updates);
 
       setProfile(next);
 
-      saveCachedProfileFields(userId, next);
+
+
+      const liveUserId = await resolveLiveUserId(mode, userId, setUserId);
+
+      saveCachedProfileFields(liveUserId ?? userId, next);
 
 
 
-      if (mode === "live" && userId && isSupabaseConfigured()) {
+      if (mode === "live" && liveUserId && isSupabaseConfigured()) {
 
         const supabase = createClient();
 
-        const { error } = await upsertHealthProfile(supabase, userId, {
+        const { error } = await upsertHealthProfile(supabase, liveUserId, {
 
           fullName: next.fullName,
 
@@ -667,7 +681,7 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
 
           setProfile(previous);
 
-          saveCachedProfileFields(userId, previous);
+          saveCachedProfileFields(liveUserId ?? userId, previous);
 
           return { error: error.message };
 
@@ -718,6 +732,46 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
     },
 
     [profile.allergies, saveProfile]
+
+  );
+
+
+
+  const addChronicIllness = useCallback(
+
+    async (illness: string) => {
+
+      const trimmed = illness.trim();
+
+      if (!trimmed || profile.chronicIllnesses.includes(trimmed)) {
+
+        return { error: null };
+
+      }
+
+      return saveProfile({ chronicIllnesses: [...profile.chronicIllnesses, trimmed] });
+
+    },
+
+    [profile.chronicIllnesses, saveProfile]
+
+  );
+
+
+
+  const removeChronicIllness = useCallback(
+
+    async (illness: string) => {
+
+      return saveProfile({
+
+        chronicIllnesses: profile.chronicIllnesses.filter((item) => item !== illness),
+
+      });
+
+    },
+
+    [profile.chronicIllnesses, saveProfile]
 
   );
 
@@ -1682,6 +1736,10 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
     addAllergy,
 
     removeAllergy,
+
+    addChronicIllness,
+
+    removeChronicIllness,
 
     addEmergencyContact,
 

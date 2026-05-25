@@ -257,7 +257,11 @@ export type TranslationTree = {
     addContact: string;
     chronic: string;
     chronicCount: string;
-    chronicEditHint: string;
+    chronicEmpty: string;
+    newChronicPlaceholder: string;
+    bloodTypePlaceholder: string;
+    bloodTypeMissing: string;
+    savePersonalDetails: string;
     reminderTimes: string;
     noReminderTimes: string;
     changePhoto: string;

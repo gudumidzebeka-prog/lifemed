@@ -9,6 +9,7 @@ import type {
   TimelineEvent,
 } from "@/types/health";
 import { inferMimeType } from "@/lib/health/mime";
+import { normalizeDateOfBirth } from "@/lib/health/profile-dates";
 
 interface ProfileRow {
   id: string;
@@ -163,7 +164,10 @@ export async function updateProfile(
   const patch: Record<string, unknown> = {};
 
   if (updates.fullName !== undefined) patch.full_name = updates.fullName;
-  if (updates.dateOfBirth !== undefined) patch.date_of_birth = updates.dateOfBirth || null;
+  if (updates.dateOfBirth !== undefined) {
+    const normalized = normalizeDateOfBirth(updates.dateOfBirth);
+    patch.date_of_birth = normalized || null;
+  }
   if (updates.bloodType !== undefined) patch.blood_type = updates.bloodType || null;
   if (updates.allergies !== undefined) patch.allergies = updates.allergies;
   if (updates.chronicIllnesses !== undefined) patch.chronic_illnesses = updates.chronicIllnesses;
@@ -183,7 +187,7 @@ export async function upsertHealthProfile(
     {
       id: userId,
       full_name: profile.fullName,
-      date_of_birth: profile.dateOfBirth || null,
+      date_of_birth: normalizeDateOfBirth(profile.dateOfBirth) || null,
       blood_type: profile.bloodType || null,
       allergies: profile.allergies ?? [],
       chronic_illnesses: profile.chronicIllnesses ?? [],

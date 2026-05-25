@@ -1,4 +1,5 @@
 import type { HealthProfile } from "@/types/health";
+import { normalizeDateOfBirth } from "@/lib/health/profile-dates";
 
 const PROFILE_CACHE_PREFIX = "lifemed-profile-v1";
 
@@ -28,7 +29,7 @@ export function saveCachedProfileFields(userId: string | null, profile: HealthPr
 
   const payload: CachedProfileFields = {
     fullName: profile.fullName,
-    dateOfBirth: profile.dateOfBirth,
+    dateOfBirth: normalizeDateOfBirth(profile.dateOfBirth),
     bloodType: profile.bloodType,
     allergies: profile.allergies,
     chronicIllnesses: profile.chronicIllnesses,
@@ -45,8 +46,8 @@ export function mergeProfileWithCache(profile: HealthProfile, userId: string | n
   return {
     ...profile,
     fullName: profile.fullName.trim() ? profile.fullName : cached.fullName,
-    dateOfBirth: profile.dateOfBirth || cached.dateOfBirth,
-    bloodType: profile.bloodType ?? cached.bloodType,
+    dateOfBirth: normalizeDateOfBirth(profile.dateOfBirth) || normalizeDateOfBirth(cached.dateOfBirth),
+    bloodType: profile.bloodType?.trim() ? profile.bloodType : cached.bloodType,
     allergies: profile.allergies.length > 0 ? profile.allergies : cached.allergies,
     chronicIllnesses:
       profile.chronicIllnesses.length > 0 ? profile.chronicIllnesses : cached.chronicIllnesses,

@@ -13,6 +13,7 @@ import { useMedicationFrequencyLabel, useRelationshipLabel } from "@/lib/i18n/ho
 import { formatDate } from "@/lib/utils";
 import { formatReminderTimes, sanitizeReminderTimes } from "@/lib/health/medication-reminders";
 import { displayFirstName } from "@/lib/health/empty-profile";
+import { normalizeDateOfBirth } from "@/lib/health/profile-dates";
 import { EditProfileModal } from "@/components/profile/edit-profile-modal";
 import { ProfileAvatar } from "@/components/profile/profile-avatar";
 import { AddMedicationModal } from "@/components/profile/add-medication-modal";
@@ -49,8 +50,11 @@ function ProfileContent() {
   const {
     loading,
     profile,
+    saveProfile,
     addAllergy,
     removeAllergy,
+    addChronicIllness,
+    removeChronicIllness,
     removeEmergencyContact,
     removeMedication,
   } = useHealthDataContext();
@@ -59,6 +63,15 @@ function ProfileContent() {
   const [editMedication, setEditMedication] = useState<Medication | null>(null);
   const [showContactModal, setShowContactModal] = useState(false);
   const [newAllergy, setNewAllergy] = useState("");
+  const [newChronic, setNewChronic] = useState("");
+  const [bloodTypeInput, setBloodTypeInput] = useState(profile.bloodType ?? "");
+  const [personalForm, setPersonalForm] = useState({
+    fullName: profile.fullName,
+    dateOfBirth: normalizeDateOfBirth(profile.dateOfBirth),
+  });
+  const [savingPersonal, setSavingPersonal] = useState(false);
+  const [savingBloodType, setSavingBloodType] = useState(false);
+  const [fieldError, setFieldError] = useState<string | null>(null);
 
   const openMedicationModal = (medication: Medication | null = null) => {
     setEditMedication(medication);
@@ -69,6 +82,14 @@ function ProfileContent() {
     setShowMedModal(false);
     setEditMedication(null);
   };
+
+  useEffect(() => {
+    setPersonalForm({
+      fullName: profile.fullName,
+      dateOfBirth: normalizeDateOfBirth(profile.dateOfBirth),
+    });
+    setBloodTypeInput(profile.bloodType ?? "");
+  }, [profile.fullName, profile.dateOfBirth, profile.bloodType]);
 
   useEffect(() => {
     if (searchParams.get("med") === "true") {
@@ -88,6 +109,51 @@ function ProfileContent() {
     if (!newAllergy.trim()) return;
     await addAllergy(newAllergy.trim());
     setNewAllergy("");
+  };
+
+  const handleAddChronic = async () => {
+    if (!newChronic.trim()) return;
+    const { error } = await addChronicIllness(newChronic.trim());
+    if (error) {
+      setFieldError(error);
+      return;
+    }
+    setNewChronic("");
+    setFieldError(null);
+  };
+
+  const handleSaveFullName = async () => {
+    if (loading || personalForm.fullName.trim() === profile.fullName.trim()) return;
+
+    setSavingPersonal(true);
+    setFieldError(null);
+    const { error } = await saveProfile({ fullName: personalForm.fullName.trim() });
+    setSavingPersonal(false);
+    if (error) setFieldError(error);
+  };
+
+  const handleDateOfBirthChange = async (value: string) => {
+    setPersonalForm((prev) => ({ ...prev, dateOfBirth: value }));
+    if (value.length !== 10 || loading) return;
+
+    const normalized = normalizeDateOfBirth(value);
+    if (!normalized || normalized === normalizeDateOfBirth(profile.dateOfBirth)) return;
+
+    const { error } = await saveProfile({ dateOfBirth: normalized });
+    if (error) setFieldError(error);
+  };
+
+  const handleSaveBloodType = async () => {
+    if (loading) return;
+
+    const nextValue = bloodTypeInput.trim();
+    if (nextValue === (profile.bloodType ?? "")) return;
+
+    setSavingBloodType(true);
+    setFieldError(null);
+    const { error } = await saveProfile({ bloodType: nextValue });
+    setSavingBloodType(false);
+    if (error) setFieldError(error);
   };
 
   if (loading) {
@@ -163,11 +229,56 @@ function ProfileContent() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Input label={t("profile.fullName")} defaultValue={profile.fullName} readOnly />
-            <Input label={t("profile.dob")} defaultValue={profile.dateOfBirth} type="date" readOnly />
-            <Input label={t("profile.bloodType")} defaultValue={profile.bloodType} readOnly />
+            {fieldError && <p className="text-sm text-rose-600">{fieldError}</p>}
+            <Input
+              label={t("profile.fullName")}
+              value={personalForm.fullName}
+              onChange={(e) => setPersonalForm({ ...personalForm, fullName: e.target.value })}
+              onBlur={handleSaveFullName}
+            />
+            <Input
+              label={t("profile.dob")}
+              type="date"
+              value={personalForm.dateOfBirth}
+              onChange={(e) => handleDateOfBirthChange(e.target.value)}
+            />
+            {savingPersonal && <p className="text-xs text-muted">{t("common.saving")}</p>}
           </CardContent>
         </Card>
+
+        <ExpandableCard
+          title={t("profile.bloodType")}
+          subtitle={profile.bloodType || t("profile.bloodTypeMissing")}
+          icon={<Droplets className="h-5 w-5" />}
+          defaultOpen
+        >
+          {profile.bloodType ? (
+            <Badge variant="info" className="gap-1">
+              <Droplets className="h-3 w-3" />
+              {profile.bloodType}
+            </Badge>
+          ) : (
+            <p className="text-sm text-muted">{t("profile.bloodTypeMissing")}</p>
+          )}
+          <div className="mt-3 flex gap-2">
+            <Input
+              placeholder={t("profile.bloodTypePlaceholder")}
+              value={bloodTypeInput}
+              onChange={(e) => setBloodTypeInput(e.target.value)}
+              onBlur={handleSaveBloodType}
+              onKeyDown={(e) => e.key === "Enter" && handleSaveBloodType()}
+            />
+            <Button
+              type="button"
+              size="sm"
+              className="relative z-10 shrink-0"
+              onClick={handleSaveBloodType}
+              disabled={savingBloodType}
+            >
+              {savingBloodType ? t("common.saving") : t("common.save")}
+            </Button>
+          </div>
+        </ExpandableCard>
 
         <ExpandableCard
           id="profile-allergies"
@@ -183,7 +294,7 @@ function ProfileContent() {
                 <button
                   type="button"
                   onClick={() => removeAllergy(allergy)}
-                  className="ml-1 rounded-full p-0.5 hover:bg-rose-200/50"
+                  className="relative z-10 ml-1 rounded-full p-0.5 hover:bg-rose-200/50"
                   aria-label={`${t("common.remove")} ${allergy}`}
                 >
                   <X className="h-3 w-3" />
@@ -198,7 +309,7 @@ function ProfileContent() {
               onChange={(e) => setNewAllergy(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAddAllergy()}
             />
-            <Button type="button" size="sm" onClick={handleAddAllergy}>
+            <Button type="button" size="sm" className="relative z-10 shrink-0" onClick={handleAddAllergy}>
               <Plus className="h-4 w-4" />
             </Button>
           </div>
@@ -294,18 +405,42 @@ function ProfileContent() {
         </ExpandableCard>
 
         <ExpandableCard
+          id="profile-chronic"
           title={t("profile.chronic")}
           subtitle={t("profile.chronicCount", { count: profile.chronicIllnesses.length })}
           icon={<Heart className="h-5 w-5" />}
+          defaultOpen
         >
-          <ul className="space-y-2">
-            {profile.chronicIllnesses.map((illness) => (
-              <li key={illness} className="text-sm text-foreground">
-                • {illness}
-              </li>
-            ))}
-          </ul>
-          <p className="text-xs text-muted mt-3">{t("profile.chronicEditHint")}</p>
+          {profile.chronicIllnesses.length === 0 ? (
+            <p className="text-sm text-muted">{t("profile.chronicEmpty")}</p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {profile.chronicIllnesses.map((illness) => (
+                <Badge key={illness} variant="warning" className="gap-1 pr-1">
+                  {illness}
+                  <button
+                    type="button"
+                    onClick={() => removeChronicIllness(illness)}
+                    className="relative z-10 ml-1 rounded-full p-0.5 hover:bg-amber-200/50"
+                    aria-label={`${t("common.remove")} ${illness}`}
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              ))}
+            </div>
+          )}
+          <div className="mt-3 flex gap-2">
+            <Input
+              placeholder={t("profile.newChronicPlaceholder")}
+              value={newChronic}
+              onChange={(e) => setNewChronic(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleAddChronic()}
+            />
+            <Button type="button" size="sm" className="relative z-10 shrink-0" onClick={handleAddChronic}>
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
         </ExpandableCard>
       </div>
     </div>
