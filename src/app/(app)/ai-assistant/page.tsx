@@ -4,7 +4,6 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Disclaimer } from "@/components/ui/badge";
 import { useTranslation } from "@/components/providers/locale-provider";
 import { cn } from "@/lib/utils";
 import {
@@ -29,7 +28,6 @@ export default function AIAssistantPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [aiLive, setAiLive] = useState<boolean | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatPanelRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -60,15 +58,6 @@ export default function AIAssistantPage() {
     ],
     [t]
   );
-
-  useEffect(() => {
-    fetch("/api/setup/status", { cache: "no-store" })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data: { ai?: boolean; aiLive?: boolean } | null) =>
-        setAiLive(Boolean(data?.aiLive ?? data?.ai))
-      )
-      .catch(() => setAiLive(false));
-  }, []);
 
   useEffect(() => {
     setMessages([
@@ -137,16 +126,6 @@ export default function AIAssistantPage() {
       const data = await res.json();
 
       if (typeof data.response === "string" && data.response.trim()) {
-        if (data.source === "error") {
-          setAiLive(false);
-        } else if (
-          data.source === "gemini" ||
-          data.source === "groq" ||
-          data.source === "openai"
-        ) {
-          setAiLive(true);
-        }
-
         setMessages((prev) => [
           ...prev,
           {
@@ -161,12 +140,6 @@ export default function AIAssistantPage() {
 
       if (!res.ok) {
         throw new Error(data.error ?? t("ai.aiUnavailable"));
-      }
-
-      if (data.source === "demo") {
-        setAiLive(false);
-      } else if (data.source === "gemini" || data.source === "groq" || data.source === "openai") {
-        setAiLive(true);
       }
 
       setMessages((prev) => [
@@ -230,13 +203,6 @@ export default function AIAssistantPage() {
         </div>
         {!focusChat && <p className="mt-1 text-muted">{t("ai.subtitle")}</p>}
       </div>
-
-      {!focusChat && <Disclaimer variant="medical" className="mb-4" />}
-      {aiLive === false && (
-        <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
-          {t("ai.demoModeNote")}
-        </div>
-      )}
 
       {!focusChat && (
         <div className="flex gap-2 overflow-x-auto pb-3 mb-4">
@@ -345,7 +311,6 @@ export default function AIAssistantPage() {
               <Send className="h-4 w-4" />
             </Button>
           </form>
-          <Disclaimer variant="medical" className="mt-2 text-center" />
         </div>
       </Card>
     </div>
