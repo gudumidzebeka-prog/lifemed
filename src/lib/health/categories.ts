@@ -305,8 +305,7 @@ export function buildHealthSummary(
 }
 
 export function getCategoryAddHref(categoryId: string): string {
-  if (categoryId === "medications") return "/profile?med=true";
-  if (categoryId === "allergies") return "/profile?allergies=true";
+  if (categoryId === "medications" || categoryId === "allergies") return "/categories";
   if (categoryId === "lab-results") return "/documents?upload=true";
   return "/timeline?add=true";
 }

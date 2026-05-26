@@ -96,6 +96,11 @@ import {
   saveCachedProfileFields,
 } from "@/lib/health/profile-local-cache";
 import {
+  loadCachedTimeline,
+  mergeTimelineWithCache,
+  saveCachedTimeline,
+} from "@/lib/health/timeline-local-cache";
+import {
   loadCachedFamilyMembers,
   mergeFamilyMembersWithCache,
   saveCachedFamilyMembers,
@@ -141,17 +146,33 @@ function newLocalId() {
 
 
 
+function mergeDemoProfileWithCache(base: HealthProfile, userId: string | null): HealthProfile {
+  const cached = loadCachedProfileFields(userId);
+  if (!cached) return withMedicationReminders(base);
+
+  return withMedicationReminders({
+    ...base,
+    ...cached,
+    id: base.id,
+    userId: base.userId,
+    currentMedications:
+      cached.currentMedications && cached.currentMedications.length > 0
+        ? cached.currentMedications
+        : base.currentMedications,
+    allergies: cached.allergies ?? base.allergies,
+    chronicIllnesses: cached.chronicIllnesses ?? base.chronicIllnesses,
+  });
+}
+
 function getInitialProfile(supabaseConfigured: boolean) {
   if (supabaseConfigured) return EMPTY_PROFILE;
-  const cached = loadCachedProfileFields(null);
-  if (cached) {
-    return { ...demoProfile, ...cached, id: demoProfile.id, userId: demoProfile.userId };
-  }
-  return demoProfile;
+  return mergeDemoProfileWithCache(demoProfile, null);
 }
 
 function getInitialTimeline(supabaseConfigured: boolean) {
-  return supabaseConfigured ? [] : demoTimeline;
+  if (supabaseConfigured) return [];
+  const cached = loadCachedTimeline(null);
+  return cached.length > 0 ? cached : demoTimeline;
 }
 
 function getInitialDocuments(supabaseConfigured: boolean) {
@@ -226,8 +247,9 @@ function applyDemoData(
   }
 
   setters.setMode("demo");
-  setters.setProfile(withMedicationReminders(demoProfile));
-  setters.setTimeline(demoTimeline);
+  setters.setProfile(mergeDemoProfileWithCache(demoProfile, null));
+  const cachedTimeline = loadCachedTimeline(null);
+  setters.setTimeline(cachedTimeline.length > 0 ? cachedTimeline : demoTimeline);
   setters.setDocuments(demoDocuments);
   setters.setFamilyMembers(demoFamilyMembers);
   setters.setAppointments(loadLocalAppointments(false));
@@ -477,7 +499,7 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
         });
       }
 
-      setTimeline(liveTimeline);
+      setTimeline(mergeTimelineWithCache(liveTimeline, user.id));
 
       setDocuments(liveDocuments);
 
@@ -529,6 +551,16 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
     if (loading) return;
     saveCachedFamilyMembers(userId, familyMembers);
   }, [familyMembers, userId, loading]);
+
+  useEffect(() => {
+    if (loading) return;
+    saveCachedProfileFields(userId, profile);
+  }, [profile, userId, loading]);
+
+  useEffect(() => {
+    if (loading) return;
+    saveCachedTimeline(userId, timeline);
+  }, [timeline, userId, loading]);
 
 
 
@@ -1120,15 +1152,16 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
     }) => {
 
       const reminderTimes = sanitizeReminderTimes(med.reminderTimes ?? []);
+      const startDate = normalizeDateOfBirth(med.startDate);
+      if (!startDate) {
+        return { error: "Invalid start date" };
+      }
 
       const localMed: Medication = {
-
         id: newLocalId(),
-
         ...med,
-
+        startDate,
         reminderTimes,
-
       };
 
 
@@ -1151,7 +1184,7 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
 
         const supabase = createClient();
 
-        const { data, error } = await dbAddMedication(supabase, userId, { ...med, reminderTimes });
+        const { data, error } = await dbAddMedication(supabase, userId, { ...med, startDate, reminderTimes });
 
         if (error) {
 
@@ -1268,8 +1301,12 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
     ) => {
 
       const reminderTimes = sanitizeReminderTimes(med.reminderTimes ?? []);
+      const startDate = normalizeDateOfBirth(med.startDate);
+      if (!startDate) {
+        return { error: "Invalid start date" };
+      }
 
-      const payload = { ...med, reminderTimes };
+      const payload = { ...med, startDate, reminderTimes };
 
       const prevMeds = profile.currentMedications;
 

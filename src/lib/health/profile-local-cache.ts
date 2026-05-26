@@ -14,6 +14,7 @@ export type CachedProfileFields = Pick<
   | "bloodType"
   | "allergies"
   | "chronicIllnesses"
+  | "currentMedications"
   | "avatarUrl"
 >;
 
@@ -46,6 +47,7 @@ export function saveCachedProfileFields(userId: string | null, profile: HealthPr
     bloodType: profile.bloodType,
     allergies: profile.allergies,
     chronicIllnesses: profile.chronicIllnesses,
+    currentMedications: profile.currentMedications,
     avatarUrl: profile.avatarUrl,
   };
 
@@ -65,9 +67,11 @@ export function mergeProfileWithCache(profile: HealthProfile, userId: string | n
     city: cached.city?.trim() ? cached.city : profile.city,
     gender: cached.gender ?? profile.gender,
     bloodType: profile.bloodType?.trim() ? profile.bloodType : cached.bloodType,
-    allergies: profile.allergies.length > 0 ? profile.allergies : cached.allergies,
+    allergies: profile.allergies.length > 0 ? profile.allergies : (cached.allergies ?? []),
     chronicIllnesses:
-      profile.chronicIllnesses.length > 0 ? profile.chronicIllnesses : cached.chronicIllnesses,
+      profile.chronicIllnesses.length > 0 ? profile.chronicIllnesses : (cached.chronicIllnesses ?? []),
+    currentMedications:
+      profile.currentMedications.length > 0 ? profile.currentMedications : (cached.currentMedications ?? []),
     avatarUrl: profile.avatarUrl ?? cached.avatarUrl,
   };
 }

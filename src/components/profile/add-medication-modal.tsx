@@ -19,7 +19,7 @@ interface AddMedicationModalProps {
 
 export function AddMedicationModal({ open, onClose, medication }: AddMedicationModalProps) {
   const { t } = useTranslation();
-  const { addMedication, editMedication } = useHealthDataContext();
+  const { addMedication, editMedication, removeMedication } = useHealthDataContext();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
@@ -85,6 +85,22 @@ export function AddMedicationModal({ open, onClose, medication }: AddMedicationM
     onClose();
   };
 
+  const handleRemove = async () => {
+    if (!medication) return;
+
+    setLoading(true);
+    setError(null);
+    const { error: err } = await removeMedication(medication.id);
+    setLoading(false);
+
+    if (err) {
+      setError(err);
+      return;
+    }
+
+    onClose();
+  };
+
   return (
     <Modal
       open={open}
@@ -130,6 +146,17 @@ export function AddMedicationModal({ open, onClose, medication }: AddMedicationM
         <MedicationReminderFields times={reminderTimes} onChange={setReminderTimes} />
 
         <div className="flex gap-3 pt-2">
+          {isEditing ? (
+            <Button
+              type="button"
+              variant="secondary"
+              className="text-rose-600"
+              onClick={handleRemove}
+              disabled={loading}
+            >
+              {t("common.remove")}
+            </Button>
+          ) : null}
           <Button type="button" variant="secondary" className="flex-1" onClick={onClose}>
             {t("common.cancel")}
           </Button>
