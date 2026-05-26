@@ -5,6 +5,21 @@ import { updateProfile } from "@/lib/health/db";
 
 const PROFILE_EMAIL_METADATA_KEY = "profile_email";
 
+export type ProfilePersistSlice = Partial<
+  Pick<
+    HealthProfile,
+    | "fullName"
+    | "dateOfBirth"
+    | "email"
+    | "phone"
+    | "city"
+    | "gender"
+    | "bloodType"
+    | "allergies"
+    | "chronicIllnesses"
+  >
+>;
+
 export function readAuthContactEmail(user: { email?: string; user_metadata?: Record<string, unknown> }) {
   const metadataEmail = user.user_metadata?.[PROFILE_EMAIL_METADATA_KEY];
   if (typeof metadataEmail === "string" && metadataEmail.trim()) {
@@ -69,7 +84,7 @@ export async function syncProfileContactToAuth(
 
 export async function syncProfileLocationToAuth(
   supabase: SupabaseClient,
-  location: { city?: string; gender?: ProfileGender }
+  location: { city?: string; gender?: ProfileGender | "" }
 ) {
   const data: Record<string, string> = {};
 
@@ -77,7 +92,7 @@ export async function syncProfileLocationToAuth(
     data.city = location.city.trim();
   }
   if (location.gender !== undefined) {
-    data.gender = location.gender;
+    data.gender = location.gender || "";
   }
 
   if (Object.keys(data).length === 0) {
@@ -88,51 +103,14 @@ export async function syncProfileLocationToAuth(
   return { error };
 }
 
-type ProfilePersistSlice = Partial<
-  Pick<
-    HealthProfile,
-    "fullName" | "dateOfBirth" | "email" | "phone" | "city" | "gender" | "bloodType" | "allergies" | "chronicIllnesses"
-  >
->;
-
-export async function persistProfileUpdates(
-  supabase: SupabaseClient,
-  userId: string,
-  updates: ProfilePersistSlice
-) {
-  let { error } = await updateProfile(supabase, userId, updates);
-
-  if (error && isMissingProfileColumnError(error)) {
-    const { city, gender, ...rest } = updates;
-    const hasLocationUpdates = city !== undefined || gender !== undefined;
-
-    if (Object.keys(rest).length > 0) {
-      ({ error } = await updateProfile(supabase, userId, rest));
-    } else if (hasLocationUpdates) {
-      error = null;
-    }
-
-    if (!error && hasLocationUpdates) {
-      const metaResult = await syncProfileLocationToAuth(supabase, { city, gender });
-      if (metaResult.error) {
-        return metaResult;
-      }
-    }
-
-    return { error };
-  }
-
-  if (!error && (updates.city !== undefined || updates.gender !== undefined)) {
-    const metaResult = await syncProfileLocationToAuth(supabase, {
-      city: updates.city,
-      gender: updates.gender,
-    });
-    if (metaResult.error) {
-      return metaResult;
-    }
-  }
-
-  return { error };
+function isMissingLocationColumnError(error: { message?: string; code?: string } | null) {
+  if (!error) return false;
+  const message = (error.message ?? "").toLowerCase();
+  return (
+    error.code === "PGRST204" ||
+    message.includes("city") ||
+    message.includes("gender")
+  );
 }
 
 export function isMissingProfileColumnError(error: { message?: string; code?: string } | null) {
@@ -148,4 +126,36 @@ export function isMissingProfileColumnError(error: { message?: string; code?: st
     message.includes("city") ||
     message.includes("gender")
   );
+}
+
+export async function persistProfileUpdates(
+  supabase: SupabaseClient,
+  userId: string,
+  updates: ProfilePersistSlice
+) {
+  const { city, gender, ...rest } = updates;
+  const hasLocation = city !== undefined || gender !== undefined;
+
+  if (hasLocation) {
+    const metaResult = await syncProfileLocationToAuth(supabase, { city, gender });
+    if (metaResult.error) {
+      return metaResult;
+    }
+  }
+
+  if (Object.keys(rest).length > 0) {
+    const { error } = await updateProfile(supabase, userId, rest);
+    if (error) {
+      return { error };
+    }
+  }
+
+  if (hasLocation) {
+    const { error } = await updateProfile(supabase, userId, { city, gender });
+    if (error && !isMissingLocationColumnError(error)) {
+      return { error };
+    }
+  }
+
+  return { error: null };
 }

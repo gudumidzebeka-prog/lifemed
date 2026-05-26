@@ -101,7 +101,7 @@ import {
   saveCachedFamilyMembers,
 } from "@/lib/health/family-local-cache";
 import { normalizeDateOfBirth } from "@/lib/health/profile-dates";
-import { withAuthContact, syncProfileContactToAuth, persistProfileUpdates } from "@/lib/health/profile-contact";
+import { withAuthContact, persistProfileUpdates } from "@/lib/health/profile-contact";
 import { inferMimeType } from "@/lib/health/mime";
 
 import type {
@@ -443,22 +443,23 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
 
 
 
-      const baseProfile = withAuthContact(liveProfile ?? emptyLiveProfile(user), user);
-      const mergedProfile = mergeProfileWithCache(baseProfile, user.id);
+      const fromDb = liveProfile ?? emptyLiveProfile(user);
+      const withMeta = withAuthContact(fromDb, user);
+      const mergedProfile = mergeProfileWithCache(withMeta, user.id);
 
       setProfile(withMedicationReminders(mergedProfile));
 
       const shouldHealProfile =
-        mergedProfile.dateOfBirth !== (baseProfile.dateOfBirth ?? "") ||
-        mergedProfile.fullName !== baseProfile.fullName ||
-        (mergedProfile.email ?? "") !== (baseProfile.email ?? "") ||
-        (mergedProfile.phone ?? "") !== (baseProfile.phone ?? "") ||
-        (mergedProfile.city ?? "") !== (baseProfile.city ?? "") ||
-        (mergedProfile.gender ?? "") !== (baseProfile.gender ?? "") ||
-        (mergedProfile.bloodType ?? "") !== (baseProfile.bloodType ?? "") ||
-        JSON.stringify(mergedProfile.allergies) !== JSON.stringify(baseProfile.allergies) ||
+        mergedProfile.dateOfBirth !== (withMeta.dateOfBirth ?? "") ||
+        mergedProfile.fullName !== withMeta.fullName ||
+        (mergedProfile.email ?? "") !== (withMeta.email ?? "") ||
+        (mergedProfile.phone ?? "") !== (withMeta.phone ?? "") ||
+        (mergedProfile.city ?? "") !== (withMeta.city ?? "") ||
+        (mergedProfile.gender ?? "") !== (withMeta.gender ?? "") ||
+        (mergedProfile.bloodType ?? "") !== (withMeta.bloodType ?? "") ||
+        JSON.stringify(mergedProfile.allergies) !== JSON.stringify(withMeta.allergies) ||
         JSON.stringify(mergedProfile.chronicIllnesses) !==
-          JSON.stringify(baseProfile.chronicIllnesses);
+          JSON.stringify(withMeta.chronicIllnesses);
 
       if (shouldHealProfile) {
         await persistProfileUpdates(supabase, user.id, {
@@ -718,32 +719,32 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
 
 
       if (mode === "live" && liveUserId && isSupabaseConfigured()) {
+        try {
+          const res = await fetch("/api/profile", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            credentials: "same-origin",
+            body: JSON.stringify(updates),
+          });
+          const data = (await res.json()) as { error?: string };
 
-        const supabase = createClient();
+          if (!res.ok) {
+            setProfile(previous);
+            saveCachedProfileFields(liveUserId ?? userId, previous);
+            return { error: data.error ?? "Failed to save profile" };
+          }
 
-        const { error } = await persistProfileUpdates(supabase, liveUserId, updates);
-
-        if (error) {
-
+          try {
+            const supabase = createClient();
+            await supabase.auth.refreshSession();
+          } catch {
+            // Local cache and UI state already hold the saved profile fields.
+          }
+        } catch {
           setProfile(previous);
-
           saveCachedProfileFields(liveUserId ?? userId, previous);
-
-          return { error: error.message };
-
+          return { error: "Failed to save profile" };
         }
-
-        if (updates.phone !== undefined || updates.email !== undefined) {
-          await syncProfileContactToAuth(supabase, {
-            phone: next.phone,
-            email: next.email,
-          });
-          await upsertProfileContactFields(supabase, liveUserId, {
-            email: next.email,
-            phone: next.phone,
-          });
-        }
-
       }
 
 

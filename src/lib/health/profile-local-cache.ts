@@ -62,8 +62,8 @@ export function mergeProfileWithCache(profile: HealthProfile, userId: string | n
     dateOfBirth: normalizeDateOfBirth(profile.dateOfBirth) || normalizeDateOfBirth(cached.dateOfBirth),
     email: profile.email?.trim() ? profile.email : cached.email,
     phone: profile.phone?.trim() ? profile.phone : cached.phone,
-    city: profile.city?.trim() ? profile.city : cached.city,
-    gender: profile.gender ?? cached.gender,
+    city: cached.city?.trim() ? cached.city : profile.city,
+    gender: cached.gender ?? profile.gender,
     bloodType: profile.bloodType?.trim() ? profile.bloodType : cached.bloodType,
     allergies: profile.allergies.length > 0 ? profile.allergies : cached.allergies,
     chronicIllnesses:
