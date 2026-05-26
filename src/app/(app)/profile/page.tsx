@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { ExpandableCard } from "@/components/ui/expandable-card";
 import { useMedicationFrequencyLabel, useRelationshipLabel } from "@/lib/i18n/hooks";
 import { formatDate } from "@/lib/utils";
+import { profileGenderLabel } from "@/lib/health/profile-gender";
 import { formatReminderTimes, sanitizeReminderTimes } from "@/lib/health/medication-reminders";
 import { displayFirstName } from "@/lib/health/empty-profile";
 import { EditProfileModal } from "@/components/profile/edit-profile-modal";
@@ -189,6 +190,14 @@ function ProfileContent() {
                     }),
                   })
                 : t("profile.dobMissing")}
+            </p>
+            <p className="text-sm text-muted mt-1">
+              {profile.city ? profile.city : t("profile.cityMissing")}
+            </p>
+            <p className="text-sm text-muted mt-1">
+              {profile.gender
+                ? profileGenderLabel(profile.gender, t)
+                : t("profile.genderMissing")}
             </p>
             <div className="mt-3 flex flex-wrap gap-2 justify-start">
               {profile.bloodType && (

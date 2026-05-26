@@ -1,3 +1,5 @@
+import type { ProfileGender } from "@/lib/health/profile-gender";
+
 export type TimelineEventType =
   | "vaccination"
   | "illness"
@@ -29,6 +31,8 @@ export interface HealthProfile {
   dateOfBirth: string;
   email?: string;
   phone?: string;
+  city?: string;
+  gender?: ProfileGender;
   bloodType?: string;
   allergies: string[];
   emergencyContacts: EmergencyContact[];

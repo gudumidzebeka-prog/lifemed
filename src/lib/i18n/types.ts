@@ -108,6 +108,10 @@ export type TranslationTree = {
     email: string;
     password: string;
     fullName: string;
+    city: string;
+    cityPlaceholder: string;
+    gender: string;
+    genderPlaceholder: string;
     createAccount: string;
     createAccountSubtitle: string;
     createAccountLoading: string;
@@ -243,6 +247,13 @@ export type TranslationTree = {
     personalDetails: string;
     fullName: string;
     dob: string;
+    city: string;
+    cityMissing: string;
+    gender: string;
+    genderMissing: string;
+    genderMale: string;
+    genderFemale: string;
+    genderOther: string;
     bloodType: string;
     allergies: string;
     allergiesKnown: string;
@@ -458,6 +469,8 @@ export type TranslationTree = {
     profileEditTitle: string;
     profileFullName: string;
     profileDob: string;
+    profileCity: string;
+    profileGender: string;
     profileEmail: string;
     profilePhone: string;
     profileBloodType: string;
@@ -479,6 +492,8 @@ export type TranslationTree = {
     medRemoveTime: string;
     profileBloodTypePlaceholder: string;
     profileEmailPlaceholder: string;
+    profileCityPlaceholder: string;
+    profileGenderPlaceholder: string;
     profilePhonePlaceholder: string;
     profileAllergiesPlaceholder: string;
     profileChronicPlaceholder: string;

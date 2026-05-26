@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
+import { type ProfileGender } from "@/lib/health/profile-gender";
+
 function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
 }
@@ -41,7 +43,12 @@ export async function signInWithEmail(email: string, password: string) {
   }
 }
 
-export async function signUpWithEmail(name: string, email: string, password: string) {
+export async function signUpWithEmail(
+  name: string,
+  email: string,
+  password: string,
+  extras?: { city?: string; gender?: ProfileGender }
+) {
   if (!isSupabaseConfigured()) {
     return { error: null as { message: string } | null, demo: true, needsConfirmation: false };
   }
@@ -55,6 +62,8 @@ export async function signUpWithEmail(name: string, email: string, password: str
         name: name.trim(),
         email: normalizeEmail(email),
         password: password.trim(),
+        city: extras?.city?.trim() ?? "",
+        gender: extras?.gender ?? "",
       }),
     });
 

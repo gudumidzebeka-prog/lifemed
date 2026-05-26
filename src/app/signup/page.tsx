@@ -4,22 +4,32 @@ import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
 import { Disclaimer } from "@/components/ui/badge";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { useTranslation } from "@/components/providers/locale-provider";
 import { signUpWithEmail } from "@/lib/supabase/auth";
-import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { EMPTY_PROFILE } from "@/lib/health/empty-profile";
+import { isProfileGender, profileGenderOptions, type ProfileGender } from "@/lib/health/profile-gender";
+import { loadCachedProfileFields, saveCachedProfileFields } from "@/lib/health/profile-local-cache";
 import { APP_NAME } from "@/lib/constants";
 import { Heart } from "lucide-react";
 
 export default function SignupPage() {
   const { t } = useTranslation();
   const [name, setName] = useState("");
+  const [city, setCity] = useState("");
+  const [gender, setGender] = useState<ProfileGender | "">("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  const genderOptions = [
+    { value: "", label: t("auth.genderPlaceholder") },
+    ...profileGenderOptions(t),
+  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,13 +37,27 @@ export default function SignupPage() {
     setError(null);
     setSuccess(null);
 
+    const selectedGender = isProfileGender(gender) ? gender : undefined;
+
     const { error: signUpError, demo, needsConfirmation } = await signUpWithEmail(
       name,
       email,
-      password
+      password,
+      {
+        city,
+        gender: selectedGender,
+      }
     );
 
     if (demo) {
+      const cached = loadCachedProfileFields(null);
+      saveCachedProfileFields(null, {
+        ...EMPTY_PROFILE,
+        ...cached,
+        fullName: name.trim(),
+        city: city.trim() || undefined,
+        gender: selectedGender,
+      });
       window.location.href = "/dashboard";
       return;
     }
@@ -100,6 +124,18 @@ export default function SignupPage() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
+            />
+            <Input
+              label={t("auth.city")}
+              placeholder={t("auth.cityPlaceholder")}
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+            />
+            <Select
+              label={t("auth.gender")}
+              value={gender}
+              onChange={(e) => setGender(e.target.value as ProfileGender | "")}
+              options={genderOptions}
             />
             <Input
               label={t("auth.email")}

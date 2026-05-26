@@ -9,6 +9,8 @@ export type CachedProfileFields = Pick<
   | "dateOfBirth"
   | "email"
   | "phone"
+  | "city"
+  | "gender"
   | "bloodType"
   | "allergies"
   | "chronicIllnesses"
@@ -39,6 +41,8 @@ export function saveCachedProfileFields(userId: string | null, profile: HealthPr
     dateOfBirth: normalizeDateOfBirth(profile.dateOfBirth),
     email: profile.email,
     phone: profile.phone,
+    city: profile.city,
+    gender: profile.gender,
     bloodType: profile.bloodType,
     allergies: profile.allergies,
     chronicIllnesses: profile.chronicIllnesses,
@@ -58,6 +62,8 @@ export function mergeProfileWithCache(profile: HealthProfile, userId: string | n
     dateOfBirth: normalizeDateOfBirth(profile.dateOfBirth) || normalizeDateOfBirth(cached.dateOfBirth),
     email: profile.email?.trim() ? profile.email : cached.email,
     phone: profile.phone?.trim() ? profile.phone : cached.phone,
+    city: profile.city?.trim() ? profile.city : cached.city,
+    gender: profile.gender ?? cached.gender,
     bloodType: profile.bloodType?.trim() ? profile.bloodType : cached.bloodType,
     allergies: profile.allergies.length > 0 ? profile.allergies : cached.allergies,
     chronicIllnesses:

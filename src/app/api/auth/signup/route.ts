@@ -3,6 +3,8 @@ import { createRouteHandlerClient } from "@/lib/supabase/route-handler";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { getAppUrl } from "@/lib/server-env";
 
+import { isProfileGender, type ProfileGender } from "@/lib/health/profile-gender";
+
 export async function POST(request: Request) {
   if (!isSupabaseConfigured()) {
     return NextResponse.json({ error: "Supabase not configured" }, { status: 503 });
@@ -13,10 +15,14 @@ export async function POST(request: Request) {
       name?: string;
       email?: string;
       password?: string;
+      city?: string;
+      gender?: string;
     };
     const name = body.name?.trim() ?? "";
     const email = body.email?.trim().toLowerCase();
     const password = body.password?.trim();
+    const city = body.city?.trim() ?? "";
+    const gender: ProfileGender | "" = isProfileGender(body.gender) ? body.gender : "";
 
     if (!name || !email || !password) {
       return NextResponse.json({ error: "Name, email and password are required" }, { status: 400 });
@@ -30,7 +36,11 @@ export async function POST(request: Request) {
       email,
       password,
       options: {
-        data: { full_name: name },
+        data: {
+          full_name: name,
+          city,
+          gender,
+        },
         emailRedirectTo: `${appUrl}/auth/callback`,
       },
     });

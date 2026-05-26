@@ -4,9 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
 import { useTranslation } from "@/components/providers/locale-provider";
 import { useHealthDataContext } from "@/components/providers/health-data-provider";
 import { normalizeDateOfBirth } from "@/lib/health/profile-dates";
+import { isProfileGender, profileGenderOptions, type ProfileGender } from "@/lib/health/profile-gender";
 
 interface EditProfileModalProps {
   open: boolean;
@@ -21,16 +23,25 @@ export function EditProfileModal({ open, onClose }: EditProfileModalProps) {
   const [form, setForm] = useState({
     fullName: profile.fullName,
     dateOfBirth: normalizeDateOfBirth(profile.dateOfBirth),
+    city: profile.city ?? "",
+    gender: profile.gender ?? "",
     email: profile.email ?? "",
     phone: profile.phone ?? "",
   });
   const wasOpenRef = useRef(false);
+
+  const genderOptions = [
+    { value: "", label: t("modals.profileGenderPlaceholder") },
+    ...profileGenderOptions(t),
+  ];
 
   useEffect(() => {
     if (open && !wasOpenRef.current) {
       setForm({
         fullName: profile.fullName,
         dateOfBirth: normalizeDateOfBirth(profile.dateOfBirth),
+        city: profile.city ?? "",
+        gender: profile.gender ?? "",
         email: profile.email ?? "",
         phone: profile.phone ?? "",
       });
@@ -46,15 +57,21 @@ export function EditProfileModal({ open, onClose }: EditProfileModalProps) {
     setSaving(true);
     setError(null);
 
+    const selectedGender = isProfileGender(form.gender) ? form.gender : undefined;
+
     const updates: {
       fullName: string;
       email: string;
       phone: string;
+      city: string;
+      gender?: ProfileGender;
       dateOfBirth?: string;
     } = {
       fullName: form.fullName.trim(),
       email: form.email.trim(),
       phone: form.phone.trim(),
+      city: form.city.trim(),
+      gender: selectedGender,
     };
 
     if (form.dateOfBirth) {
@@ -87,6 +104,18 @@ export function EditProfileModal({ open, onClose }: EditProfileModalProps) {
           type="date"
           value={form.dateOfBirth}
           onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })}
+        />
+        <Input
+          label={t("modals.profileCity")}
+          placeholder={t("modals.profileCityPlaceholder")}
+          value={form.city}
+          onChange={(e) => setForm({ ...form, city: e.target.value })}
+        />
+        <Select
+          label={t("modals.profileGender")}
+          value={form.gender}
+          onChange={(e) => setForm({ ...form, gender: e.target.value as ProfileGender | "" })}
+          options={genderOptions}
         />
         <Input
           label={t("modals.profileEmail")}

@@ -248,7 +248,15 @@ function withMedicationReminders(profile: HealthProfile): HealthProfile {
 type ProfileFieldUpdates = Partial<
   Pick<
     HealthProfile,
-    "fullName" | "dateOfBirth" | "email" | "phone" | "bloodType" | "allergies" | "chronicIllnesses"
+    | "fullName"
+    | "dateOfBirth"
+    | "email"
+    | "phone"
+    | "city"
+    | "gender"
+    | "bloodType"
+    | "allergies"
+    | "chronicIllnesses"
   >
 >;
 
@@ -266,6 +274,12 @@ function applyProfileFieldUpdates(profile: HealthProfile, updates: ProfileFieldU
   }
   if (updates.phone !== undefined) {
     next.phone = updates.phone.trim() || undefined;
+  }
+  if (updates.city !== undefined) {
+    next.city = updates.city.trim() || undefined;
+  }
+  if (updates.gender !== undefined) {
+    next.gender = updates.gender || undefined;
   }
   if (updates.bloodType !== undefined) {
     next.bloodType = updates.bloodType.trim() ? updates.bloodType.trim() : undefined;
@@ -716,6 +730,10 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
           email: next.email,
 
           phone: next.phone,
+
+          city: next.city,
+
+          gender: next.gender,
 
           bloodType: next.bloodType,
 

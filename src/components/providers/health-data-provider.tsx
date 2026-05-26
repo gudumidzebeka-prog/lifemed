@@ -49,7 +49,7 @@ interface HealthDataContextValue {
     updates: Partial<
       Pick<
         HealthProfile,
-        "fullName" | "dateOfBirth" | "email" | "phone" | "bloodType" | "allergies" | "chronicIllnesses"
+        "fullName" | "dateOfBirth" | "email" | "phone" | "city" | "gender" | "bloodType" | "allergies" | "chronicIllnesses"
       >
     >
   ) => Promise<{ error: string | null }>;

@@ -11,6 +11,8 @@ CREATE TABLE IF NOT EXISTS profiles (
   date_of_birth DATE,
   email TEXT,
   phone TEXT,
+  city TEXT,
+  gender TEXT,
   blood_type TEXT,
   allergies TEXT[] DEFAULT '{}',
   chronic_illnesses TEXT[] DEFAULT '{}',
@@ -205,10 +207,12 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 BEGIN
-  INSERT INTO public.profiles (id, full_name)
+  INSERT INTO public.profiles (id, full_name, city, gender)
   VALUES (
     NEW.id,
-    COALESCE(NEW.raw_user_meta_data->>'full_name', 'New User')
+    COALESCE(NEW.raw_user_meta_data->>'full_name', 'New User'),
+    NULLIF(TRIM(NEW.raw_user_meta_data->>'city'), ''),
+    NULLIF(TRIM(NEW.raw_user_meta_data->>'gender'), '')
   )
   ON CONFLICT (id) DO NOTHING;
 

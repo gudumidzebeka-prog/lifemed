@@ -9,6 +9,7 @@ import type {
   TimelineEvent,
 } from "@/types/health";
 import { inferMimeType } from "@/lib/health/mime";
+import { isProfileGender, type ProfileGender } from "@/lib/health/profile-gender";
 import { normalizeDateOfBirth } from "@/lib/health/profile-dates";
 
 interface ProfileRow {
@@ -17,6 +18,8 @@ interface ProfileRow {
   date_of_birth: string | null;
   email?: string | null;
   phone?: string | null;
+  city?: string | null;
+  gender?: string | null;
   blood_type: string | null;
   allergies: string[] | null;
   chronic_illnesses: string[] | null;
@@ -91,6 +94,10 @@ export async function fetchHealthProfile(
     dateOfBirth: normalizeDateOfBirth(row.date_of_birth),
     email: row.email ?? undefined,
     phone: row.phone ?? undefined,
+    city: row.city?.trim() ? row.city.trim() : undefined,
+    gender: isProfileGender(row.gender ?? undefined)
+      ? (row.gender as ProfileGender)
+      : undefined,
     bloodType: row.blood_type ?? undefined,
     allergies: row.allergies ?? [],
     chronicIllnesses: row.chronic_illnesses ?? [],
@@ -162,7 +169,15 @@ export async function fetchHealthDocuments(
 
 type ProfilePersistFields = Pick<
   HealthProfile,
-  "fullName" | "dateOfBirth" | "email" | "phone" | "bloodType" | "allergies" | "chronicIllnesses"
+  | "fullName"
+  | "dateOfBirth"
+  | "email"
+  | "phone"
+  | "city"
+  | "gender"
+  | "bloodType"
+  | "allergies"
+  | "chronicIllnesses"
 >;
 
 export async function updateProfile(
@@ -179,6 +194,8 @@ export async function updateProfile(
   }
   if (updates.email !== undefined) patch.email = updates.email.trim() || null;
   if (updates.phone !== undefined) patch.phone = updates.phone.trim() || null;
+  if (updates.city !== undefined) patch.city = updates.city.trim() || null;
+  if (updates.gender !== undefined) patch.gender = updates.gender || null;
   if (updates.bloodType !== undefined) patch.blood_type = updates.bloodType || null;
   if (updates.allergies !== undefined) patch.allergies = updates.allergies;
   if (updates.chronicIllnesses !== undefined) patch.chronic_illnesses = updates.chronicIllnesses;
@@ -199,6 +216,8 @@ export async function upsertHealthProfile(
       id: userId,
       full_name: profile.fullName,
       date_of_birth: normalizeDateOfBirth(profile.dateOfBirth) || null,
+      city: profile.city?.trim() || null,
+      gender: profile.gender || null,
       blood_type: profile.bloodType || null,
       allergies: profile.allergies ?? [],
       chronic_illnesses: profile.chronicIllnesses ?? [],
