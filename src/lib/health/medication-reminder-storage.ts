@@ -27,6 +27,15 @@ export function setMedicationReminderTimes(medicationId: string, times: string[]
   saveMedicationReminderTimes(map);
 }
 
+export function moveMedicationReminderTimes(fromId: string, toId: string) {
+  if (fromId === toId) return;
+  const map = loadMedicationReminderTimes();
+  if (!map[fromId]) return;
+  map[toId] = map[fromId];
+  delete map[fromId];
+  saveMedicationReminderTimes(map);
+}
+
 export function mergeMedicationReminderTimes<T extends { id: string; reminderTimes?: string[] }>(
   medications: T[]
 ): T[] {

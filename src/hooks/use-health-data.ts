@@ -86,6 +86,7 @@ import { EMPTY_PROFILE, emptyLiveProfile } from "@/lib/health/empty-profile";
 
 import {
   mergeMedicationReminderTimes,
+  moveMedicationReminderTimes,
   setMedicationReminderTimes,
 } from "@/lib/health/medication-reminder-storage";
 
@@ -1203,6 +1204,7 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
         if (data) {
 
           const row = data as { id: string };
+          moveMedicationReminderTimes(localMed.id, row.id);
 
           setProfile((prev) => ({
 
@@ -1210,7 +1212,7 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
 
             currentMedications: prev.currentMedications.map((m) =>
 
-              m.id === localMed.id ? { ...m, id: row.id } : m
+              m.id === localMed.id ? { ...m, id: row.id, reminderTimes } : m
 
             ),
 

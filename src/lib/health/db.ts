@@ -37,6 +37,50 @@ interface MedicationRow {
   reminder_times?: string[] | null;
 }
 
+function isMissingReminderTimesColumn(error: { message?: string; code?: string } | null) {
+  if (!error) return false;
+  const message = (error.message ?? "").toLowerCase();
+  return error.code === "PGRST204" || message.includes("reminder_times");
+}
+
+function buildMedicationCorePayload(
+  userId: string,
+  med: {
+    name: string;
+    dosage: string;
+    frequency: string;
+    startDate: string;
+    prescriber?: string;
+  },
+  includeActive = true
+) {
+  return {
+    user_id: userId,
+    name: med.name,
+    dosage: med.dosage,
+    frequency: med.frequency,
+    start_date: med.startDate,
+    prescriber: med.prescriber ?? null,
+    ...(includeActive ? { active: true } : {}),
+  };
+}
+
+function buildMedicationUpdatePayload(med: {
+  name: string;
+  dosage: string;
+  frequency: string;
+  startDate: string;
+  prescriber?: string;
+}) {
+  return {
+    name: med.name,
+    dosage: med.dosage,
+    frequency: med.frequency,
+    start_date: med.startDate,
+    prescriber: med.prescriber ?? null,
+  };
+}
+
 interface ContactRow {
   id: string;
   name: string;
@@ -449,22 +493,19 @@ export async function addMedication(
     reminderTimes?: string[];
   }
 ) {
-  const { data, error } = await supabase
-    .from("medications")
-    .insert({
-      user_id: userId,
-      name: med.name,
-      dosage: med.dosage,
-      frequency: med.frequency,
-      start_date: med.startDate,
-      prescriber: med.prescriber ?? null,
-      reminder_times: med.reminderTimes ?? [],
-      active: true,
-    })
-    .select()
-    .single();
+  const corePayload = buildMedicationCorePayload(userId, med);
+  const payloadWithReminders = {
+    ...corePayload,
+    reminder_times: med.reminderTimes ?? [],
+  };
 
-  return { data, error };
+  let result = await supabase.from("medications").insert(payloadWithReminders).select().single();
+
+  if (result.error && isMissingReminderTimesColumn(result.error)) {
+    result = await supabase.from("medications").insert(corePayload).select().single();
+  }
+
+  return { data: result.data, error: result.error };
 }
 
 interface FamilyRow {
@@ -944,22 +985,31 @@ export async function updateMedication(
     reminderTimes?: string[];
   }
 ) {
-  const { data, error } = await supabase
+  const corePayload = buildMedicationUpdatePayload(med);
+  const payloadWithReminders = {
+    ...corePayload,
+    reminder_times: med.reminderTimes ?? [],
+  };
+
+  let result = await supabase
     .from("medications")
-    .update({
-      name: med.name,
-      dosage: med.dosage,
-      frequency: med.frequency,
-      start_date: med.startDate,
-      prescriber: med.prescriber ?? null,
-      reminder_times: med.reminderTimes ?? [],
-    })
+    .update(payloadWithReminders)
     .eq("id", medicationId)
     .eq("user_id", userId)
     .select()
     .single();
 
-  return { data, error };
+  if (result.error && isMissingReminderTimesColumn(result.error)) {
+    result = await supabase
+      .from("medications")
+      .update(corePayload)
+      .eq("id", medicationId)
+      .eq("user_id", userId)
+      .select()
+      .single();
+  }
+
+  return { data: result.data, error: result.error };
 }
 
 export async function deactivateMedication(
