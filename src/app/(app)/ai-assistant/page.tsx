@@ -5,6 +5,8 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/components/providers/locale-provider";
+import { useAiChat } from "@/hooks/use-ai-chat";
+import { AiStatusBanner } from "@/components/ai/ai-status-banner";
 import { cn } from "@/lib/utils";
 import {
   Sparkles,
@@ -25,6 +27,8 @@ interface Message {
 
 export default function AIAssistantPage() {
   const { t, locale } = useTranslation();
+  const { aiConfigured, sendAiMessage } = useAiChat(locale);
+  const [statusHint, setStatusHint] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -116,31 +120,8 @@ export default function AIAssistantPage() {
         .slice(-16)
         .map((msg) => ({ role: msg.role, content: msg.content }));
 
-      const res = await fetch("/api/ai", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "same-origin",
-        body: JSON.stringify({ message: text.trim(), locale, history }),
-      });
-
-      const data = await res.json();
-
-      if (typeof data.response === "string" && data.response.trim()) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: (Date.now() + 1).toString(),
-            role: "assistant",
-            content: data.response,
-            timestamp: new Date(),
-          },
-        ]);
-        return;
-      }
-
-      if (!res.ok) {
-        throw new Error(data.error ?? t("ai.aiUnavailable"));
-      }
+      const data = await sendAiMessage(text.trim(), history);
+      setStatusHint(data.hint ?? null);
 
       setMessages((prev) => [
         ...prev,
@@ -202,6 +183,9 @@ export default function AIAssistantPage() {
           )}
         </div>
         {!focusChat && <p className="mt-1 text-muted">{t("ai.subtitle")}</p>}
+        <div className="mt-3">
+          <AiStatusBanner aiConfigured={aiConfigured} hint={statusHint} />
+        </div>
       </div>
 
       {!focusChat && (

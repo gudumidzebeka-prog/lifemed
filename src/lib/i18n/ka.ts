@@ -410,7 +410,7 @@ export const ka: TranslationTree = {
     you: "შენ",
     setupHint:
       "ნამდვილი AI-სთვის დაამატე უფასო GROQ_API_KEY Vercel-ში (console.groq.com) ან GEMINI_API_KEY (aistudio.google.com).",
-    demoModeNote: "AI გასაღები არ არის — ჩვენებითი პასუხები. დაამატე Gemini key ნამდვილი ჩატისთვის.",
+    demoModeNote: "AI გასაღები არ არის — ჩვენებითი პასუხები. Vercel-ში დაამატე GROQ_API_KEY ნამდვილი ჩატისთვის.",
     promptSummarize: "შეჯამე ჩემი ისტორია",
     promptLabs: "აგიხსნა ანალიზები",
     promptInteractions: "შეამოწმე მედიკამენტები",

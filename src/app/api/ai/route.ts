@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { translations, type Locale } from "@/lib/i18n";
+import type { AIClientSnapshot } from "@/lib/health/ai-client-snapshot";
 import {
   buildAIHealthContext,
   buildSmartDemoResponse,
@@ -7,6 +8,7 @@ import {
 } from "@/lib/health/ai-context";
 import { generateAIResponse, AIProviderError, type ChatTurn } from "@/lib/health/ai-provider";
 import { isAIConfigured } from "@/lib/server-env";
+import type { Appointment, HealthDocument, HealthProfile, TimelineEvent } from "@/types/health";
 
 function parseLocale(value: unknown): Locale {
   if (value === "ru" || value === "en" || value === "ka") return value;
@@ -32,9 +34,26 @@ function parseHistory(value: unknown): ChatTurn[] {
     .slice(-16);
 }
 
+function parseClientSnapshot(value: unknown): AIClientSnapshot | undefined {
+  if (!value || typeof value !== "object") return undefined;
+
+  const snapshot = value as Partial<AIClientSnapshot>;
+  if (snapshot.mode !== "demo" && snapshot.mode !== "live") return undefined;
+  if (!snapshot.profile || typeof snapshot.profile !== "object") return undefined;
+
+  return {
+    mode: snapshot.mode,
+    profile: snapshot.profile as HealthProfile,
+    timeline: Array.isArray(snapshot.timeline) ? (snapshot.timeline as TimelineEvent[]) : [],
+    documents: Array.isArray(snapshot.documents) ? (snapshot.documents as HealthDocument[]) : [],
+    appointments: Array.isArray(snapshot.appointments)
+      ? (snapshot.appointments as Appointment[])
+      : [],
+  };
+}
+
 export async function POST(request: NextRequest) {
-  const locale: Locale = "ka";
-  let message = "";
+  let locale: Locale = "ka";
 
   try {
     let body: Record<string, unknown>;
@@ -44,23 +63,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
     }
 
-    message = typeof body.message === "string" ? body.message.trim() : "";
-    const parsedLocale = parseLocale(body.locale);
+    const message = typeof body.message === "string" ? body.message.trim() : "";
+    locale = parseLocale(body.locale);
     const history = parseHistory(body.history);
+    const clientSnapshot = parseClientSnapshot(body.clientSnapshot);
+    const aiConfigured = isAIConfigured();
 
     if (!message) {
       return NextResponse.json({ error: "Message is required" }, { status: 400 });
     }
 
-    const medicalDisclaimer = translations[parsedLocale].disclaimers.medical;
-    const ctx = await buildAIHealthContext();
+    const medicalDisclaimer = translations[locale].disclaimers.medical;
+    const ctx = await buildAIHealthContext(clientSnapshot);
     const contextPayload = formatContextForPrompt(ctx);
     const patientContext = JSON.stringify(contextPayload, null, 2);
 
-    if (isAIConfigured()) {
+    if (aiConfigured) {
       try {
         const ai = await generateAIResponse({
-          locale: parsedLocale,
+          locale,
           message,
           history,
           patientContext,
@@ -71,10 +92,11 @@ export async function POST(request: NextRequest) {
           response: ai.text,
           source: ai.provider,
           dataSource: ctx.source,
+          aiConfigured: true,
         });
       } catch (err) {
         console.error("AI provider error:", err);
-        const aiText = translations[parsedLocale].ai;
+        const aiText = translations[locale].ai;
 
         if (err instanceof AIProviderError) {
           if (err.kind === "quota") {
@@ -83,6 +105,7 @@ export async function POST(request: NextRequest) {
               source: "error",
               errorKind: "quota",
               dataSource: ctx.source,
+              aiConfigured: true,
             });
           }
 
@@ -92,6 +115,7 @@ export async function POST(request: NextRequest) {
               source: "error",
               errorKind: "auth",
               dataSource: ctx.source,
+              aiConfigured: true,
             });
           }
 
@@ -102,6 +126,7 @@ export async function POST(request: NextRequest) {
                 source: "error",
                 errorKind: "network",
                 dataSource: ctx.source,
+                aiConfigured: true,
               },
               { status: 503 }
             );
@@ -113,6 +138,7 @@ export async function POST(request: NextRequest) {
             response: aiText.aiUnavailable,
             source: "error",
             dataSource: ctx.source,
+            aiConfigured: true,
           },
           { status: 503 }
         );
@@ -120,16 +146,16 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({
-      response: `${buildSmartDemoResponse(message, ctx, parsedLocale)}\n\n—\n${medicalDisclaimer}`,
+      response: `${buildSmartDemoResponse(message, ctx, locale)}\n\n—\n${medicalDisclaimer}`,
       source: "demo",
       dataSource: ctx.source,
       aiConfigured: false,
-      hint: translations[parsedLocale].ai.setupHint,
+      hint: translations[locale].ai.setupHint,
     });
   } catch (err) {
     console.error("AI route error:", err);
     return NextResponse.json(
-      { error: translations[locale].ai.errorConnection, source: "error" },
+      { error: translations[locale].ai.errorConnection, source: "error", aiConfigured: isAIConfigured() },
       { status: 500 }
     );
   }

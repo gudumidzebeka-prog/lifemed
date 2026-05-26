@@ -3,8 +3,9 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Disclaimer } from "@/components/ui/badge";
+import { AiStatusBanner } from "@/components/ai/ai-status-banner";
 import { useTranslation } from "@/components/providers/locale-provider";
+import { useAiChat } from "@/hooks/use-ai-chat";
 import { APP_NAME } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { Loader2, Send, Sparkles } from "lucide-react";
@@ -22,6 +23,8 @@ interface DashboardAiPanelProps {
 
 export function DashboardAiPanel({ locale }: DashboardAiPanelProps) {
   const { t } = useTranslation();
+  const { aiConfigured, sendAiMessage } = useAiChat(locale);
+  const [statusHint, setStatusHint] = useState<string | null>(null);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -49,28 +52,15 @@ export function DashboardAiPanel({ locale }: DashboardAiPanelProps) {
 
     try {
       const history = messages.slice(-16).map((msg) => ({ role: msg.role, content: msg.content }));
-
-      const res = await fetch("/api/ai", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "same-origin",
-        body: JSON.stringify({ message: text.trim(), locale, history }),
-      });
-
-      const data = await res.json();
-      const responseText =
-        typeof data.response === "string" && data.response.trim()
-          ? data.response
-          : !res.ok
-            ? (data.error ?? t("ai.aiUnavailable"))
-            : t("ai.aiUnavailable");
+      const data = await sendAiMessage(text.trim(), history);
+      setStatusHint(data.hint ?? null);
 
       setMessages((prev) => [
         ...prev,
         {
           id: `${Date.now()}-assistant`,
           role: "assistant",
-          content: responseText,
+          content: data.response,
         },
       ]);
     } catch (err) {
@@ -179,8 +169,8 @@ export function DashboardAiPanel({ locale }: DashboardAiPanelProps) {
       </div>
 
       <div className="shrink-0 border-t border-border bg-surface p-4 sm:p-5">
-        <Disclaimer variant="info" className="mb-3" />
-        <form onSubmit={handleSubmit} className="flex gap-2">
+        <AiStatusBanner aiConfigured={aiConfigured} hint={statusHint} />
+        <form onSubmit={handleSubmit} className="mt-3 flex gap-2">
           <input
             ref={inputRef}
             type="text"
