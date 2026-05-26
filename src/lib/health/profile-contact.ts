@@ -103,14 +103,21 @@ export async function syncProfileLocationToAuth(
   return { error };
 }
 
-function isMissingLocationColumnError(error: { message?: string; code?: string } | null) {
+function isMissingOptionalColumnError(
+  error: { message?: string; code?: string } | null,
+  patch: ProfilePersistSlice
+) {
   if (!error) return false;
+
   const message = (error.message ?? "").toLowerCase();
-  return (
-    error.code === "PGRST204" ||
-    message.includes("city") ||
-    message.includes("gender")
-  );
+  if (error.code === "PGRST204") return true;
+
+  if (patch.email !== undefined && message.includes("email")) return true;
+  if (patch.phone !== undefined && message.includes("phone")) return true;
+  if (patch.city !== undefined && message.includes("city")) return true;
+  if (patch.gender !== undefined && message.includes("gender")) return true;
+
+  return message.includes("could not find the") && message.includes("column");
 }
 
 export function isMissingProfileColumnError(error: { message?: string; code?: string } | null) {
@@ -120,11 +127,7 @@ export function isMissingProfileColumnError(error: { message?: string; code?: st
   return (
     error.code === "PGRST204" ||
     message.includes("could not find the") ||
-    message.includes("column") ||
-    message.includes("phone") ||
-    message.includes("email") ||
-    message.includes("city") ||
-    message.includes("gender")
+    message.includes("column")
   );
 }
 
@@ -133,26 +136,40 @@ export async function persistProfileUpdates(
   userId: string,
   updates: ProfilePersistSlice
 ) {
-  const { city, gender, ...rest } = updates;
-  const hasLocation = city !== undefined || gender !== undefined;
+  const { city, gender, email, phone, ...core } = updates;
 
-  if (hasLocation) {
-    const metaResult = await syncProfileLocationToAuth(supabase, { city, gender });
-    if (metaResult.error) {
-      return metaResult;
+  if (email !== undefined || phone !== undefined) {
+    const contactResult = await syncProfileContactToAuth(supabase, { email, phone });
+    if (contactResult.error) {
+      return contactResult;
     }
   }
 
-  if (Object.keys(rest).length > 0) {
-    const { error } = await updateProfile(supabase, userId, rest);
+  if (city !== undefined || gender !== undefined) {
+    const locationResult = await syncProfileLocationToAuth(supabase, { city, gender });
+    if (locationResult.error) {
+      return locationResult;
+    }
+  }
+
+  if (Object.keys(core).length > 0) {
+    const { error } = await updateProfile(supabase, userId, core);
     if (error) {
       return { error };
     }
   }
 
-  if (hasLocation) {
-    const { error } = await updateProfile(supabase, userId, { city, gender });
-    if (error && !isMissingLocationColumnError(error)) {
+  const optionalPatches: ProfilePersistSlice[] = [];
+  if (email !== undefined || phone !== undefined) {
+    optionalPatches.push({ email, phone });
+  }
+  if (city !== undefined || gender !== undefined) {
+    optionalPatches.push({ city, gender });
+  }
+
+  for (const patch of optionalPatches) {
+    const { error } = await updateProfile(supabase, userId, patch);
+    if (error && !isMissingOptionalColumnError(error, patch)) {
       return { error };
     }
   }

@@ -2,12 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createRouteHandlerClient } from "@/lib/supabase/route-handler";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
-import {
-  persistProfileUpdates,
-  syncProfileContactToAuth,
-  type ProfilePersistSlice,
-} from "@/lib/health/profile-contact";
-import { upsertProfileContactFields } from "@/lib/health/db";
+import { persistProfileUpdates, type ProfilePersistSlice } from "@/lib/health/profile-contact";
 
 async function ensureProfileColumns() {
   const admin = createAdminClient();
@@ -38,17 +33,6 @@ export async function PATCH(request: Request) {
     const { error } = await persistProfileUpdates(supabase, user.id, updates);
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-
-    if (updates.phone !== undefined || updates.email !== undefined) {
-      await syncProfileContactToAuth(supabase, {
-        phone: typeof updates.phone === "string" ? updates.phone : undefined,
-        email: typeof updates.email === "string" ? updates.email : undefined,
-      });
-      await upsertProfileContactFields(supabase, user.id, {
-        email: updates.email,
-        phone: updates.phone,
-      });
     }
 
     return new NextResponse(JSON.stringify({ ok: true }), {
