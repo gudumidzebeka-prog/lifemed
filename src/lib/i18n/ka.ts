@@ -494,6 +494,7 @@ export const ka: TranslationTree = {
     aptTitle: "სათაური",
     aptProvider: "ექიმი / კლინიკა",
     aptDatetime: "თარიღი და დრო",
+    aptTime: "საათი",
     aptLocation: "მისამართი",
     profileEditTitle: "პროფილის რედაქტირება",
     profileFullName: "სრული სახელი",

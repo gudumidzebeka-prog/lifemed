@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { Input, type InputProps } from "@/components/ui/input";
 import { formatIsoToDayFirstDisplay, parseDayFirstInputToIso } from "@/lib/dates";
 import { cn } from "@/lib/utils";
@@ -8,6 +8,10 @@ import { cn } from "@/lib/utils";
 type DateInputProps = Omit<InputProps, "type" | "value" | "onChange"> & {
   value: string;
   onChange: (isoDate: string) => void;
+};
+
+export type DateInputHandle = {
+  commit: () => string;
 };
 
 function useDateInputState(value: string, onChange: (isoDate: string) => void) {
@@ -22,35 +26,60 @@ function useDateInputState(value: string, onChange: (isoDate: string) => void) {
     if (!trimmed) {
       onChange("");
       setDisplay("");
-      return;
+      return "";
     }
 
     const iso = parseDayFirstInputToIso(trimmed);
     if (iso) {
       onChange(iso);
       setDisplay(formatIsoToDayFirstDisplay(iso));
-      return;
+      return iso;
     }
 
     setDisplay(formatIsoToDayFirstDisplay(value));
+    return value;
   };
 
   return { display, setDisplay, commit };
 }
 
-export function DateInput({
-  value,
-  onChange,
-  placeholder = "DD/MM/YYYY",
-  label,
-  className,
-  onBlur,
-  onKeyDown,
-  ...props
-}: DateInputProps) {
+export const DateInput = forwardRef<DateInputHandle, DateInputProps>(function DateInput(
+  {
+    value,
+    onChange,
+    placeholder = "DD/MM/YYYY",
+    label,
+    className,
+    onBlur,
+    onKeyDown,
+    ...props
+  },
+  ref
+) {
+  const inputRef = useRef<HTMLInputElement>(null);
   const { display, setDisplay, commit } = useDateInputState(value, onChange);
 
+  useImperativeHandle(ref, () => ({
+    commit: () => commit(inputRef.current?.value ?? display),
+  }));
+
+  useEffect(() => {
+    const input = inputRef.current;
+    if (!input) return;
+
+    const form = input.closest("form");
+    if (!form) return;
+
+    const handleFormSubmit = () => {
+      commit(input.value);
+    };
+
+    form.addEventListener("submit", handleFormSubmit);
+    return () => form.removeEventListener("submit", handleFormSubmit);
+  }, [commit]);
+
   const sharedProps = {
+    ref: inputRef,
     type: "text" as const,
     inputMode: "numeric" as const,
     autoComplete: "bday" as const,
@@ -85,4 +114,4 @@ export function DateInput({
   }
 
   return <Input {...props} {...sharedProps} label={label} className={className} />;
-}
+});

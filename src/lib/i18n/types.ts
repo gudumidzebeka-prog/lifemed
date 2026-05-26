@@ -465,6 +465,7 @@ export type TranslationTree = {
     aptTitle: string;
     aptProvider: string;
     aptDatetime: string;
+    aptTime: string;
     aptLocation: string;
     profileEditTitle: string;
     profileFullName: string;

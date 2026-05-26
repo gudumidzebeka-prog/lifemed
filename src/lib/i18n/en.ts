@@ -493,6 +493,7 @@ export const en: TranslationTree = {
     aptTitle: "Title",
     aptProvider: "Provider / clinic",
     aptDatetime: "Date and time",
+    aptTime: "Time",
     aptLocation: "Location",
     profileEditTitle: "Edit profile",
     profileFullName: "Full name",

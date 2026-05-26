@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { DateInput } from "@/components/ui/date-input";
+import { DateInput, type DateInputHandle } from "@/components/ui/date-input";
 import { useTranslation } from "@/components/providers/locale-provider";
 import { useHealthDataContext } from "@/components/providers/health-data-provider";
-import { combineIsoDateAndTime, isoToTimeValue } from "@/lib/dates";
+import { combineIsoDateAndTime, isoToLocalDateOnly, isoToTimeValue } from "@/lib/dates";
 import type { Appointment } from "@/types/health";
 
 interface AddAppointmentModalProps {
@@ -19,6 +19,7 @@ interface AddAppointmentModalProps {
 export function AddAppointmentModal({ open, onClose, appointment }: AddAppointmentModalProps) {
   const { t } = useTranslation();
   const { addAppointment, editAppointment } = useHealthDataContext();
+  const dateInputRef = useRef<DateInputHandle>(null);
   const [title, setTitle] = useState("");
   const [provider, setProvider] = useState("");
   const [dateIso, setDateIso] = useState("");
@@ -34,9 +35,10 @@ export function AddAppointmentModal({ open, onClose, appointment }: AddAppointme
     if (appointment) {
       setTitle(appointment.title);
       setProvider(appointment.provider);
-      setDateIso(appointment.date.slice(0, 10));
+      setDateIso(isoToLocalDateOnly(appointment.date));
       setTime(isoToTimeValue(appointment.date));
       setLocation(appointment.location ?? "");
+      setError(null);
       return;
     }
     setTitle("");
@@ -44,20 +46,37 @@ export function AddAppointmentModal({ open, onClose, appointment }: AddAppointme
     setDateIso("");
     setTime("");
     setLocation("");
+    setError(null);
   }, [appointment, open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !provider.trim() || !dateIso || !time) return;
+    setError(null);
 
-    const isoDate = combineIsoDateAndTime(dateIso, time);
+    const committedDateIso = dateInputRef.current?.commit() || dateIso;
+
+    if (!title.trim() || !provider.trim()) {
+      setError(t("common.errorGeneric"));
+      return;
+    }
+
+    if (!committedDateIso) {
+      setError(t("modals.timelineDate"));
+      return;
+    }
+
+    if (!time.trim()) {
+      setError(t("modals.aptTime"));
+      return;
+    }
+
+    const isoDate = combineIsoDateAndTime(committedDateIso, time);
     if (!isoDate) {
       setError(t("common.errorGeneric"));
       return;
     }
 
     setLoading(true);
-    setError(null);
 
     const payload = {
       title: title.trim(),
@@ -95,9 +114,15 @@ export function AddAppointmentModal({ open, onClose, appointment }: AddAppointme
           required
         />
         <div className="grid gap-4 sm:grid-cols-2">
-          <DateInput label={t("modals.timelineDate")} value={dateIso} onChange={setDateIso} required />
+          <DateInput
+            ref={dateInputRef}
+            label={t("modals.timelineDate")}
+            value={dateIso}
+            onChange={setDateIso}
+            required
+          />
           <Input
-            label={t("modals.aptDatetime")}
+            label={t("modals.aptTime")}
             type="time"
             value={time}
             onChange={(e) => setTime(e.target.value)}

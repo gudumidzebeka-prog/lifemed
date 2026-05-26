@@ -493,6 +493,7 @@ export const ru: TranslationTree = {
     aptTitle: "Название",
     aptProvider: "Врач / клиника",
     aptDatetime: "Дата и время",
+    aptTime: "Время",
     aptLocation: "Адрес",
     profileEditTitle: "Редактировать профиль",
     profileFullName: "Полное имя",

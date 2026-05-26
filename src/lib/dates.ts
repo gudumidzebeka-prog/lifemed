@@ -106,6 +106,16 @@ export function combineDayFirstDateAndTime(dateInput: string, time: string): str
   return new Date(year, month - 1, day, hours, minutes).toISOString();
 }
 
+export function isoToLocalDateOnly(iso: string): string {
+  const value = new Date(iso);
+  if (Number.isNaN(value.getTime())) return "";
+
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 export function isoToDayFirstDateAndTime(iso: string): { date: string; time: string } {
   const value = new Date(iso);
   if (Number.isNaN(value.getTime())) {
