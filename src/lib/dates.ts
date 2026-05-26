@@ -20,6 +20,28 @@ export function parseLocalDate(date: string | Date): Date {
   return parsed;
 }
 
+/** Parse YYYY-MM-DD into day/month/year parts (no leading zeros required in UI). */
+export function parseIsoDateParts(iso: string | null | undefined) {
+  const match = (iso ?? "").match(ISO_DATE_RE);
+  if (!match) return { day: "", month: "", year: "" };
+
+  return {
+    day: String(Number(match[3])),
+    month: String(Number(match[2])),
+    year: match[1],
+  };
+}
+
+/** Build YYYY-MM-DD from separate day, month, year fields. */
+export function buildIsoFromParts(day: string, month: string, year: string): string {
+  const trimmedDay = day.trim();
+  const trimmedMonth = month.trim();
+  const trimmedYear = year.trim();
+  if (!trimmedDay || !trimmedMonth || !trimmedYear) return "";
+
+  return parseDayFirstInputToIso(`${trimmedDay}/${trimmedMonth}/${trimmedYear}`);
+}
+
 /** Display ISO date as DD/MM/YYYY. */
 export function formatIsoToDayFirstDisplay(iso: string | null | undefined): string {
   if (!iso) return "";

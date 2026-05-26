@@ -32,6 +32,9 @@ export const ka: TranslationTree = {
     signOut: "გასვლა",
     live: "Live",
     demo: "Demo",
+    dateDay: "დღე",
+    dateMonth: "თვე",
+    dateYear: "წელი",
   },
   nav: {
     appName: "LifeMed",

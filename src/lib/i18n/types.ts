@@ -46,6 +46,9 @@ export type TranslationTree = {
     signOut: string;
     live: string;
     demo: string;
+    dateDay: string;
+    dateMonth: string;
+    dateYear: string;
   };
   nav: {
     appName: string;

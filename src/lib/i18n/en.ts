@@ -32,6 +32,9 @@ export const en: TranslationTree = {
     signOut: "Sign out",
     live: "Live",
     demo: "Demo",
+    dateDay: "Day",
+    dateMonth: "Month",
+    dateYear: "Year",
   },
   nav: {
     appName: "LifeMed",
