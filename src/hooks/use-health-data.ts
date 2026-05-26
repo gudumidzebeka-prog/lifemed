@@ -72,8 +72,6 @@ import {
 
   removeProfileAvatar as dbRemoveProfileAvatar,
 
-  upsertHealthProfile,
-
   upsertProfileContactFields,
 
 } from "@/lib/health/db";
@@ -103,7 +101,7 @@ import {
   saveCachedFamilyMembers,
 } from "@/lib/health/family-local-cache";
 import { normalizeDateOfBirth } from "@/lib/health/profile-dates";
-import { withAuthContact, syncProfileContactToAuth } from "@/lib/health/profile-contact";
+import { withAuthContact, syncProfileContactToAuth, persistProfileUpdates } from "@/lib/health/profile-contact";
 import { inferMimeType } from "@/lib/health/mime";
 
 import type {
@@ -455,17 +453,19 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
         mergedProfile.fullName !== baseProfile.fullName ||
         (mergedProfile.email ?? "") !== (baseProfile.email ?? "") ||
         (mergedProfile.phone ?? "") !== (baseProfile.phone ?? "") ||
+        (mergedProfile.city ?? "") !== (baseProfile.city ?? "") ||
+        (mergedProfile.gender ?? "") !== (baseProfile.gender ?? "") ||
         (mergedProfile.bloodType ?? "") !== (baseProfile.bloodType ?? "") ||
         JSON.stringify(mergedProfile.allergies) !== JSON.stringify(baseProfile.allergies) ||
         JSON.stringify(mergedProfile.chronicIllnesses) !==
           JSON.stringify(baseProfile.chronicIllnesses);
 
       if (shouldHealProfile) {
-        await upsertHealthProfile(supabase, user.id, {
+        await persistProfileUpdates(supabase, user.id, {
           fullName: mergedProfile.fullName,
           dateOfBirth: mergedProfile.dateOfBirth,
-          email: mergedProfile.email,
-          phone: mergedProfile.phone,
+          city: mergedProfile.city,
+          gender: mergedProfile.gender,
           bloodType: mergedProfile.bloodType,
           allergies: mergedProfile.allergies,
           chronicIllnesses: mergedProfile.chronicIllnesses,
@@ -721,27 +721,7 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
 
         const supabase = createClient();
 
-        const { error } = await upsertHealthProfile(supabase, liveUserId, {
-
-          fullName: next.fullName,
-
-          dateOfBirth: next.dateOfBirth,
-
-          email: next.email,
-
-          phone: next.phone,
-
-          city: next.city,
-
-          gender: next.gender,
-
-          bloodType: next.bloodType,
-
-          allergies: next.allergies,
-
-          chronicIllnesses: next.chronicIllnesses,
-
-        });
+        const { error } = await persistProfileUpdates(supabase, liveUserId, updates);
 
         if (error) {
 
