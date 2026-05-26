@@ -11,7 +11,7 @@ export const LOCALE_STORAGE_KEY = "lifemed-locale";
 export const LOCALE_BCP47: Record<Locale, string> = {
   ka: "ka-GE",
   ru: "ru-RU",
-  en: "en-US",
+  en: "en-GB",
 };
 
 export type TranslationTree = {

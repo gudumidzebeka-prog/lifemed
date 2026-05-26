@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DateInput } from "@/components/ui/date-input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useTranslation } from "@/components/providers/locale-provider";
@@ -105,11 +106,10 @@ export function AddTimelineEventModal({
           required
         />
 
-        <Input
+        <DateInput
           label={t("modals.timelineDate")}
-          type="date"
           value={form.date}
-          onChange={(e) => setForm({ ...form, date: e.target.value })}
+          onChange={(date) => setForm({ ...form, date })}
           required
         />
 

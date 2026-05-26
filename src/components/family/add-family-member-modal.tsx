@@ -6,6 +6,7 @@ import { Camera, Trash2 } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DateInput } from "@/components/ui/date-input";
 import { Select } from "@/components/ui/select";
 import { useTranslation } from "@/components/providers/locale-provider";
 import { useHealthDataContext } from "@/components/providers/health-data-provider";
@@ -241,11 +242,10 @@ export function AddFamilyMemberModal({ open, onClose, member = null }: AddFamily
           options={relationships}
         />
 
-        <Input
+        <DateInput
           label={t("modals.familyDob")}
-          type="date"
           value={form.dateOfBirth}
-          onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })}
+          onChange={(dateOfBirth) => setForm({ ...form, dateOfBirth })}
         />
 
         <div className="flex gap-3 pt-2">

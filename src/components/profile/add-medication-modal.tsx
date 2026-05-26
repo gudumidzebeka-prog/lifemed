@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DateInput } from "@/components/ui/date-input";
 import { MedicationReminderFields } from "@/components/medications/medication-reminder-fields";
 import { useTranslation } from "@/components/providers/locale-provider";
 import { useHealthDataContext } from "@/components/providers/health-data-provider";
@@ -114,11 +115,10 @@ export function AddMedicationModal({ open, onClose, medication }: AddMedicationM
           onChange={(e) => setForm({ ...form, frequency: e.target.value })}
           required
         />
-        <Input
+        <DateInput
           label={t("modals.medStartDate")}
-          type="date"
           value={form.startDate}
-          onChange={(e) => setForm({ ...form, startDate: e.target.value })}
+          onChange={(startDate) => setForm({ ...form, startDate })}
           required
         />
         <Input

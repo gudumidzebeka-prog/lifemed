@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
+import { formatDayFirstDate } from "@/lib/dates";
+
 function formatDesktopDate(date: Date) {
-  return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
+  return formatDayFirstDate(date);
 }
 
 function formatDesktopTime(date: Date) {

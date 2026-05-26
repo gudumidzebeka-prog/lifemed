@@ -6,6 +6,7 @@ import { useTranslation } from "@/components/providers/locale-provider";
 import { useHealthDataContext } from "@/components/providers/health-data-provider";
 import { normalizeDateOfBirth } from "@/lib/health/profile-dates";
 import { isProfileGender, profileGenderOptions, type ProfileGender } from "@/lib/health/profile-gender";
+import { DateInput } from "@/components/ui/date-input";
 import { cn } from "@/lib/utils";
 
 function ProfileFieldRow({
@@ -113,12 +114,11 @@ export function ProfileEditSection() {
         </ProfileFieldRow>
 
         <ProfileFieldRow label={t("modals.profileDob")} htmlFor="profile-dob">
-          <input
+          <DateInput
             id="profile-dob"
-            type="date"
             className={fieldClassName}
             value={form.dateOfBirth}
-            onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })}
+            onChange={(dateOfBirth) => setForm({ ...form, dateOfBirth })}
           />
         </ProfileFieldRow>
 

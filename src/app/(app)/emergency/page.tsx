@@ -5,6 +5,7 @@ import { useTranslation } from "@/components/providers/locale-provider";
 import { useHealthDataContext } from "@/components/providers/health-data-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DateInput } from "@/components/ui/date-input";
 import { Badge } from "@/components/ui/badge";
 import { AddMedicationModal } from "@/components/profile/add-medication-modal";
 import { EmergencyContactModal } from "@/components/profile/emergency-contact-modal";
@@ -242,11 +243,10 @@ export default function EmergencyPage() {
                 value={patientForm.fullName}
                 onChange={(e) => setPatientForm({ ...patientForm, fullName: e.target.value })}
               />
-              <Input
+              <DateInput
                 label={t("profile.dob")}
-                type="date"
                 value={patientForm.dateOfBirth}
-                onChange={(e) => setPatientForm({ ...patientForm, dateOfBirth: e.target.value })}
+                onChange={(dateOfBirth) => setPatientForm({ ...patientForm, dateOfBirth })}
               />
               <Input
                 label={t("modals.profileEmail")}

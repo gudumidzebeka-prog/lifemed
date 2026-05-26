@@ -2,6 +2,7 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import type { Locale } from "@/lib/i18n";
 import { getTranslation, LOCALE_BCP47 } from "@/lib/i18n";
+import { parseLocalDate } from "@/lib/dates";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -12,12 +13,12 @@ export function formatDate(
   locale: Locale = "ka",
   options?: Intl.DateTimeFormatOptions
 ) {
-  const value = typeof date === "string" ? new Date(date) : date;
+  const value = parseLocalDate(date);
   if (Number.isNaN(value.getTime())) return "";
 
   return new Intl.DateTimeFormat(LOCALE_BCP47[locale], {
-    month: "short",
     day: "numeric",
+    month: "short",
     year: "numeric",
     ...options,
   }).format(value);
@@ -25,7 +26,7 @@ export function formatDate(
 
 export function formatRelativeTime(date: string | Date, locale: Locale = "ka") {
   const now = new Date();
-  const target = typeof date === "string" ? new Date(date) : date;
+  const target = parseLocalDate(date);
   const diffMs = now.getTime() - target.getTime();
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
