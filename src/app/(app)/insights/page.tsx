@@ -8,18 +8,17 @@ import { useHealthDataContext } from "@/components/providers/health-data-provide
 import {
   calculateTodayScore,
   getRecentTrackerTrend,
-  getTrackerTrendValue,
   SCORE_MAX,
 } from "@/lib/health/today-score";
 import { loadTrackerEntries, type TrackerEntry, type TrackerType } from "@/lib/health/trackers";
-import { formatDate } from "@/lib/utils";
+import { TrackerLineChart } from "@/components/health/tracker-line-chart";
 
 const CHART_TYPES: TrackerType[] = ["weight", "sleep", "glucose", "blood-pressure"];
 
 export default function InsightsPage() {
   const { t, locale } = useTranslation();
   const { profile, loading } = useHealthDataContext();
-  const [trackerEntries, setTrackerEntries] = useState<TrackerEntry[]>([]);
+  const [trackerEntries, setTrackerEntries] = useState<ReturnType<typeof loadTrackerEntries>>([]);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -101,16 +100,28 @@ export default function InsightsPage() {
         <CardHeader>
           <CardTitle className="text-base">{t("insights.progressGraphs")}</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-8">
-          {CHART_TYPES.map((type) => (
-            <TrendBars
-              key={type}
-              title={t(`trackers.types.${type}` as "trackers.types.weight")}
-              entries={trends[type]}
-              locale={locale}
-              emptyLabel={t("insights.noTrendData")}
-            />
-          ))}
+        <CardContent className="space-y-10">
+          {CHART_TYPES.map((type) => {
+            const entries = trends[type];
+            const isBloodPressure = type === "blood-pressure";
+
+            return (
+              <div key={type} className="space-y-3">
+                <p className="text-sm font-medium text-foreground">
+                  {t(`trackers.types.${type}` as "trackers.types.weight")}
+                </p>
+                <TrackerLineChart
+                  entries={entries}
+                  locale={locale}
+                  emptyLabel={t("insights.noTrendData")}
+                  unit={t(`trackers.unit.${type}` as "trackers.unit.pulse")}
+                  primaryLabel={isBloodPressure ? t("trackers.systolic") : undefined}
+                  showSecondaryLine={isBloodPressure}
+                  secondaryLabel={isBloodPressure ? t("trackers.diastolic") : undefined}
+                />
+              </div>
+            );
+          })}
         </CardContent>
       </Card>
 
@@ -119,60 +130,6 @@ export default function InsightsPage() {
         <Button variant="secondary" href="/health-report">
           {t("insights.exportReport")}
         </Button>
-      </div>
-    </div>
-  );
-}
-
-function TrendBars({
-  title,
-  entries,
-  locale,
-  emptyLabel,
-}: {
-  title: string;
-  entries: TrackerEntry[];
-  locale: "ka" | "ru" | "en";
-  emptyLabel: string;
-}) {
-  if (entries.length === 0) {
-    return (
-      <div>
-        <p className="mb-2 text-sm font-medium">{title}</p>
-        <p className="text-sm text-muted">{emptyLabel}</p>
-      </div>
-    );
-  }
-
-  const values = entries.map(getTrackerTrendValue);
-  const max = Math.max(...values, 1);
-  const chartHeight = 112;
-
-  return (
-    <div>
-      <p className="mb-3 text-sm font-medium">{title}</p>
-      <div className="flex items-end gap-2" style={{ height: chartHeight }}>
-        {entries.map((entry) => {
-          const value = getTrackerTrendValue(entry);
-          const barHeight = Math.max(8, Math.round((value / max) * (chartHeight - 24)));
-
-          return (
-            <div
-              key={entry.id}
-              className="flex min-w-0 flex-1 flex-col items-center justify-end gap-1"
-              style={{ height: chartHeight }}
-            >
-              <span className="text-[10px] font-medium text-foreground">{value}</span>
-              <div
-                className="w-full rounded-t-md bg-lifemed-400 dark:bg-lifemed-500"
-                style={{ height: barHeight }}
-              />
-              <span className="text-[10px] text-muted">
-                {formatDate(entry.recordedAt, locale, { day: "numeric", month: "short" })}
-              </span>
-            </div>
-          );
-        })}
       </div>
     </div>
   );
