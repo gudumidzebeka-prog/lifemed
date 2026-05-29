@@ -47,6 +47,38 @@ export function addTrackerEntry(
   return next;
 }
 
+export function updateTrackerEntry(
+  id: string,
+  patch: Partial<Omit<TrackerEntry, "id">>
+): TrackerEntry | null {
+  const entries = loadTrackerEntries();
+  const index = entries.findIndex((entry) => entry.id === id);
+  if (index === -1) return null;
+
+  entries[index] = { ...entries[index], ...patch };
+  saveTrackerEntries(entries);
+  return entries[index];
+}
+
+export function deleteTrackerEntry(id: string): boolean {
+  const entries = loadTrackerEntries();
+  const next = entries.filter((entry) => entry.id !== id);
+  if (next.length === entries.length) return false;
+  saveTrackerEntries(next);
+  return true;
+}
+
+export function formatTrackerValue(
+  entry: TrackerEntry,
+  formatBloodPressureUnit: string,
+  formatUnit: (type: TrackerType) => string
+) {
+  if (entry.type === "blood-pressure" && entry.valueSecondary) {
+    return `${entry.value}/${entry.valueSecondary} ${formatBloodPressureUnit}`;
+  }
+  return `${entry.value} ${formatUnit(entry.type)}`;
+}
+
 export function getTrackerEntriesByType(type: TrackerType, limit = 14) {
   return loadTrackerEntries()
     .filter((entry) => entry.type === type)

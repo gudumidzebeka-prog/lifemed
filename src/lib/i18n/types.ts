@@ -432,10 +432,22 @@ export type TranslationTree = {
     diastolic: string;
     noteOptional: string;
     saveEntry: string;
+    addEntry: string;
+    updateEntry: string;
+    editEntry: string;
+    cancelEdit: string;
+    deleteEntry: string;
+    deleteConfirm: string;
+    invalidValue: string;
+    invalidBloodPressure: string;
     recent: string;
     noEntries: string;
     viewInsights: string;
     viewWellness: string;
+    valueHints: Record<
+      "blood-pressure" | "pulse" | "sleep" | "weight" | "glucose" | "water",
+      string
+    >;
     types: Record<
       "blood-pressure" | "pulse" | "sleep" | "weight" | "glucose" | "water",
       string
