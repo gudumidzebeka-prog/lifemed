@@ -6,20 +6,6 @@ import { useCallback, useEffect, useState } from "react";
 
 import {
 
-  demoAppointments,
-
-  demoDocuments,
-
-  demoFamilyMembers,
-
-  demoProfile,
-
-  demoTimeline,
-
-} from "@/data/demo-data";
-
-import {
-
   addMedication as dbAddMedication,
 
   createAppointment,
@@ -135,7 +121,8 @@ export type DataMode = "demo" | "live";
 
 
 
-const APPOINTMENTS_KEY = "lifemed-appointments";
+const LIVE_REQUIRED_ERROR =
+  "Sign in is required. Connect Supabase and use your account to save health data.";
 
 
 
@@ -147,113 +134,46 @@ function newLocalId() {
 
 
 
-function mergeDemoProfileWithCache(base: HealthProfile, userId: string | null): HealthProfile {
-  const cached = loadCachedProfileFields(userId);
-  if (!cached) return withMedicationReminders(base);
-
-  return withMedicationReminders({
-    ...base,
-    ...cached,
-    id: base.id,
-    userId: base.userId,
-    currentMedications:
-      cached.currentMedications && cached.currentMedications.length > 0
-        ? cached.currentMedications
-        : base.currentMedications,
-    allergies: cached.allergies ?? base.allergies,
-    chronicIllnesses: cached.chronicIllnesses ?? base.chronicIllnesses,
-  });
+function requireLivePersistence(mode: DataMode, userId: string | null): string | null {
+  if (mode === "live" && userId && isSupabaseConfigured()) return null;
+  return LIVE_REQUIRED_ERROR;
 }
 
-function getInitialProfile(supabaseConfigured: boolean) {
-  if (supabaseConfigured) return EMPTY_PROFILE;
-  return mergeDemoProfileWithCache(demoProfile, null);
+function getInitialProfile(_supabaseConfigured: boolean) {
+  return EMPTY_PROFILE;
 }
 
-function getInitialTimeline(supabaseConfigured: boolean) {
-  if (supabaseConfigured) return [];
-  const cached = loadCachedTimeline(null);
-  return cached.length > 0 ? cached : demoTimeline;
+function getInitialTimeline(_supabaseConfigured: boolean) {
+  return [] as TimelineEvent[];
 }
 
-function getInitialDocuments(supabaseConfigured: boolean) {
-  return supabaseConfigured ? [] : demoDocuments;
+function getInitialDocuments(_supabaseConfigured: boolean) {
+  return [] as HealthDocument[];
 }
 
-function getInitialFamilyMembers(supabaseConfigured: boolean) {
-  if (supabaseConfigured) return [];
-  const cached = loadCachedFamilyMembers(null);
-  return cached.length > 0 ? cached : demoFamilyMembers;
+function getInitialFamilyMembers(_supabaseConfigured: boolean) {
+  return [] as FamilyMember[];
 }
 
-function getInitialAppointments(supabaseConfigured: boolean) {
-  return supabaseConfigured ? [] : demoAppointments;
+function getInitialAppointments(_supabaseConfigured: boolean) {
+  return [] as Appointment[];
 }
 
-function loadLocalAppointments(supabaseConfigured: boolean): Appointment[] {
-
-  if (typeof window === "undefined") return getInitialAppointments(supabaseConfigured);
-
-  if (supabaseConfigured) return [];
-
-  try {
-
-    const raw = localStorage.getItem(APPOINTMENTS_KEY);
-
-    if (!raw) return demoAppointments;
-
-    return JSON.parse(raw) as Appointment[];
-
-  } catch {
-
-    return demoAppointments;
-
-  }
-
-}
-
-
-
-function saveLocalAppointments(appointments: Appointment[]) {
-
-  if (typeof window === "undefined") return;
-
-  localStorage.setItem(APPOINTMENTS_KEY, JSON.stringify(appointments));
-
-}
-
-
-
-function applyDemoData(
-  supabaseConfigured: boolean,
-  setters: {
-    setMode: (mode: DataMode) => void;
-    setProfile: (profile: HealthProfile) => void;
-    setTimeline: (timeline: TimelineEvent[]) => void;
-    setDocuments: (documents: HealthDocument[]) => void;
-    setFamilyMembers: (members: FamilyMember[]) => void;
-    setAppointments: (appointments: Appointment[]) => void;
-    setUserId: (userId: string | null) => void;
-  }
-) {
-  if (supabaseConfigured) {
-    setters.setMode("live");
-    setters.setProfile(EMPTY_PROFILE);
-    setters.setTimeline([]);
-    setters.setDocuments([]);
-    setters.setFamilyMembers([]);
-    setters.setAppointments([]);
-    setters.setUserId(null);
-    return;
-  }
-
-  setters.setMode("demo");
-  setters.setProfile(mergeDemoProfileWithCache(demoProfile, null));
-  const cachedTimeline = loadCachedTimeline(null);
-  setters.setTimeline(cachedTimeline.length > 0 ? cachedTimeline : demoTimeline);
-  setters.setDocuments(demoDocuments);
-  setters.setFamilyMembers(demoFamilyMembers);
-  setters.setAppointments(loadLocalAppointments(false));
+function applyEmptyLiveState(setters: {
+  setMode: (mode: DataMode) => void;
+  setProfile: (profile: HealthProfile) => void;
+  setTimeline: (timeline: TimelineEvent[]) => void;
+  setDocuments: (documents: HealthDocument[]) => void;
+  setFamilyMembers: (members: FamilyMember[]) => void;
+  setAppointments: (appointments: Appointment[]) => void;
+  setUserId: (userId: string | null) => void;
+}) {
+  setters.setMode("live");
+  setters.setProfile(EMPTY_PROFILE);
+  setters.setTimeline([]);
+  setters.setDocuments([]);
+  setters.setFamilyMembers([]);
+  setters.setAppointments([]);
   setters.setUserId(null);
 }
 
@@ -340,7 +260,7 @@ async function resolveLiveUserId(
 
 export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured()) {
 
-  const [mode, setMode] = useState<DataMode>(serverSupabaseConfigured ? "live" : "demo");
+  const [mode, setMode] = useState<DataMode>("live");
 
   const [loading, setLoading] = useState(true);
 
@@ -370,7 +290,7 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
 
     if (!supabaseConfigured) {
 
-      applyDemoData(false, {
+      applyEmptyLiveState({
 
         setMode,
 
@@ -418,7 +338,7 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
 
       if (!user) {
 
-        applyDemoData(true, {
+        applyEmptyLiveState({
 
           setMode,
 
@@ -512,7 +432,7 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
 
     } catch {
 
-      applyDemoData(true, {
+      applyEmptyLiveState({
 
         setMode,
 
@@ -583,33 +503,16 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
 
     }) => {
 
-      if (mode === "live" && userId && isSupabaseConfigured()) {
+      const authError = requireLivePersistence(mode, userId);
+      if (authError) return { error: authError };
 
-        const supabase = createClient();
+      const supabase = createClient();
 
-        const { error, event: created } = await createTimelineEvent(supabase, userId, event);
+      const { error, event: created } = await createTimelineEvent(supabase, userId!, event);
 
-        if (error) return { error: error.message };
+      if (error) return { error: error.message };
 
-        if (created) setTimeline((prev) => [...prev, created].sort((a, b) => a.date.localeCompare(b.date)));
-
-        return { error: null };
-
-      }
-
-
-
-      const local: TimelineEvent = {
-
-        id: newLocalId(),
-
-        userId: userId ?? "demo",
-
-        ...event,
-
-      };
-
-      setTimeline((prev) => [...prev, local].sort((a, b) => a.date.localeCompare(b.date)));
+      if (created) setTimeline((prev) => [...prev, created].sort((a, b) => a.date.localeCompare(b.date)));
 
       return { error: null };
 
@@ -1056,43 +959,16 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
 
     async (file: File, category: string) => {
 
-      if (mode === "live" && userId && isSupabaseConfigured()) {
+      const authError = requireLivePersistence(mode, userId);
+      if (authError) return { error: authError };
 
-        const supabase = createClient();
+      const supabase = createClient();
 
-        const { error, document } = await uploadHealthDocument(supabase, userId, file, category);
+      const { error, document } = await uploadHealthDocument(supabase, userId!, file, category);
 
-        if (error) return { error: error.message };
+      if (error) return { error: error.message };
 
-        if (document) setDocuments((prev) => [document, ...prev]);
-
-        return { error: null };
-
-      }
-
-
-
-      const local: HealthDocument = {
-
-        id: newLocalId(),
-
-        userId: userId ?? "demo",
-
-        name: file.name,
-
-        category,
-
-        fileUrl: URL.createObjectURL(file),
-
-        fileType: inferMimeType(file.name, file.type),
-
-        fileSize: file.size,
-
-        uploadedAt: new Date().toISOString(),
-
-      };
-
-      setDocuments((prev) => [local, ...prev]);
+      if (document) setDocuments((prev) => [document, ...prev]);
 
       return { error: null };
 
@@ -1362,49 +1238,30 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
 
     async (input: Omit<Appointment, "id">) => {
 
+      const authError = requireLivePersistence(mode, userId);
+      if (authError) return { error: authError };
+
       const local: Appointment = { id: newLocalId(), ...input };
 
-
-
       setAppointments((prev) => {
-
         const next = [...prev, local].sort((a, b) => a.date.localeCompare(b.date));
-
-        if (mode === "demo") saveLocalAppointments(next);
-
         return next;
-
       });
 
+      const supabase = createClient();
 
+      const { appointment, error } = await createAppointment(supabase, userId!, input);
 
-      if (mode === "live" && userId && isSupabaseConfigured()) {
-
-        const supabase = createClient();
-
-        const { appointment, error } = await createAppointment(supabase, userId, input);
-
-        if (error) {
-
-          setAppointments((prev) => prev.filter((a) => a.id !== local.id));
-
-          return { error: error.message };
-
-        }
-
-        if (appointment) {
-
-          setAppointments((prev) =>
-
-            prev.map((a) => (a.id === local.id ? appointment : a)).sort((a, b) => a.date.localeCompare(b.date))
-
-          );
-
-        }
-
+      if (error) {
+        setAppointments((prev) => prev.filter((a) => a.id !== local.id));
+        return { error: error.message };
       }
 
-
+      if (appointment) {
+        setAppointments((prev) =>
+          prev.map((a) => (a.id === local.id ? appointment : a)).sort((a, b) => a.date.localeCompare(b.date))
+        );
+      }
 
       return { error: null };
 
@@ -1423,8 +1280,6 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
       setAppointments((prev) => {
 
         const next = prev.filter((a) => a.id !== appointmentId);
-
-        if (mode === "demo") saveLocalAppointments(next);
 
         return next;
 
@@ -1467,8 +1322,6 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
           .map((a) => (a.id === appointmentId ? { ...a, ...input } : a))
 
           .sort((a, b) => a.date.localeCompare(b.date));
-
-        if (mode === "demo") saveLocalAppointments(next);
 
         return next;
 
@@ -2024,7 +1877,7 @@ export function useHealthData(serverSupabaseConfigured = isSupabaseConfigured())
 
     reload,
 
-    isDemo: mode === "demo",
+    isDemo: false,
 
     isLive: mode === "live",
 

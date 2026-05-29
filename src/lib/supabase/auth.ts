@@ -17,7 +17,10 @@ function authErrorMessage(err: unknown) {
 
 export async function signInWithEmail(email: string, password: string) {
   if (!isSupabaseConfigured()) {
-    return { error: null as { message: string } | null, demo: true };
+    return {
+      error: { message: "Supabase is not configured. Complete setup before signing in." },
+      demo: false,
+    };
   }
 
   try {
@@ -50,7 +53,11 @@ export async function signUpWithEmail(
   extras?: { city?: string; gender?: ProfileGender }
 ) {
   if (!isSupabaseConfigured()) {
-    return { error: null as { message: string } | null, demo: true, needsConfirmation: false };
+    return {
+      error: { message: "Supabase is not configured. Complete setup before creating an account." },
+      demo: false,
+      needsConfirmation: false,
+    };
   }
 
   try {
@@ -91,7 +98,7 @@ export async function requestPasswordReset(email: string) {
   if (!isSupabaseConfigured()) {
     return {
       error: { message: "Password reset requires Supabase configuration" },
-      demo: true,
+      demo: false,
     };
   }
 
@@ -117,7 +124,7 @@ export async function requestPasswordReset(email: string) {
 
 export async function resetPassword(newPassword: string) {
   if (!isSupabaseConfigured()) {
-    return { error: { message: "Password reset requires Supabase configuration" }, demo: true };
+    return { error: { message: "Password reset requires Supabase configuration" }, demo: false };
   }
 
   try {

@@ -1,21 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { createShareLink, fetchShareLinks, revokeShareLink } from "@/lib/health/db";
-
-import {
-
-  listDemoShares,
-
-  revokeDemoShare,
-
-  saveDemoShare,
-
-} from "@/lib/health/demo-share-store";
-
 import { createClient } from "@/lib/supabase/server";
-
 import { isSupabaseConfigured } from "@/lib/supabase/config";
-
 import { generateShareToken } from "@/lib/utils";
 
 
@@ -23,25 +10,10 @@ import { generateShareToken } from "@/lib/utils";
 export async function GET() {
 
   if (!isSupabaseConfigured()) {
-
-    const links = listDemoShares().map((entry) => ({
-
-      id: entry.token,
-
-      token: entry.token,
-
-      expiresAt: entry.expiresAt,
-
-      permissions: entry.scopes.map((scope) => ({ type: "view", scope })),
-
-      createdAt: entry.createdAt,
-
-      demo: true,
-
-    }));
-
-    return NextResponse.json({ links });
-
+    return NextResponse.json(
+      { error: "Share links require Supabase configuration." },
+      { status: 503 }
+    );
   }
 
 
@@ -95,33 +67,10 @@ export async function POST(request: NextRequest) {
 
 
   if (!isSupabaseConfigured()) {
-
-    saveDemoShare({
-
-      token,
-
-      scopes: scopes ?? [],
-
-      expiresAt,
-
-      createdAt: new Date().toISOString(),
-
-    });
-
-
-
-    return NextResponse.json({
-
-      token,
-
-      url: `${origin}/share/${token}`,
-
-      expiresAt,
-
-      demo: true,
-
-    });
-
+    return NextResponse.json(
+      { error: "Share links require Supabase configuration." },
+      { status: 503 }
+    );
   }
 
 
@@ -203,11 +152,10 @@ export async function DELETE(request: NextRequest) {
 
 
   if (!isSupabaseConfigured()) {
-
-    revokeDemoShare(token);
-
-    return NextResponse.json({ success: true });
-
+    return NextResponse.json(
+      { error: "Share links require Supabase configuration." },
+      { status: 503 }
+    );
   }
 
 

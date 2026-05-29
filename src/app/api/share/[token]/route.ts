@@ -12,12 +12,8 @@ import {
 
 } from "@/lib/health/db";
 
-import { getDemoShare, getDemoSharePayload } from "@/lib/health/demo-share-store";
-
 import { createClient } from "@/lib/supabase/server";
-
 import { createAdminClient } from "@/lib/supabase/admin";
-
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 
@@ -35,25 +31,10 @@ export async function GET(
 
 
   if (!isSupabaseConfigured()) {
-
-    const entry = getDemoShare(token);
-
-    if (!entry) {
-
-      return NextResponse.json({ error: "Link expired or invalid" }, { status: 404 });
-
-    }
-
-
-
-    return NextResponse.json({
-
-      expiresAt: entry.expiresAt,
-
-      ...getDemoSharePayload(entry.scopes),
-
-    });
-
+    return NextResponse.json(
+      { error: "Share links require Supabase configuration." },
+      { status: 503 }
+    );
   }
 
 

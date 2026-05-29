@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface ExpandableCardProps {
   id?: string;
@@ -27,6 +27,10 @@ export function ExpandableCard({
   className,
 }: ExpandableCardProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
+
+  useEffect(() => {
+    if (defaultOpen) setIsOpen(true);
+  }, [defaultOpen]);
 
   return (
     <div

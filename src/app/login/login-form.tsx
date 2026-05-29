@@ -9,7 +9,6 @@ import { Disclaimer } from "@/components/ui/badge";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { useTranslation } from "@/components/providers/locale-provider";
 import { signInWithEmail } from "@/lib/supabase/auth";
-import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { APP_NAME } from "@/lib/constants";
 import { safeRedirectPath } from "@/lib/utils";
 import { Heart } from "lucide-react";
@@ -32,12 +31,7 @@ export function LoginForm() {
     setLoading(true);
     setError(null);
 
-    const { error: signInError, demo } = await signInWithEmail(email, password);
-
-    if (demo) {
-      window.location.href = next;
-      return;
-    }
+    const { error: signInError } = await signInWithEmail(email, password);
 
     if (signInError) {
       setError(signInError.message);
@@ -122,10 +116,6 @@ export function LoginForm() {
               {t("auth.signUpLink")}
             </Link>
           </p>
-
-          {!isSupabaseConfigured() && (
-            <p className="text-center text-xs text-muted">{t("auth.demoLoginNote")}</p>
-          )}
 
           <Disclaimer variant="privacy" />
         </div>

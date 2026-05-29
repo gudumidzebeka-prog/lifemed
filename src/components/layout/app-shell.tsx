@@ -24,7 +24,6 @@ import { useState, useRef, useEffect } from "react";
 import { ThemeToggle } from "./theme-toggle";
 import { LifeMedLogo } from "./lifemed-logo";
 import { DesktopDateTime } from "./desktop-datetime";
-import { LiveModeBadge } from "./live-mode-badge";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -252,7 +251,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <header className="lifemed-mobile-header sticky top-0 z-40 flex items-center justify-between border-b border-border bg-surface/80 px-4 py-3 backdrop-blur-xl safe-top lg:hidden">
             <div className="flex items-center gap-3">
               <LifeMedLogo variant="compact" />
-              <LiveModeBadge />
             </div>
             <div className="flex items-center gap-1">
               <HeaderActions variant="mobile" />

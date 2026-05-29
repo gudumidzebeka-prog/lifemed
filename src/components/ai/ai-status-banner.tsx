@@ -19,7 +19,7 @@ export function AiStatusBanner({
 
   const text = aiConfigured
     ? t("disclaimers.medical")
-    : hint?.trim() || t("ai.demoModeNote");
+    : hint?.trim() || t("ai.setupHint");
 
   const Icon = aiConfigured ? AlertTriangle : Info;
   const styles = aiConfigured

@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ClearDemoDataBanner } from "@/components/onboarding/clear-demo-data-banner";
 import { SetupBanner } from "@/components/onboarding/setup-banner";
 import { AddAppointmentModal } from "@/components/appointments/add-appointment-modal";
 import { AddMedicationModal } from "@/components/profile/add-medication-modal";
@@ -49,6 +49,7 @@ const item = {
 };
 
 export default function DashboardPage() {
+  const router = useRouter();
   const { t, locale } = useTranslation();
   const getTimelineTypeLabel = useTimelineTypeLabel();
   const getDocumentCategoryLabel = useDocumentCategoryLabel();
@@ -88,7 +89,7 @@ export default function DashboardPage() {
     {
       label: t("dashboard.statDocuments"),
       value: documents.length,
-      href: "/documents?upload=true",
+      href: "/documents",
     },
     {
       label: t("dashboard.statMedications"),
@@ -106,7 +107,6 @@ export default function DashboardPage() {
 
   return (
     <motion.div variants={container} initial="hidden" animate="show" className="space-y-8">
-      <ClearDemoDataBanner />
       <SetupBanner />
       <motion.div variants={item} className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -146,8 +146,12 @@ export default function DashboardPage() {
               href="/appointments"
               icon={<Calendar className="h-4 w-4 text-lifemed-500" />}
               title={t("dashboard.nextAppointment")}
+              addLabel={t("appointments.add")}
+              onAdd={() => openAppointmentModal(null)}
               editLabel={t("common.edit")}
-              onEdit={() => openAppointmentModal(nextAppointment)}
+              onEdit={
+                nextAppointment ? () => openAppointmentModal(nextAppointment) : undefined
+              }
             />
             <Link href="/appointments" className="block no-underline text-inherit">
               <CardContent>
@@ -264,11 +268,11 @@ export default function DashboardPage() {
               href="/timeline"
               icon={<Clock className="h-5 w-5 text-lifemed-500" />}
               title={t("dashboard.recentTimeline")}
+              addLabel={t("dashboard.addTimelineEvent")}
+              onAdd={() => setShowTimelineAddModal(true)}
               editLabel={t("common.edit")}
-              onEdit={() =>
-                recentTimeline[0]
-                  ? setEditTimelineEvent(recentTimeline[0])
-                  : setShowTimelineAddModal(true)
+              onEdit={
+                recentTimeline[0] ? () => setEditTimelineEvent(recentTimeline[0]) : undefined
               }
             />
             <CardContent className="space-y-4">
@@ -331,8 +335,12 @@ export default function DashboardPage() {
               href="/documents"
               icon={<FileText className="h-5 w-5 text-lifemed-500" />}
               title={t("dashboard.recentUploads")}
+              addLabel={t("dashboard.addDocument")}
+              onAdd={() => router.push("/documents?upload=true")}
               editLabel={t("documents.view")}
-              onEdit={() => recentDocs[0] && setViewerDoc(recentDocs[0])}
+              onEdit={
+                recentDocs[0] ? () => setViewerDoc(recentDocs[0]) : undefined
+              }
             />
             <CardContent className="space-y-3">
               {recentDocs.length > 0 ? (

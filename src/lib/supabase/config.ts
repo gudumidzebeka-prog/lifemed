@@ -45,7 +45,7 @@ function safeHost(url: string) {
   }
 }
 
-/** Local-only preview without Supabase. Disabled on Vercel/production. */
+/** Demo mode is disabled — Supabase-backed accounts only. */
 export function isDemoModeEnabled() {
-  return !isSupabaseConfigured();
+  return false;
 }

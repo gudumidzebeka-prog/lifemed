@@ -39,7 +39,7 @@ export default function SignupPage() {
 
     const selectedGender = isProfileGender(gender) ? gender : undefined;
 
-    const { error: signUpError, demo, needsConfirmation } = await signUpWithEmail(
+    const { error: signUpError, needsConfirmation } = await signUpWithEmail(
       name,
       email,
       password,
@@ -49,18 +49,6 @@ export default function SignupPage() {
       }
     );
 
-    if (demo) {
-      const cached = loadCachedProfileFields(null);
-      saveCachedProfileFields(null, {
-        ...EMPTY_PROFILE,
-        ...cached,
-        fullName: name.trim(),
-        city: city.trim() || undefined,
-        gender: selectedGender,
-      });
-      window.location.href = "/dashboard";
-      return;
-    }
 
     if (signUpError) {
       setError(signUpError.message);

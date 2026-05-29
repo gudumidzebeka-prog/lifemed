@@ -3,7 +3,6 @@ import { translations, type Locale } from "@/lib/i18n";
 import type { AIClientSnapshot } from "@/lib/health/ai-client-snapshot";
 import {
   buildAIHealthContext,
-  buildSmartDemoResponse,
   formatContextForPrompt,
 } from "@/lib/health/ai-context";
 import { generateAIResponse, AIProviderError, type ChatTurn } from "@/lib/health/ai-provider";
@@ -146,8 +145,8 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({
-      response: `${buildSmartDemoResponse(message, ctx, locale)}\n\n—\n${medicalDisclaimer}`,
-      source: "demo",
+      response: `${translations[locale].ai.aiUnavailable}\n\n${translations[locale].ai.setupHint}`,
+      source: "error",
       dataSource: ctx.source,
       aiConfigured: false,
       hint: translations[locale].ai.setupHint,

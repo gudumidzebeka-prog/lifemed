@@ -15,7 +15,7 @@ import {
   Lock,
 } from "lucide-react";
 
-export function LandingPageClient({ demoEnabled }: { demoEnabled: boolean }) {
+export function LandingPageClient() {
   const { t } = useTranslation();
 
   const features = [
@@ -93,16 +93,9 @@ export function LandingPageClient({ demoEnabled }: { demoEnabled: boolean }) {
                 {t("landing.ctaPrimary")}
                 <ArrowRight className="h-4 w-4" />
               </Button>
-              {demoEnabled && (
-                <>
-                  <Button variant="secondary" size="lg" className="min-w-[200px]" href="/dashboard">
-                    {t("landing.ctaDemo")}
-                  </Button>
-                  <Button variant="ghost" size="lg" href="/setup">
-                    {t("landing.ctaSetup")}
-                  </Button>
-                </>
-              )}
+              <Button variant="ghost" size="lg" href="/setup">
+                {t("landing.ctaSetup")}
+              </Button>
             </div>
           </div>
         </div>
