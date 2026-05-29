@@ -103,14 +103,15 @@ export default function DashboardPage() {
     },
   ];
 
+  const todayScore = useMemo(() => calculateTodayScore(profile), [profile]);
+  const streak = useMemo(() => loadStreak(), []);
+
   if (loading) {
     return <div className="py-20 text-center text-muted">{t("common.loading")}</div>;
   }
 
   const recentTimeline = [...timeline].slice(-4).reverse();
   const recentDocs = documents.slice(0, 3);
-  const todayScore = useMemo(() => calculateTodayScore(profile), [profile]);
-  const streak = useMemo(() => loadStreak(), [profile]);
 
   return (
     <motion.div variants={container} initial="hidden" animate="show" className="space-y-8">
