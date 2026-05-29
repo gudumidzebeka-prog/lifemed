@@ -191,6 +191,13 @@ export type TranslationTree = {
     addTimelineEvent: string;
     noTimeline: string;
     noMedications: string;
+    todayScore: string;
+    todayScoreHint: string;
+    wellnessStreak: string;
+    quickTrackers: string;
+    quickConditions: string;
+    quickInsights: string;
+    quickWellness: string;
   };
   timeline: {
     title: string;
@@ -395,6 +402,9 @@ export type TranslationTree = {
     promptLabs: string;
     promptInteractions: string;
     promptDoctor: string;
+    promptSymptoms: string;
+    promptNutrition: string;
+    promptMood: string;
     demoSummary: string;
     demoNoLabs: string;
     demoLabLatest: string;
@@ -410,6 +420,91 @@ export type TranslationTree = {
     upcoming: string;
     past: string;
     empty: string;
+  };
+  trackers: {
+    title: string;
+    subtitle: string;
+    medicationNote: string;
+    medicationNoteDesc: string;
+    openMedications: string;
+    value: string;
+    systolic: string;
+    diastolic: string;
+    noteOptional: string;
+    saveEntry: string;
+    recent: string;
+    noEntries: string;
+    viewInsights: string;
+    viewWellness: string;
+    types: Record<
+      "blood-pressure" | "pulse" | "sleep" | "weight" | "glucose" | "water",
+      string
+    >;
+    unit: Record<
+      "blood-pressure" | "pulse" | "sleep" | "weight" | "glucose" | "water",
+      string
+    >;
+  };
+  conditions: {
+    title: string;
+    subtitle: string;
+    moduleIncludes: string;
+    openCategoryRecords: string;
+    back: string;
+    nutritionTips: string;
+    riskWarnings: string;
+    dailyChecklist: string;
+    flareTracker: string;
+    flareNote: string;
+    logFlare: string;
+    flareLevel: Record<"1" | "2" | "3", string>;
+    modules: Record<
+      "diabetes" | "lupus" | "kidney-disease" | "hypertension" | "thyroid" | "pcos",
+      {
+        title: string;
+        summary: string;
+        tips: string;
+        warnings: string;
+        checklist: string;
+      }
+    >;
+  };
+  insights: {
+    title: string;
+    subtitle: string;
+    todayScore: string;
+    todayScoreHint: string;
+    breakdownTrackers: string;
+    breakdownChecklist: string;
+    breakdownProfile: string;
+    breakdownMedications: string;
+    progressGraphs: string;
+    noTrendData: string;
+    openTrackers: string;
+    exportReport: string;
+  };
+  wellness: {
+    title: string;
+    subtitle: string;
+    streakTitle: string;
+    streakCurrent: string;
+    streakBest: string;
+    badgesTitle: string;
+    noBadges: string;
+    communityTitle: string;
+    communitySoon: string;
+    openFamily: string;
+    openShare: string;
+    badges: Record<"streak-3" | "streak-7" | "streak-30", string>;
+  };
+  healthReport: {
+    title: string;
+    subtitle: string;
+    print: string;
+    patient: string;
+    timeline: string;
+    documents: string;
+    appointments: string;
   };
   settings: {
     title: string;
@@ -449,6 +544,16 @@ export type TranslationTree = {
     themeToggle: string;
     notificationsPermissionDenied: string;
     notificationsEnabled: string;
+    premium: string;
+    premiumDesc: string;
+    wearables: string;
+    wearablesDesc: string;
+    doctorPanel: string;
+    doctorPanelDesc: string;
+    healthReport: string;
+    healthReportDesc: string;
+    communityForum: string;
+    communityForumDesc: string;
   };
   modals: {
     timelineAddTitle: string;

@@ -16,6 +16,9 @@ import {
   FlaskConical,
   Loader2,
   RotateCcw,
+  Stethoscope,
+  Apple,
+  Brain,
 } from "lucide-react";
 
 interface Message {
@@ -55,8 +58,11 @@ export default function AIAssistantPage() {
 
   const quickPrompts = useMemo(
     () => [
-      { icon: FileText, label: t("ai.promptSummarize"), prompt: t("ai.promptSummarize") },
+      { icon: Stethoscope, label: t("ai.promptSymptoms"), prompt: t("ai.promptSymptoms") },
       { icon: FlaskConical, label: t("ai.promptLabs"), prompt: t("ai.promptLabs") },
+      { icon: Apple, label: t("ai.promptNutrition"), prompt: t("ai.promptNutrition") },
+      { icon: Brain, label: t("ai.promptMood"), prompt: t("ai.promptMood") },
+      { icon: FileText, label: t("ai.promptSummarize"), prompt: t("ai.promptSummarize") },
       { icon: Pill, label: t("ai.promptInteractions"), prompt: t("ai.promptInteractions") },
       { icon: FileText, label: t("ai.promptDoctor"), prompt: t("ai.promptDoctor") },
     ],

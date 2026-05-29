@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,8 @@ import { getTimelineTypeColor } from "@/data/demo-data";
 import { getCategoryPageHref } from "@/lib/health/categories";
 import { formatDate, formatRelativeTime } from "@/lib/utils";
 import { formatReminderTimes, sanitizeReminderTimes } from "@/lib/health/medication-reminders";
+import { calculateTodayScore } from "@/lib/health/today-score";
+import { loadStreak } from "@/lib/health/wellness";
 import type { Appointment, HealthDocument, Medication, TimelineEvent } from "@/types/health";
 import {
   Upload,
@@ -33,6 +35,9 @@ import {
   Plus,
   Pencil,
   Eye,
+  Flame,
+  Activity,
+  HeartHandshake,
 } from "lucide-react";
 
 const container = {
@@ -104,6 +109,8 @@ export default function DashboardPage() {
 
   const recentTimeline = [...timeline].slice(-4).reverse();
   const recentDocs = documents.slice(0, 3);
+  const todayScore = useMemo(() => calculateTodayScore(profile), [profile]);
+  const streak = useMemo(() => loadStreak(), [profile]);
 
   return (
     <motion.div variants={container} initial="hidden" animate="show" className="space-y-8">
@@ -137,6 +144,55 @@ export default function DashboardPage() {
             </Card>
           </Link>
         ))}
+      </motion.div>
+
+      <motion.div variants={item} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Link href="/insights" className="block no-underline text-inherit">
+          <Card className="card-hover h-full">
+            <CardContent className="flex items-center gap-4 p-5">
+              <div
+                className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-full"
+                style={{
+                  background: `conic-gradient(rgb(20 184 166) ${todayScore.total * 3.6}deg, rgb(226 232 240) 0)`,
+                }}
+              >
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-surface text-sm font-bold">
+                  {todayScore.total}
+                </div>
+              </div>
+              <div>
+                <p className="text-sm text-muted">{t("dashboard.todayScore")}</p>
+                <p className="font-semibold text-foreground">{todayScore.total}/100</p>
+                <p className="text-xs text-muted">{t("dashboard.todayScoreHint")}</p>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
+        {[
+          { href: "/trackers", label: t("dashboard.quickTrackers"), icon: Activity },
+          { href: "/conditions", label: t("dashboard.quickConditions"), icon: HeartHandshake },
+          {
+            href: "/wellness",
+            label: t("dashboard.quickWellness"),
+            icon: Flame,
+            meta: t("dashboard.wellnessStreak", { count: streak.current }),
+          },
+        ].map((link) => {
+          const Icon = link.icon;
+          return (
+            <Link key={link.href} href={link.href} className="block no-underline text-inherit">
+              <Card className="card-hover h-full">
+                <CardContent className="flex items-center gap-3 p-5">
+                  <Icon className="h-5 w-5 text-lifemed-500" />
+                  <div>
+                    <p className="font-medium text-foreground">{link.label}</p>
+                    {link.meta ? <p className="text-xs text-muted">{link.meta}</p> : null}
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          );
+        })}
       </motion.div>
 
       <div className="grid gap-6 lg:grid-cols-2">

@@ -10,6 +10,11 @@ export const PROTECTED_ROUTES = [
   "/settings",
   "/emergency",
   "/appointments",
+  "/trackers",
+  "/conditions",
+  "/insights",
+  "/wellness",
+  "/health-report",
 ] as const;
 
 export const AUTH_ROUTES = ["/login", "/signup", "/forgot-password"] as const;

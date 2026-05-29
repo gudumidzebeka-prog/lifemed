@@ -2,8 +2,9 @@
 
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Pencil, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 
 interface ExpandableCardProps {
   id?: string;
@@ -12,6 +13,10 @@ interface ExpandableCardProps {
   icon?: React.ReactNode;
   badge?: React.ReactNode;
   defaultOpen?: boolean;
+  onAdd?: () => void;
+  addLabel?: string;
+  onEdit?: () => void;
+  editLabel?: string;
   children: React.ReactNode;
   className?: string;
 }
@@ -23,6 +28,10 @@ export function ExpandableCard({
   icon,
   badge,
   defaultOpen = false,
+  onAdd,
+  addLabel,
+  onEdit,
+  editLabel,
   children,
   className,
 }: ExpandableCardProps) {
@@ -41,31 +50,67 @@ export function ExpandableCard({
         className
       )}
     >
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex w-full items-center gap-4 p-5 text-left transition-colors hover:bg-surface-elevated"
-      >
-        {icon && (
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-lifemed-50 text-lifemed-600 dark:bg-lifemed-950/50 dark:text-lifemed-400">
-            {icon}
+      <div className="flex items-center gap-2 p-5">
+        <button
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
+          className="flex min-w-0 flex-1 items-center gap-4 text-left transition-colors hover:text-lifemed-600 dark:hover:text-lifemed-400"
+        >
+          {icon && (
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-lifemed-50 text-lifemed-600 dark:bg-lifemed-950/50 dark:text-lifemed-400">
+              {icon}
+            </div>
+          )}
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <h3 className="font-semibold text-foreground truncate">{title}</h3>
+              {badge}
+            </div>
+            {subtitle && <p className="text-sm text-muted mt-0.5 truncate">{subtitle}</p>}
+          </div>
+          <motion.div
+            animate={{ rotate: isOpen ? 180 : 0 }}
+            transition={{ duration: 0.2 }}
+            className="shrink-0"
+          >
+            <ChevronDown className="h-5 w-5 text-muted" />
+          </motion.div>
+        </button>
+        {(onAdd || onEdit) && (
+          <div className="flex shrink-0 items-center gap-1">
+            {onAdd && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="relative z-10 h-8 w-8"
+                aria-label={addLabel ?? editLabel}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onAdd();
+                }}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            )}
+            {onEdit && editLabel && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="relative z-10 h-8 w-8"
+                aria-label={editLabel}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onEdit();
+                }}
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         )}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <h3 className="font-semibold text-foreground truncate">{title}</h3>
-            {badge}
-          </div>
-          {subtitle && <p className="text-sm text-muted mt-0.5 truncate">{subtitle}</p>}
-        </div>
-        <motion.div
-          animate={{ rotate: isOpen ? 180 : 0 }}
-          transition={{ duration: 0.2 }}
-          className="shrink-0"
-        >
-          <ChevronDown className="h-5 w-5 text-muted" />
-        </motion.div>
-      </button>
+      </div>
 
       <AnimatePresence initial={false}>
         {isOpen && (

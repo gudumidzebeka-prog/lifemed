@@ -231,6 +231,20 @@ function CategoriesContent() {
     return t("common.edit");
   };
 
+  const getCategoryAddLabel = (categoryId: string) => {
+    const action = getCategoryAddAction(categoryId);
+    switch (action.type) {
+      case "medication":
+        return t("profile.addMedication");
+      case "allergy":
+        return t("profile.allergies");
+      case "upload":
+        return t("dashboard.addDocument");
+      default:
+        return t("dashboard.addTimelineEvent");
+    }
+  };
+
   if (loading) {
     return <div className="py-20 text-center text-muted">{t("common.loading")}</div>;
   }
@@ -300,6 +314,12 @@ function CategoriesContent() {
               id={`category-${category.id}`}
               defaultOpen={category.id === focusedCategory}
               title={label}
+              addLabel={getCategoryAddLabel(category.id)}
+              onAdd={() => openCategoryAdd(category.id)}
+              editLabel={t("common.edit")}
+              onEdit={
+                records[0] ? () => handleRecordClick(records[0]) : undefined
+              }
               subtitle={
                 count > 0
                   ? `${count} ${count > 1 ? t("common.records") : t("common.record")}`
@@ -369,7 +389,7 @@ function CategoriesContent() {
                     onClick={() => openCategoryAdd(category.id)}
                   >
                     <Plus className="h-4 w-4" />
-                    {t("categories.emptyCategory")}
+                    {t("common.add")}
                   </Button>
                 </div>
               ) : (

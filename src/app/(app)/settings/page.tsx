@@ -22,6 +22,7 @@ import {
   Download,
   LogOut,
   Link2,
+  Sparkles,
 } from "lucide-react";
 
 export default function SettingsPage() {
@@ -214,6 +215,59 @@ export default function SettingsPage() {
               </div>
             ))
           )}
+        </SettingsSection>
+
+        <SettingsSection title={t("settings.premium")}>
+          <SettingsRow
+            icon={<Sparkles className="h-5 w-5 text-lifemed-500" />}
+            label={t("settings.premium")}
+            description={t("settings.premiumDesc")}
+            action={
+              <Button variant="secondary" size="sm" disabled>
+                {t("settings.comingSoon")}
+              </Button>
+            }
+          />
+          <SettingsRow
+            icon={<Download className="h-5 w-5 text-lifemed-500" />}
+            label={t("settings.healthReport")}
+            description={t("settings.healthReportDesc")}
+            action={
+              <Button variant="secondary" size="sm" href="/health-report">
+                {t("common.export")}
+              </Button>
+            }
+          />
+          <SettingsRow
+            icon={<Shield className="h-5 w-5 text-lifemed-500" />}
+            label={t("settings.doctorPanel")}
+            description={t("settings.doctorPanelDesc")}
+            action={
+              <Button variant="secondary" size="sm" disabled>
+                {t("settings.comingSoon")}
+              </Button>
+            }
+          />
+          <SettingsRow
+            icon={<Bell className="h-5 w-5 text-lifemed-500" />}
+            label={t("settings.wearables")}
+            description={t("settings.wearablesDesc")}
+            action={
+              <Button variant="secondary" size="sm" disabled>
+                {t("settings.comingSoon")}
+              </Button>
+            }
+          />
+          <SettingsRow
+            icon={<Link2 className="h-5 w-5 text-lifemed-500" />}
+            label={t("settings.communityForum")}
+            description={t("settings.communityForumDesc")}
+            action={
+              <Button variant="secondary" size="sm" href="/wellness">
+                {t("common.viewAll")}
+              </Button>
+            }
+          />
         </SettingsSection>
 
         <SettingsSection title={t("settings.exportData")}>
