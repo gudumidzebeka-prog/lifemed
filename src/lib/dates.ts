@@ -113,7 +113,7 @@ export function combineIsoDateAndTime(isoDate: string, time: string): string | n
   const match = isoDate.match(ISO_DATE_RE);
   if (!match) return null;
 
-  const timeMatch = time.trim().match(/^(\d{1,2}):(\d{2})$/);
+  const timeMatch = time.trim().match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
   if (!timeMatch) return null;
 
   const year = Number(match[1]);
@@ -131,7 +131,7 @@ export function combineDayFirstDateAndTime(dateInput: string, time: string): str
   const isoDate = parseDayFirstInputToIso(dateInput);
   if (!isoDate) return null;
 
-  const timeMatch = time.trim().match(/^(\d{1,2}):(\d{2})$/);
+  const timeMatch = time.trim().match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
   if (!timeMatch) return null;
 
   const [year, month, day] = isoDate.split("-").map(Number);

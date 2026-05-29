@@ -640,6 +640,8 @@ export type TranslationTree = {
   notifications: {
     medicationTitle: string;
     medicationBody: string;
+    appointmentTitle: string;
+    appointmentBody: string;
   };
   setup: {
     headerSubtitle: string;

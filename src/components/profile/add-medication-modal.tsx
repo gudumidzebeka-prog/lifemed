@@ -9,6 +9,7 @@ import { MedicationReminderFields } from "@/components/medications/medication-re
 import { useTranslation } from "@/components/providers/locale-provider";
 import { useHealthDataContext } from "@/components/providers/health-data-provider";
 import { sanitizeReminderTimes } from "@/lib/health/medication-reminders";
+import { ensureNotificationPermission } from "@/lib/health/browser-notifications";
 import type { Medication } from "@/types/health";
 
 interface AddMedicationModalProps {
@@ -63,13 +64,18 @@ export function AddMedicationModal({ open, onClose, medication }: AddMedicationM
     setLoading(true);
     setError(null);
 
+    const times = sanitizeReminderTimes(reminderTimes);
+    if (times.length > 0) {
+      await ensureNotificationPermission();
+    }
+
     const payload = {
       name: form.name,
       dosage: form.dosage,
       frequency: form.frequency || t("modals.medFrequencyDefault"),
       startDate: form.startDate,
       prescriber: form.prescriber || undefined,
-      reminderTimes: sanitizeReminderTimes(reminderTimes),
+      reminderTimes: times,
     };
 
     const { error: err } = isEditing && medication

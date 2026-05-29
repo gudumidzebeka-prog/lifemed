@@ -1,45 +1,39 @@
-const CACHE_NAME = "lifemed-v2";
-
-// Install — only cache static assets, NOT HTML pages
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) =>
-      cache.addAll(["/manifest.json", "/icon.svg"])
-    )
-  );
-  self.skipWaiting();
+  event.waitUntil(self.skipWaiting());
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
-    )
-  );
-  self.clients.claim();
+  event.waitUntil(self.clients.claim());
 });
 
-// Network-first — never serve stale HTML/CSS without network
-self.addEventListener("fetch", (event) => {
-  if (event.request.method !== "GET") return;
+self.addEventListener("message", (event) => {
+  const data = event.data;
+  if (!data || data.type !== "SHOW_NOTIFICATION") return;
 
-  const url = new URL(event.request.url);
+  const { title, body, tag } = data;
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body,
+      tag,
+      icon: "/favicon.ico",
+      data: { url: data.url ?? "/dashboard" },
+    })
+  );
+});
 
-  // Let Next.js handle all app assets and pages normally
-  if (
-    url.pathname.startsWith("/_next") ||
-    url.pathname.startsWith("/api") ||
-    url.pathname.endsWith(".css") ||
-    url.pathname.endsWith(".js") ||
-    event.request.mode === "navigate"
-  ) {
-    return;
-  }
-
-  // Cache only icons/manifest offline
-  if (url.pathname === "/manifest.json" || url.pathname === "/icon.svg") {
-    event.respondWith(
-      caches.match(event.request).then((cached) => cached || fetch(event.request))
-    );
-  }
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = new URL(event.notification.data?.url ?? "/dashboard", self.location.origin).href;
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
+      for (const client of clients) {
+        if ("focus" in client) {
+          return client.focus();
+        }
+      }
+      if (self.clients.openWindow) {
+        return self.clients.openWindow(url);
+      }
+    })
+  );
 });

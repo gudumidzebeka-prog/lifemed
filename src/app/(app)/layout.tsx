@@ -1,7 +1,7 @@
 import { AppShell } from "@/components/layout/app-shell";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { HealthDataProvider } from "@/components/providers/health-data-provider";
-import { MedicationReminderListener } from "@/components/medications/medication-reminder-listener";
+import { HealthReminderListener } from "@/components/medications/health-reminder-listener";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +10,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <HealthDataProvider supabaseConfigured={supabaseConfigured}>
-      <MedicationReminderListener />
+      <HealthReminderListener />
       <AppShell>{children}</AppShell>
     </HealthDataProvider>
   );

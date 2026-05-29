@@ -744,6 +744,8 @@ export const ru: TranslationTree = {
   notifications: {
     medicationTitle: "LifeMed — лекарство",
     medicationBody: "Пора принять {name} ({dosage}) — {time}",
+    appointmentTitle: "LifeMed — визит",
+    appointmentBody: "Через 24 часа визит: {title} ({provider}) — {when}",
   },
   setup: {
     headerSubtitle: "Пошаговая настройка",

@@ -750,6 +750,8 @@ export const ka: TranslationTree = {
   notifications: {
     medicationTitle: "LifeMed — მედიკამენტი",
     medicationBody: "დროა მიიღოთ {name} ({dosage}) — {time}",
+    appointmentTitle: "LifeMed — ვიზიტი",
+    appointmentBody: "24 საათში გაქვთ ვიზიტი: {title} ({provider}) — {when}",
   },
   setup: {
     headerSubtitle: "ნაბიჯ-ნაბიჯ კონფიგურაცია",

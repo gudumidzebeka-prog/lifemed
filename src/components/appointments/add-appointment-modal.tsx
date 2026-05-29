@@ -8,6 +8,8 @@ import { DateInput, type DateInputHandle } from "@/components/ui/date-input";
 import { useTranslation } from "@/components/providers/locale-provider";
 import { useHealthDataContext } from "@/components/providers/health-data-provider";
 import { combineIsoDateAndTime, isoToLocalDateOnly, isoToTimeValue } from "@/lib/dates";
+import { ensureNotificationPermission } from "@/lib/health/browser-notifications";
+import { loadPreferences } from "@/lib/settings-prefs";
 import type { Appointment } from "@/types/health";
 
 interface AddAppointmentModalProps {
@@ -77,6 +79,10 @@ export function AddAppointmentModal({ open, onClose, appointment }: AddAppointme
     }
 
     setLoading(true);
+
+    if (loadPreferences().appointmentReminders) {
+      await ensureNotificationPermission();
+    }
 
     const payload = {
       title: title.trim(),
