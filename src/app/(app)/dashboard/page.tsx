@@ -19,6 +19,7 @@ import { useHealthDataContext } from "@/components/providers/health-data-provide
 import { displayFirstName } from "@/lib/health/empty-profile";
 import { useTimelineTypeLabel, useDocumentCategoryLabel, useMedicationFrequencyLabel } from "@/lib/i18n/hooks";
 import { getTimelineTypeColor } from "@/data/demo-data";
+import { getCategoryPageHref } from "@/lib/health/categories";
 import { formatDate, formatRelativeTime } from "@/lib/utils";
 import { formatReminderTimes, sanitizeReminderTimes } from "@/lib/health/medication-reminders";
 import type { Appointment, HealthDocument, Medication, TimelineEvent } from "@/types/health";
@@ -92,7 +93,7 @@ export default function DashboardPage() {
     {
       label: t("dashboard.statMedications"),
       value: profile.currentMedications.length,
-      href: "/profile",
+      href: getCategoryPageHref("medications"),
     },
   ];
 
@@ -189,12 +190,16 @@ export default function DashboardPage() {
         <motion.div variants={item}>
           <Card className="card-hover h-full overflow-hidden">
             <DashboardCardHeader
-              href="/profile"
+              href={getCategoryPageHref("medications")}
               icon={<Pill className="h-4 w-4 text-lifemed-500" />}
               title={t("dashboard.todayMedications")}
+              addLabel={t("profile.addMedication")}
+              onAdd={() => openMedicationModal(null)}
               editLabel={t("common.edit")}
-              onEdit={() =>
-                openMedicationModal(profile.currentMedications[0] ?? null)
+              onEdit={
+                profile.currentMedications.length > 0
+                  ? () => openMedicationModal(profile.currentMedications[0])
+                  : undefined
               }
             />
             <CardContent className="space-y-2">
@@ -204,7 +209,10 @@ export default function DashboardPage() {
                     key={med.id}
                     className="flex items-center gap-2 rounded-xl p-2 transition-colors hover:bg-surface-elevated"
                   >
-                    <Link href="/profile" className="min-w-0 flex-1 no-underline text-inherit">
+                    <Link
+                      href={getCategoryPageHref("medications")}
+                      className="min-w-0 flex-1 no-underline text-inherit"
+                    >
                       <p className="text-sm font-medium text-foreground">{med.name}</p>
                       <p className="text-xs text-muted">
                         {med.dosage} · {getMedicationFrequencyLabel(med.frequency)}
@@ -432,14 +440,18 @@ function DashboardCardHeader({
   href,
   icon,
   title,
+  onAdd,
+  addLabel,
   onEdit,
   editLabel,
 }: {
   href: string;
   icon: React.ReactNode;
   title: string;
+  onAdd?: () => void;
+  addLabel?: string;
   onEdit?: () => void;
-  editLabel: string;
+  editLabel?: string;
 }) {
   return (
     <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2">
@@ -450,17 +462,33 @@ function DashboardCardHeader({
         {icon}
         <CardTitle className="text-base text-foreground">{title}</CardTitle>
       </Link>
-      {onEdit && (
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="relative z-10 shrink-0"
-          aria-label={editLabel}
-          onClick={onEdit}
-        >
-          <Pencil className="h-4 w-4" />
-        </Button>
+      {(onAdd || onEdit) && (
+        <div className="flex shrink-0 items-center gap-1">
+          {onAdd && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="relative z-10 shrink-0"
+              aria-label={addLabel ?? editLabel}
+              onClick={onAdd}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          )}
+          {onEdit && editLabel && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="relative z-10 shrink-0"
+              aria-label={editLabel}
+              onClick={onEdit}
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
       )}
     </CardHeader>
   );

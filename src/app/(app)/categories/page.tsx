@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   Heart,
   Brain,
@@ -58,7 +59,19 @@ function getDocumentForRecord(record: CategoryRecord, documents: HealthDocument[
 }
 
 export default function CategoriesPage() {
+  const { t } = useTranslation();
+
+  return (
+    <Suspense fallback={<div className="py-20 text-center text-muted">{t("common.loading")}</div>}>
+      <CategoriesContent />
+    </Suspense>
+  );
+}
+
+function CategoriesContent() {
   const { t, locale } = useTranslation();
+  const searchParams = useSearchParams();
+  const focusedCategory = searchParams.get("category");
   const getHealthCategoryLabel = useHealthCategoryLabel();
   const { loading, timeline, documents, profile, resolveDocumentUrl, downloadDocument } =
     useHealthDataContext();
@@ -78,6 +91,12 @@ export default function CategoriesPage() {
     () => buildCategoryRecords(timeline, documents, profile, locale),
     [timeline, documents, profile, locale]
   );
+
+  useEffect(() => {
+    if (!focusedCategory) return;
+    const target = document.getElementById(`category-${focusedCategory}`);
+    target?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [focusedCategory, loading]);
 
   const openDocumentRecord = (record: CategoryRecord) => {
     const doc = getDocumentForRecord(record, documents);
@@ -227,6 +246,8 @@ export default function CategoriesPage() {
           return (
             <ExpandableCard
               key={category.id}
+              id={`category-${category.id}`}
+              defaultOpen={category.id === focusedCategory}
               title={label}
               subtitle={
                 count > 0

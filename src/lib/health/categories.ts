@@ -304,6 +304,10 @@ export function buildHealthSummary(
 
 }
 
+export function getCategoryPageHref(categoryId: string): string {
+  return `/categories?category=${encodeURIComponent(categoryId)}`;
+}
+
 export function getCategoryAddHref(categoryId: string): string {
   if (categoryId === "medications" || categoryId === "allergies") return "/categories";
   if (categoryId === "lab-results") return "/documents?upload=true";

@@ -1,13 +1,28 @@
 const ISO_DATE_RE = /^(\d{4})-(\d{2})-(\d{2})/;
 const DAY_FIRST_RE = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
 
+const ISO_DATE_ONLY_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
+
 /** Parse YYYY-MM-DD (and Date values) in local time — avoids UTC day shifts. */
 export function parseLocalDate(date: string | Date): Date {
   if (date instanceof Date) return date;
 
-  const isoMatch = date.match(ISO_DATE_RE);
-  if (isoMatch) {
-    return new Date(Number(isoMatch[1]), Number(isoMatch[2]) - 1, Number(isoMatch[3]));
+  const trimmed = date.trim();
+
+  // Date-only ISO: keep local calendar day (no UTC midnight shift).
+  const dateOnlyMatch = trimmed.match(ISO_DATE_ONLY_RE);
+  if (dateOnlyMatch) {
+    return new Date(
+      Number(dateOnlyMatch[1]),
+      Number(dateOnlyMatch[2]) - 1,
+      Number(dateOnlyMatch[3])
+    );
+  }
+
+  // Full ISO datetime (e.g. 2026-07-30T10:00:00.000Z): preserve time in local timezone.
+  if (trimmed.includes("T") || /\d:\d{2}/.test(trimmed)) {
+    const parsed = new Date(trimmed);
+    if (!Number.isNaN(parsed.getTime())) return parsed;
   }
 
   const dayFirst = parseDayFirstInputToIso(date);
