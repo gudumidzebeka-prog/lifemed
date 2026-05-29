@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,7 @@ import { formatDate, formatRelativeTime } from "@/lib/utils";
 import { formatReminderTimes, sanitizeReminderTimes } from "@/lib/health/medication-reminders";
 import { calculateTodayScore } from "@/lib/health/today-score";
 import { loadStreak } from "@/lib/health/wellness";
+import { loadTrackerEntries } from "@/lib/health/trackers";
 import type { Appointment, HealthDocument, Medication, TimelineEvent } from "@/types/health";
 import {
   Upload,
@@ -68,6 +69,11 @@ export default function DashboardPage() {
   const [showTimelineAddModal, setShowTimelineAddModal] = useState(false);
   const [editTimelineEvent, setEditTimelineEvent] = useState<TimelineEvent | null>(null);
   const [viewerDoc, setViewerDoc] = useState<HealthDocument | null>(null);
+  const [trackerEntries, setTrackerEntries] = useState<ReturnType<typeof loadTrackerEntries>>([]);
+
+  useEffect(() => {
+    setTrackerEntries(loadTrackerEntries());
+  }, [profile, timeline, documents]);
 
   const openAppointmentModal = (appointment: Appointment | null = null) => {
     setEditAppointment(appointment);
@@ -102,7 +108,10 @@ export default function DashboardPage() {
     },
   ];
 
-  const todayScore = useMemo(() => calculateTodayScore(profile), [profile]);
+  const todayScore = useMemo(
+    () => calculateTodayScore(profile, 4, trackerEntries),
+    [profile, trackerEntries]
+  );
   const streak = useMemo(() => loadStreak(), []);
 
   if (loading) {
