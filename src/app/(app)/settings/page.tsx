@@ -178,19 +178,6 @@ export default function SettingsPage() {
           />
         </SettingsSection>
 
-        <SettingsSection title={t("settings.setupGuide")}>
-          <SettingsRow
-            icon={<Link2 className="h-5 w-5 text-lifemed-500" />}
-            label={t("settings.setupGuide")}
-            description={t("settings.setupGuideDesc")}
-            action={
-              <Button variant="secondary" size="sm" href="/setup">
-                {t("settings.openSetup")}
-              </Button>
-            }
-          />
-        </SettingsSection>
-
         <SettingsSection title={t("settings.activeShareLinks")}>
           {shareLinks.length === 0 ? (
             <p className="py-4 text-sm text-muted">{t("settings.noShareLinks")}</p>

@@ -93,9 +93,6 @@ export function LandingPageClient() {
                 {t("landing.ctaPrimary")}
                 <ArrowRight className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="lg" href="/setup">
-                {t("landing.ctaSetup")}
-              </Button>
             </div>
           </div>
         </div>
