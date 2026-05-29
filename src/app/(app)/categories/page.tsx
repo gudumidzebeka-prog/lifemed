@@ -137,6 +137,7 @@ function CategoriesContent() {
   const [timelineAddCategory, setTimelineAddCategory] = useState<string | undefined>();
   const [editTimelineEvent, setEditTimelineEvent] = useState<TimelineEvent | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({});
 
   const categoryRecords = useMemo(
     () => buildCategoryRecords(timeline, documents, profile, locale),
@@ -145,9 +146,17 @@ function CategoriesContent() {
 
   useEffect(() => {
     if (!focusedCategory) return;
+    setOpenCategories((prev) => ({ ...prev, [focusedCategory]: true }));
     const target = document.getElementById(`category-${focusedCategory}`);
     target?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [focusedCategory, loading]);
+
+  const isCategoryOpen = (categoryId: string) =>
+    openCategories[categoryId] ?? categoryId === focusedCategory;
+
+  const setCategoryOpen = (categoryId: string, open: boolean) => {
+    setOpenCategories((prev) => ({ ...prev, [categoryId]: open }));
+  };
 
   const openDocumentRecord = (record: CategoryRecord) => {
     const doc = getDocumentForRecord(record, documents);
@@ -162,6 +171,7 @@ function CategoriesContent() {
   };
 
   const openCategoryAdd = (categoryId: string) => {
+    setCategoryOpen(categoryId, true);
     setActionError(null);
     const action = getCategoryAddAction(categoryId);
 
@@ -184,10 +194,11 @@ function CategoriesContent() {
     }
   };
 
-  const handleRecordClick = (record: CategoryRecord) => {
+  const handleRecordClick = (categoryId: string, record: CategoryRecord) => {
     const action = resolveCategoryRecordAction(record);
     if (!action) return;
 
+    setCategoryOpen(categoryId, true);
     setActionError(null);
 
     switch (action.type) {
@@ -312,13 +323,15 @@ function CategoriesContent() {
             <ExpandableCard
               key={category.id}
               id={`category-${category.id}`}
+              open={isCategoryOpen(category.id)}
+              onOpenChange={(open) => setCategoryOpen(category.id, open)}
               defaultOpen={category.id === focusedCategory}
               title={label}
               addLabel={getCategoryAddLabel(category.id)}
               onAdd={() => openCategoryAdd(category.id)}
               editLabel={t("common.edit")}
               onEdit={
-                records[0] ? () => handleRecordClick(records[0]) : undefined
+                records[0] ? () => handleRecordClick(category.id, records[0]) : undefined
               }
               subtitle={
                 count > 0
@@ -345,7 +358,7 @@ function CategoriesContent() {
                           <button
                             type="button"
                             disabled={!isClickable}
-                            onClick={() => handleRecordClick(record)}
+                            onClick={() => handleRecordClick(category.id, record)}
                             className="relative z-10 flex min-w-0 flex-1 items-start gap-3 text-left disabled:cursor-default disabled:opacity-70"
                             aria-label={getRecordAriaLabel(record)}
                           >
@@ -371,7 +384,7 @@ function CategoriesContent() {
                                 size="icon"
                                 className="relative z-10 h-8 w-8"
                                 aria-label={getRecordAriaLabel(record)}
-                                onClick={() => handleRecordClick(record)}
+                                onClick={() => handleRecordClick(category.id, record)}
                               >
                                 <ActionIcon className="h-4 w-4" />
                               </Button>

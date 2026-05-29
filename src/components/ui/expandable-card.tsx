@@ -13,6 +13,8 @@ interface ExpandableCardProps {
   icon?: React.ReactNode;
   badge?: React.ReactNode;
   defaultOpen?: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   onAdd?: () => void;
   addLabel?: string;
   onEdit?: () => void;
@@ -28,6 +30,8 @@ export function ExpandableCard({
   icon,
   badge,
   defaultOpen = false,
+  open,
+  onOpenChange,
   onAdd,
   addLabel,
   onEdit,
@@ -35,11 +39,36 @@ export function ExpandableCard({
   children,
   className,
 }: ExpandableCardProps) {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
+  const isControlled = open !== undefined;
+  const [internalOpen, setInternalOpen] = useState(defaultOpen);
+  const isOpen = isControlled ? open : internalOpen;
+
+  const setOpen = (next: boolean) => {
+    if (!isControlled) {
+      setInternalOpen(next);
+    }
+    onOpenChange?.(next);
+  };
 
   useEffect(() => {
-    if (defaultOpen) setIsOpen(true);
+    if (defaultOpen) {
+      setOpen(true);
+    }
   }, [defaultOpen]);
+
+  const handleAdd = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    event.preventDefault();
+    setOpen(true);
+    onAdd?.();
+  };
+
+  const handleEdit = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    event.preventDefault();
+    setOpen(true);
+    onEdit?.();
+  };
 
   return (
     <div
@@ -50,11 +79,12 @@ export function ExpandableCard({
         className
       )}
     >
-      <div className="flex items-center gap-2 p-5">
+      <div className="relative flex items-center gap-2 p-5">
         <button
           type="button"
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={() => setOpen(!isOpen)}
           className="flex min-w-0 flex-1 items-center gap-4 text-left transition-colors hover:text-lifemed-600 dark:hover:text-lifemed-400"
+          aria-expanded={isOpen}
         >
           {icon && (
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-lifemed-50 text-lifemed-600 dark:bg-lifemed-950/50 dark:text-lifemed-400">
@@ -63,10 +93,10 @@ export function ExpandableCard({
           )}
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <h3 className="font-semibold text-foreground truncate">{title}</h3>
+              <h3 className="truncate font-semibold text-foreground">{title}</h3>
               {badge}
             </div>
-            {subtitle && <p className="text-sm text-muted mt-0.5 truncate">{subtitle}</p>}
+            {subtitle && <p className="mt-0.5 truncate text-sm text-muted">{subtitle}</p>}
           </div>
           <motion.div
             animate={{ rotate: isOpen ? 180 : 0 }}
@@ -77,18 +107,15 @@ export function ExpandableCard({
           </motion.div>
         </button>
         {(onAdd || onEdit) && (
-          <div className="flex shrink-0 items-center gap-1">
+          <div className="relative z-20 flex shrink-0 items-center gap-1">
             {onAdd && (
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="relative z-10 h-8 w-8"
+                className="relative z-20 h-8 w-8"
                 aria-label={addLabel ?? editLabel}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onAdd();
-                }}
+                onClick={handleAdd}
               >
                 <Plus className="h-4 w-4" />
               </Button>
@@ -98,12 +125,9 @@ export function ExpandableCard({
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="relative z-10 h-8 w-8"
+                className="relative z-20 h-8 w-8"
                 aria-label={editLabel}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onEdit();
-                }}
+                onClick={handleEdit}
               >
                 <Pencil className="h-4 w-4" />
               </Button>

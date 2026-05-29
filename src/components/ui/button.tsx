@@ -35,19 +35,37 @@ const buttonClassName = (
   );
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = "primary", size = "md", href, children, ...props }, ref) => {
+  ({ className, variant = "primary", size = "md", href, children, onClick, disabled, type, ...props }, ref) => {
     const classes = buttonClassName(variant, size, className);
 
     if (href) {
+      if (disabled) {
+        return (
+          <span
+            className={cn(classes, "no-underline relative z-10 cursor-not-allowed opacity-50")}
+            aria-disabled="true"
+          >
+            {children}
+          </span>
+        );
+      }
+
+      const { "aria-label": ariaLabel } = props;
+
       return (
-        <Link href={href} className={cn(classes, "no-underline relative z-10 cursor-pointer")}>
+        <Link
+          href={href}
+          className={cn(classes, "no-underline relative z-10 cursor-pointer")}
+          aria-label={ariaLabel}
+          onClick={onClick as React.MouseEventHandler<HTMLAnchorElement> | undefined}
+        >
           {children}
         </Link>
       );
     }
 
     return (
-      <button ref={ref} type={props.type ?? "button"} className={classes} {...props}>
+      <button ref={ref} type={type ?? "button"} className={classes} disabled={disabled} onClick={onClick} {...props}>
         {children}
       </button>
     );

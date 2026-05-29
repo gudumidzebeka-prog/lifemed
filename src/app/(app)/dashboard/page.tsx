@@ -536,7 +536,11 @@ function DashboardCardHeader({
               size="icon"
               className="relative z-10 shrink-0"
               aria-label={addLabel ?? editLabel}
-              onClick={onAdd}
+              onClick={(event) => {
+                event.stopPropagation();
+                event.preventDefault();
+                onAdd();
+              }}
             >
               <Plus className="h-4 w-4" />
             </Button>
@@ -548,7 +552,11 @@ function DashboardCardHeader({
               size="icon"
               className="relative z-10 shrink-0"
               aria-label={editLabel}
-              onClick={onEdit}
+              onClick={(event) => {
+                event.stopPropagation();
+                event.preventDefault();
+                onEdit();
+              }}
             >
               <Pencil className="h-4 w-4" />
             </Button>
